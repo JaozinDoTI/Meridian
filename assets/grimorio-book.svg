@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-labelledby="title desc">
+  <title id="title">Livro mágico aberto</title>
+  <desc id="desc">Emblema original de um grimório aberto sob uma rosa celestial dourada.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#b8863b">
+      <circle cx="120" cy="25" r="10" stroke-width="1.4"/>
+      <path d="M120 4v42M99 25h42M105 10l30 30M135 10l-30 30" stroke-width="1"/>
+      <path d="M120 12l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#fcf8ef" stroke-width="1.3"/>
+      <path d="M63 62h-12m6-6v12M189 62h-12m6-6v12" stroke-width="1.2"/>
+      <path d="M43 75h-6m3-3v6M203 75h-6m3-3v6" stroke-width="1"/>
+    </g>
+
+    <path d="M25 124c28-11 58-12 92 8 34-20 65-19 98-8l-10 16c-33-10-59-9-88 8-29-17-55-18-82-8z" fill="#4b2a1a" stroke="#2d1a12" stroke-width="3"/>
+    <path d="M31 115c31-10 58-7 86 14V63C90 45 61 43 38 51z" fill="#f7edd9" stroke="#8e642d" stroke-width="2.3"/>
+    <path d="M209 115c-31-10-63-7-92 14V63c28-18 58-20 84-12z" fill="#fcf6e9" stroke="#8e642d" stroke-width="2.3"/>
+    <path d="M38 51c26-6 54-1 79 15M201 51c-28-5-58 0-84 15" stroke="#d3ad6d" stroke-width="1.4"/>
+    <path d="M117 63v66c-23-14-47-19-75-13M117 63v66c25-14 53-19 88-13" stroke="#b8863b" stroke-width="1.2"/>
+    <path d="M46 65c21-3 42 2 61 12M45 76c22-2 43 3 62 13M44 88c23-1 43 4 63 14M43 100c24 0 44 5 64 15" stroke="#d8bd8b" stroke-width="1"/>
+    <path d="M194 65c-24-3-46 2-67 12M196 76c-25-2-48 3-69 13M197 88c-26-1-49 4-70 14M198 100c-28 0-51 5-71 15" stroke="#d8bd8b" stroke-width="1"/>
+    <path d="M117 129c-28-20-58-25-88-13M117 129c30-20 62-25 94-13" stroke="#6f1118" stroke-width="1.4"/>
+    <path d="M28 124c28-9 57-7 89 11 32-18 64-20 96-11" stroke="#d3ad6d" stroke-width="2"/>
+    <path d="M117 63c2 4 4 4 6 0v70l-3 7-3-7z" fill="#b8863b" stroke="#6e4824" stroke-width="1"/>
+  </g>
+</svg>

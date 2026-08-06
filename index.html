@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Grimório RPG: crie uma nova ficha de personagem ou prepare a importação de uma ficha existente."
+  />
+  <title>Grimório RPG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./character-sheet.css" />
+</head>
+<body>
+  <main class="grimoire-page min-h-screen" aria-labelledby="page-title">
+    <div class="grimoire-frame" aria-hidden="true">
+      <span class="frame-corner frame-corner--tl"></span>
+      <span class="frame-corner frame-corner--tr"></span>
+      <span class="frame-corner frame-corner--bl"></span>
+      <span class="frame-corner frame-corner--br"></span>
+    </div>
+
+    <div class="astral-circle astral-circle--top" aria-hidden="true">
+      <span></span>
+    </div>
+    <div class="astral-circle astral-circle--bottom" aria-hidden="true">
+      <span></span>
+    </div>
+    <span class="celestial-spark celestial-spark--one" aria-hidden="true">✦</span>
+    <span class="celestial-spark celestial-spark--two" aria-hidden="true">✧</span>
+
+    <section id="landing-view" class="landing-shell">
+      <div class="landing-content flex flex-col items-center text-center">
+        <header class="brand-block flex flex-col items-center">
+          <img
+            class="book-emblem"
+            src="./assets/grimorio-book.svg"
+            alt="Livro aberto sob uma estrela celestial"
+          />
+          <h1 id="page-title" class="grimoire-title">Grimório RPG</h1>
+          <div class="ornamental-divider" aria-hidden="true">
+            <span></span><b>✦</b><span></span>
+          </div>
+          <p class="brand-subtitle">
+            Crie sua ficha, importe um personagem existente<br />
+            e comece sua jornada.
+          </p>
+        </header>
+
+        <div class="action-grid grid">
+          <button id="create-character" class="action-card group" type="button">
+            <span class="card-corner card-corner--tl" aria-hidden="true"></span>
+            <span class="card-corner card-corner--tr" aria-hidden="true"></span>
+            <span class="card-corner card-corner--bl" aria-hidden="true"></span>
+            <span class="card-corner card-corner--br" aria-hidden="true"></span>
+            <span class="action-card__body">
+              <span class="compass-icon" aria-hidden="true">
+                <i></i>
+              </span>
+              <span class="action-card__title">Criar minha ficha</span>
+              <span class="action-card__description">
+                Comece do zero e crie seu<br />personagem passo a passo.
+              </span>
+            </span>
+            <span class="action-card__footer" aria-hidden="true">
+              <i>✦</i><b>✧</b><i>✦</i>
+            </span>
+          </button>
+
+          <button
+            id="import-character"
+            class="action-card group"
+            type="button"
+            aria-controls="json-file"
+          >
+            <span class="card-corner card-corner--tl" aria-hidden="true"></span>
+            <span class="card-corner card-corner--tr" aria-hidden="true"></span>
+            <span class="card-corner card-corner--bl" aria-hidden="true"></span>
+            <span class="card-corner card-corner--br" aria-hidden="true"></span>
+            <span class="action-card__body">
+              <span class="file-icon" aria-hidden="true"><i>{...}</i></span>
+              <span class="action-card__title">Importar ficha JSON</span>
+              <span class="action-card__description">
+                Carregue um arquivo JSON<br />e continue sua jornada.
+              </span>
+            </span>
+            <span class="action-card__footer" aria-hidden="true">
+              <i>✦</i><b class="upload-mark">↥</b><i>✦</i>
+            </span>
+          </button>
+        </div>
+
+        <input id="json-file" type="file" accept=".json,application/json" hidden />
+        <p id="file-status" class="status-message" aria-live="polite"></p>
+
+        <button id="master-access" class="master-access" type="button">
+          <span class="master-icon" aria-hidden="true"><i></i></span>
+          <span>Acesso do mestre</span>
+          <b aria-hidden="true">›</b>
+        </button>
+        <p id="master-status" class="status-message status-message--master" aria-live="polite"></p>
+
+        <footer class="privacy-note">
+          <div class="privacy-ornament" aria-hidden="true"><span></span><b>✦</b><span></span></div>
+          <p
+            title="Os dados existirão somente enquanto a página estiver aberta, até que o sistema de exportação seja implementado."
+          >
+            <span class="shield-icon" aria-hidden="true"></span>
+            Nenhuma informação é armazenada automaticamente neste site.
+          </p>
+        </footer>
+      </div>
+
+      <aside class="preview-region" aria-label="Prévia da ficha de personagem">
+        <div class="sheet-preview">
+          <article class="sheet-preview__paper">
+            <span class="sheet-corner sheet-corner--tl" aria-hidden="true"></span>
+            <span class="sheet-corner sheet-corner--tr" aria-hidden="true"></span>
+            <span class="sheet-corner sheet-corner--bl" aria-hidden="true"></span>
+            <span class="sheet-corner sheet-corner--br" aria-hidden="true"></span>
+
+            <header class="sheet-preview__header">
+              <p class="sheet-kicker">Grimório RPG</p>
+              <h2>Registro do personagem</h2>
+              <p>Todo nome escrito neste grimório deixa uma marca sobre o mundo.</p>
+            </header>
+
+            <section class="sheet-preview__identity" aria-label="Identidade de Lucien Varric">
+              <div class="sheet-preview__portrait" aria-label="Retrato abstrato de Lucien Varric">
+                <span class="portrait-orbit" aria-hidden="true"></span>
+                <span class="portrait-star portrait-star--one" aria-hidden="true">✦</span>
+                <span class="portrait-star portrait-star--two" aria-hidden="true">✧</span>
+                <span class="portrait-silhouette" aria-hidden="true"></span>
+              </div>
+
+              <dl class="sheet-preview__fields">
+                <div><dt>Nome do personagem</dt><dd>Lucien Varric</dd></div>
+                <div><dt>Jogador</dt><dd>João</dd></div>
+                <div><dt>Mestre</dt><dd>Mestre Aster</dd></div>
+                <div><dt>Campanha</dt><dd>Céus Partidos</dd></div>
+                <div><dt>Espécie</dt><dd>Humano</dd></div>
+                <div><dt>Classe</dt><dd>Experimentalista</dd></div>
+                <div><dt>Nível</dt><dd>7</dd></div>
+              </dl>
+
+              <div class="sheet-preview__combat">
+                <div><span>Defesa</span><strong>15</strong><small>10 base + 5 armadura</small></div>
+                <div><span>Iniciativa</span><strong>4</strong><small>1d20 + 4</small></div>
+              </div>
+            </section>
+
+            <section class="sheet-preview__resources" aria-label="Recursos e atributos">
+              <div class="resource-box resource-box--life">
+                <span>Vida</span><strong>27 <i>/</i> 40</strong>
+                <div class="resource-bar"><i></i></div><small>68%</small>
+              </div>
+              <div class="resource-box resource-box--mana">
+                <span>Mana</span><strong>18 <i>/</i> 30</strong>
+                <div class="resource-bar"><i></i></div><small>60%</small>
+              </div>
+              <div class="attribute-box"><span>Força</span><strong>2</strong><small>Base 1 · Racial 1</small></div>
+              <div class="attribute-box"><span>Agilidade</span><strong>3</strong><small>Base 2 · Outros 1</small></div>
+            </section>
+
+            <section class="sheet-preview__skills" aria-label="Consulta rápida de perícias">
+              <header><span>✦ Perícias — consulta rápida</span><small>Ver todas</small></header>
+              <div class="skills-grid">
+                <table>
+                  <thead><tr><th>Perícia</th><th>Atrib.</th><th>Dado</th><th>Total</th></tr></thead>
+                  <tbody>
+                    <tr><td>Acrobacia</td><td>AGI</td><td>1d12</td><td>3</td></tr>
+                    <tr><td>Arcanismo</td><td>INT</td><td>1d12</td><td>6</td></tr>
+                    <tr><td>Cavalaria</td><td>FOR</td><td>1d12</td><td>2</td></tr>
+                  </tbody>
+                </table>
+                <table>
+                  <thead><tr><th>Perícia</th><th>Atrib.</th><th>Dado</th><th>Total</th></tr></thead>
+                  <tbody>
+                    <tr><td>Luta</td><td>FOR</td><td>1d12</td><td>2</td></tr>
+                    <tr><td>Misticismo</td><td>INT</td><td>1d12</td><td>6</td></tr>
+                    <tr><td>Percepção</td><td>SAB</td><td>1d12</td><td>3</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <footer class="sheet-preview__footer">
+              <span>Inventário <small>8,5 / 35</small></span>
+              <span>Armas e condições <small>Ver tudo</small></span>
+            </footer>
+          </article>
+        </div>
+      </aside>
+    </section>
+
+    <section id="creation-view" class="creation-screen" hidden aria-labelledby="creation-title" tabindex="-1">
+      <header class="creation-header">
+        <img class="creation-header__emblem" src="./assets/grimorio-book.svg" alt="" />
+        <h1 id="creation-title" class="creation-title">Criação de personagem</h1>
+        <p>Toda grande jornada começa com um nome.</p>
+      </header>
+
+      <nav class="creation-stepper" aria-label="Etapas da criação de personagem">
+        <ol>
+          <li class="creation-step creation-step--active" data-step="1" aria-current="step">
+            <span>1</span><b>Identidade</b>
+          </li>
+          <li class="creation-step" data-step="2"><span>2</span><b>Espécie</b></li>
+          <li class="creation-step" data-step="3"><span>3</span><b>Classe</b></li>
+          <li class="creation-step" data-step="4"><span>4</span><b>Origem</b></li>
+          <li class="creation-step" data-step="5"><span>5</span><b>Atributos</b></li>
+          <li class="creation-step" data-step="6"><span>6</span><b>Revisão</b></li>
+        </ol>
+      </nav>
+
+      <div class="creation-body">
+        <section id="identity-step" class="creation-stage" aria-labelledby="identity-heading">
+          <header class="creation-stage__heading">
+            <span aria-hidden="true"></span>
+            <div>
+              <h2 id="identity-heading" tabindex="-1">Identidade</h2>
+              <p>Defina quem é o personagem e como ele será apresentado no Grimório.</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+
+          <div class="identity-layout">
+            <section class="portrait-panel" aria-labelledby="portrait-heading">
+              <h3 id="portrait-heading">Retrato do personagem</h3>
+              <div id="portrait-frame" class="portrait-frame">
+                <div id="portrait-empty" class="portrait-empty">
+                  <span class="portrait-empty__orbit" aria-hidden="true"></span>
+                  <span class="portrait-empty__silhouette" aria-hidden="true"></span>
+                  <span class="portrait-empty__star" aria-hidden="true">✦</span>
+                  <p>Adicione um retrato para representar seu personagem.</p>
+                </div>
+                <img id="portrait-preview" class="portrait-preview" alt="Retrato do personagem" hidden />
+              </div>
+              <div class="portrait-actions">
+                <button id="choose-portrait" class="outline-button" type="button">Escolher imagem</button>
+                <button id="remove-portrait" class="text-button" type="button" hidden>Remover retrato</button>
+              </div>
+              <input id="portrait-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+              <p id="portrait-status" class="portrait-status" aria-live="polite"></p>
+              <p class="portrait-help">JPG, PNG ou WebP. A imagem permanece somente no seu navegador.</p>
+            </section>
+
+            <form id="identity-form" class="identity-form" novalidate>
+              <h3>Identidade</h3>
+              <div class="form-grid">
+                <div class="form-field form-field--wide">
+                  <label for="character-name">Nome do personagem <span aria-hidden="true">*</span></label>
+                  <input
+                    id="character-name"
+                    name="character-name"
+                    type="text"
+                    maxlength="80"
+                    placeholder="Ex.: Lucien Varric"
+                    autocomplete="off"
+                    aria-describedby="character-name-error"
+                    required
+                  />
+                  <p id="character-name-error" class="form-error" aria-live="polite"></p>
+                </div>
+
+                <div class="form-field form-field--wide">
+                  <label for="player-name">Nome do jogador <span aria-hidden="true">*</span></label>
+                  <input
+                    id="player-name"
+                    name="player-name"
+                    type="text"
+                    maxlength="80"
+                    placeholder="Ex.: João"
+                    autocomplete="off"
+                    aria-describedby="player-name-error"
+                    required
+                  />
+                  <p id="player-name-error" class="form-error" aria-live="polite"></p>
+                </div>
+
+                <div class="form-field">
+                  <label for="campaign-name">Campanha <small>Opcional</small></label>
+                  <input
+                    id="campaign-name"
+                    name="campaign-name"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Ex.: Céus Partidos"
+                    autocomplete="off"
+                    aria-describedby="campaign-name-error"
+                  />
+                  <p id="campaign-name-error" class="form-error" aria-live="polite"></p>
+                </div>
+
+                <div class="form-field">
+                  <label for="game-master">Mestre <small>Opcional</small></label>
+                  <input
+                    id="game-master"
+                    name="game-master"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Ex.: Mestre Aster"
+                    autocomplete="off"
+                    aria-describedby="game-master-error"
+                  />
+                  <p id="game-master-error" class="form-error" aria-live="polite"></p>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="species-step" class="creation-stage species-stage" hidden aria-labelledby="species-heading">
+          <header class="creation-stage__heading species-stage__heading">
+            <span aria-hidden="true"></span>
+            <div>
+              <h2 id="species-heading" tabindex="-1">Escolha sua espécie</h2>
+              <p>Sua espécie define adaptações biológicas, afinidades, capacidades naturais e vulnerabilidades permanentes.</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+
+          <div class="species-layout">
+            <section class="species-list-panel" aria-labelledby="species-list-heading">
+              <h3 id="species-list-heading">Espécies</h3>
+              <div id="species-list" class="species-list" tabindex="-1"></div>
+              <p id="species-error" class="species-error" aria-live="polite"></p>
+            </section>
+
+            <section class="species-symbol-panel" aria-label="Símbolo da espécie selecionada">
+              <div id="species-visual" class="species-visual" aria-live="polite">
+                <div class="species-visual__background" aria-hidden="true"></div>
+                <img id="species-character-art" class="species-character-art" alt="" hidden />
+                <div id="species-symbol" class="species-symbol species-symbol--empty" aria-hidden="true">
+                  <span class="species-symbol__ring"></span>
+                  <span class="species-symbol__mark"></span>
+                </div>
+              </div>
+              <p id="species-symbol-name">Selecione uma espécie</p>
+            </section>
+
+            <article id="species-details" class="species-details" aria-live="polite">
+              <div id="species-details-empty" class="species-details__empty">
+                <span aria-hidden="true">✦</span>
+                <p>Escolha uma espécie para consultar suas adaptações e capacidades.</p>
+              </div>
+              <div id="species-details-content" hidden>
+                <header>
+                  <h3 id="species-detail-name"></h3>
+                  <p id="species-detail-summary"></p>
+                </header>
+                <p id="species-detail-description" class="species-detail-description"></p>
+                <section class="detail-block">
+                  <h4>Modificadores</h4>
+                  <ul id="species-detail-modifiers"></ul>
+                </section>
+                <section id="species-physical-block" class="detail-block" hidden>
+                  <h4>Modificadores físicos</h4>
+                  <ul id="species-detail-physical"></ul>
+                </section>
+                <section class="detail-block detail-block--compact">
+                  <h4>Afinidade</h4>
+                  <p id="species-detail-affinity"></p>
+                </section>
+                <section id="species-trait-block" class="detail-block">
+                  <h4 id="species-detail-trait-name"></h4>
+                  <p id="species-detail-trait"></p>
+                </section>
+                <section id="species-ability-block" class="detail-block">
+                  <h4 id="species-detail-ability-name"></h4>
+                  <p id="species-detail-ability"></p>
+                </section>
+                <section id="species-vulnerability-block" class="detail-block detail-block--danger">
+                  <h4 id="species-detail-vulnerability-name"></h4>
+                  <p id="species-detail-vulnerability"></p>
+                </section>
+                <section id="species-style-block" class="detail-block detail-block--compact">
+                  <h4>Estilo</h4>
+                  <p id="species-detail-style"></p>
+                </section>
+              </div>
+            </article>
+          </div>
+
+          <section id="species-options" class="species-options" aria-label="Escolhas da espécie" hidden></section>
+        </section>
+
+        <section id="class-step" class="creation-stage class-stage" hidden aria-labelledby="class-heading">
+          <header class="creation-stage__heading class-stage__heading">
+            <span aria-hidden="true"></span>
+            <div>
+              <h2 id="class-heading" tabindex="-1">Escolha sua classe</h2>
+              <p>Sua Classe define a principal maneira como o personagem enfrenta problemas e interfere no mundo.</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+
+          <div class="class-layout">
+            <section class="class-picker" aria-labelledby="class-list-heading">
+              <h3 id="class-list-heading">Categorias e classes</h3>
+              <div id="class-categories" class="class-categories" aria-label="Categorias de Classe"></div>
+              <div id="class-list" class="class-list" tabindex="-1"></div>
+              <nav class="class-pagination" aria-label="Paginação das Classes">
+                <button id="class-page-previous" type="button" aria-label="Página anterior">‹ <span>Anterior</span></button>
+                <strong id="class-page-status" aria-live="polite">1 / 1</strong>
+                <button id="class-page-next" type="button" aria-label="Próxima página"><span>Próxima</span> ›</button>
+              </nav>
+              <button id="import-class" class="class-import-button" type="button">Importar Classe JSON</button>
+              <input id="class-json-input" type="file" accept=".json,application/json" hidden />
+              <p class="class-import-note">A Classe importada existe somente enquanto esta página estiver aberta.</p>
+              <p id="class-message" class="class-message" aria-live="polite"></p>
+            </section>
+
+            <section class="class-symbol-panel" aria-label="Símbolo da Classe selecionada">
+              <div class="class-symbol-stage" aria-hidden="true">
+                <span class="class-symbol-stage__orbit"></span>
+                <svg id="class-symbol" class="class-symbol" viewBox="0 0 160 160" focusable="false"></svg>
+              </div>
+              <p id="class-symbol-name">Selecione uma Classe</p>
+              <small id="class-symbol-mechanic">Como você interage com o mundo</small>
+            </section>
+
+            <article class="class-details" aria-labelledby="class-detail-name">
+              <div id="class-details-empty" class="class-details__empty">
+                <span aria-hidden="true">✦</span>
+                <p>Escolha uma Classe para conhecer sua abordagem, sua mecânica central e seus riscos.</p>
+              </div>
+              <div id="class-details-content" hidden>
+                <header>
+                  <p id="class-detail-category"></p>
+                  <h3 id="class-detail-name"></h3>
+                  <p id="class-detail-summary"></p>
+                </header>
+                <div class="class-tabs" role="tablist" aria-label="Detalhes da Classe">
+                  <button id="class-tab-overview" type="button" role="tab" aria-selected="true" aria-controls="class-tab-panel" data-class-tab="overview">Visão geral</button>
+                  <button id="class-tab-mechanic" type="button" role="tab" aria-selected="false" aria-controls="class-tab-panel" data-class-tab="mechanic" tabindex="-1">Mecânica</button>
+                  <button id="class-tab-risk" type="button" role="tab" aria-selected="false" aria-controls="class-tab-panel" data-class-tab="risk" tabindex="-1">Risco</button>
+                  <button id="class-tab-specializations" type="button" role="tab" aria-selected="false" aria-controls="class-tab-panel" data-class-tab="specializations" tabindex="-1">Especializações</button>
+                </div>
+                <section id="class-tab-panel" class="class-tab-panel" role="tabpanel" aria-live="polite" aria-labelledby="class-tab-overview">
+                  <h4 id="class-panel-title"></h4>
+                  <p id="class-panel-description"></p>
+                  <ul id="class-panel-list"></ul>
+                </section>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="origin-step" class="creation-stage origin-stage" hidden aria-labelledby="origin-heading">
+          <header class="creation-stage__heading origin-stage__heading">
+            <span aria-hidden="true"></span>
+            <div>
+              <h2 id="origin-heading" tabindex="-1">Conte sua origem</h2>
+              <p>Registre o passado que moldou seu personagem e o motivo que o trouxe até esta jornada.</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+
+          <form id="origin-form" class="origin-layout" novalidate>
+            <div class="origin-fields">
+              <div class="form-field">
+                <label for="origin-title">Título da Origem <span aria-hidden="true">*</span></label>
+                <input
+                  id="origin-title"
+                  name="origin-title"
+                  type="text"
+                  maxlength="80"
+                  placeholder="Ex.: Sobrevivente das Caldeiras"
+                  autocomplete="off"
+                  aria-describedby="origin-title-error"
+                  required
+                />
+                <p id="origin-title-error" class="form-error" aria-live="polite"></p>
+              </div>
+
+              <div class="form-field">
+                <label for="origin-place">Local de Origem <small>Opcional</small></label>
+                <input
+                  id="origin-place"
+                  name="origin-place"
+                  type="text"
+                  maxlength="100"
+                  list="origin-places"
+                  placeholder="Ex.: Cidade Baixa de Meridian"
+                  autocomplete="off"
+                  aria-describedby="origin-place-error"
+                />
+                <datalist id="origin-places">
+                  <option value="Cidade Baixa de Meridian">
+                  <option value="Cidade Média de Meridian">
+                  <option value="Cidade Alta de Meridian">
+                  <option value="Fora de Meridian">
+                </datalist>
+                <p id="origin-place-error" class="form-error" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <section class="origin-prompts origin-prompts-panel" aria-labelledby="origin-prompts-heading">
+                <h3 id="origin-prompts-heading">Pontos para lembrar</h3>
+                <div class="origin-prompt-list">
+                  <button type="button" data-origin-question="De onde você veio?">De onde você veio?</button>
+                  <button type="button" data-origin-question="Que acontecimento mudou sua vida?">Que acontecimento mudou sua vida?</button>
+                  <button type="button" data-origin-question="Quem ou o que você deixou para trás?">Quem ou o que você deixou para trás?</button>
+                  <button type="button" data-origin-question="O que você procura agora?">O que você procura agora?</button>
+                  <button type="button" data-origin-question="O que teme que descubram sobre você?">O que teme que descubram sobre você?</button>
+                </div>
+              </section>
+
+            <div class="origin-writing-panel">
+              <div class="origin-story-field">
+                <label for="origin-story">História do personagem <span aria-hidden="true">*</span></label>
+                <textarea
+                  id="origin-story"
+                  name="origin-story"
+                  maxlength="5000"
+                  rows="12"
+                  placeholder="Conte como seu personagem cresceu, o que perdeu, quem conheceu e por que decidiu iniciar esta jornada..."
+                  aria-describedby="origin-story-error origin-story-counter"
+                  required
+                ></textarea>
+                <div class="origin-story-footer">
+                  <p id="origin-story-error" class="form-error" aria-live="polite"></p>
+                  <span id="origin-story-counter" aria-live="polite">0 / 5000</span>
+                </div>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section id="attributes-step" class="creation-stage attributes-stage" hidden aria-labelledby="attributes-heading">
+          <header class="creation-stage__heading">
+            <span aria-hidden="true"></span>
+            <div>
+              <h2 id="attributes-heading" tabindex="-1">Distribua seus atributos</h2>
+              <p>Defina as capacidades iniciais do personagem e combine suas escolhas com as características da Espécie.</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+
+          <div class="attributes-tabs" role="tablist" aria-label="Seções de atributos">
+            <button id="attributes-tab-button" class="attributes-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="attributes-panel">Atributos</button>
+            <button id="skills-tab-button" class="attributes-tab" type="button" role="tab" aria-selected="false" aria-controls="skills-panel">Perícias</button>
+          </div>
+
+          <div id="attributes-panel" class="attributes-layout attributes-tab-panel" role="tabpanel" aria-labelledby="attributes-tab-button">
+            <section class="attributes-distribution" aria-labelledby="attributes-distribution-heading">
+              <h3 id="attributes-distribution-heading">Distribuição dos atributos</h3>
+              <p id="attributes-adjustment-message" class="attributes-message" aria-live="polite"></p>
+              <div id="attributes-list" class="attributes-list" tabindex="-1" aria-live="polite"></div>
+            </section>
+
+            <aside class="attributes-summary-panel" aria-labelledby="attributes-summary-heading">
+              <h3 id="attributes-summary-heading">Resumo</h3>
+              <dl class="attributes-points">
+                <div>
+                  <dt>Pontos disponíveis</dt>
+                  <dd><span id="attributes-points-remaining">10</span> / <span id="attributes-points-total">10</span></dd>
+                </div>
+                <div>
+                  <dt>Pontos utilizados</dt>
+                  <dd id="attributes-points-used">0</dd>
+                </div>
+              </dl>
+              <div class="attributes-points-bar" aria-hidden="true">
+                <i id="attributes-points-bar"></i>
+              </div>
+              <dl class="attributes-affinity-summary">
+                <div>
+                  <dt>Afinidade</dt>
+                  <dd id="attributes-affinity-name">Não definida</dd>
+                </div>
+                <div>
+                  <dt>Limite final</dt>
+                  <dd id="attributes-affinity-limit">6</dd>
+                </div>
+              </dl>
+              <dl id="attributes-final-summary" class="attributes-final-summary"></dl>
+              <p id="attributes-error" class="attributes-error" aria-live="polite"></p>
+            </aside>
+          </div>
+
+          <div id="skills-panel" class="skills-layout attributes-tab-panel" role="tabpanel" aria-labelledby="skills-tab-button" hidden>
+            <section class="skills-table-panel" aria-labelledby="skills-heading">
+              <h3 id="skills-heading">Perícias</h3>
+              <p id="skills-message" class="skills-note" aria-live="polite"></p>
+              <div id="skills-list" class="skills-columns" aria-live="polite"></div>
+              <div class="skills-pagination" aria-label="Paginação de perícias">
+                <button id="skills-prev-page" type="button">‹ Anterior</button>
+                <span id="skills-page-label">1 / 1</span>
+                <button id="skills-next-page" type="button">Próxima ›</button>
+              </div>
+            </section>
+
+            <aside class="skills-summary-panel" aria-labelledby="skills-summary-heading">
+              <h3 id="skills-summary-heading">Resumo</h3>
+              <dl class="skills-summary-list">
+                <div>
+                  <dt>Treinadas</dt>
+                  <dd><span id="skills-trained-count">0</span> / <span id="skills-trained-limit">3</span></dd>
+                </div>
+                <div>
+                  <dt>Dado treinado</dt>
+                  <dd>1d20</dd>
+                </div>
+                <div>
+                  <dt>Dado não treinado</dt>
+                  <dd>1d12</dd>
+                </div>
+              </dl>
+              <dl id="skills-attribute-summary" class="skills-attribute-summary"></dl>
+            </aside>
+          </div>
+        </section>
+
+        <section id="review-step" class="creation-stage review-stage" hidden aria-labelledby="review-heading">
+          <header class="creation-stage__heading">
+            <span aria-hidden="true"></span>
+            <div>
+              <h2 id="review-heading" tabindex="-1">Revise seu personagem</h2>
+              <p>A revisão final será implementada na próxima etapa.</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+
+          <dl class="review-summary">
+            <div><dt>Personagem</dt><dd id="review-character-name"></dd></div>
+            <div><dt>Espécie</dt><dd id="review-species-name"></dd></div>
+            <div><dt>Classe</dt><dd id="review-class-name"></dd></div>
+            <div><dt>Origem</dt><dd id="review-origin-title"></dd></div>
+            <div><dt>FOR</dt><dd id="review-final-forca"></dd></div>
+            <div><dt>AGI</dt><dd id="review-final-agilidade"></dd></div>
+            <div><dt>INT</dt><dd id="review-final-intelecto"></dd></div>
+            <div><dt>RES</dt><dd id="review-final-resistencia"></dd></div>
+            <div class="review-summary__wide"><dt>Perícias treinadas</dt><dd id="review-trained-skills"></dd></div>
+          </dl>
+          <p id="review-save-status" class="review-save-status" aria-live="polite"></p>
+        </section>
+      </div>
+
+      <footer class="creation-footer">
+        <button id="creation-back" class="back-button" type="button">
+          <span aria-hidden="true">←</span> Voltar
+        </button>
+        <div class="stage-progress" aria-live="polite">
+          <span id="stage-label">Etapa 1 de 6</span>
+          <small id="stage-helper"></small>
+          <div aria-hidden="true"><i id="stage-progress-bar"></i></div>
+        </div>
+        <button id="creation-next" class="wine-button" type="button">
+          Próximo <span aria-hidden="true">→</span>
+        </button>
+        <div id="review-actions" class="review-actions" hidden>
+          <button id="review-save-json" class="secondary-action-button" type="button">
+            <span aria-hidden="true">↓</span> Exportar JSON
+          </button>
+          <button id="review-open-sheet" class="wine-button" type="button">
+            FINALIZAR E ABRIR FICHA <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <section id="character-sheet-screen" class="character-sheet-screen" hidden aria-labelledby="character-sheet-title">
+      <svg class="sheet-icon-sprite" aria-hidden="true" focusable="false">
+        <symbol id="sheet-icon-crown" viewBox="0 0 24 24">
+          <path d="m3 8 4 4 5-7 5 7 4-4-2 10H5L3 8Z" />
+          <path d="M5 21h14M7 15h10" />
+        </symbol>
+        <symbol id="sheet-icon-swords" viewBox="0 0 24 24">
+          <path d="m4 3 7 7-2 2-7-7 2-2Zm9 9 7 7M15 19l4-4 2 2-4 4-2-2Z" />
+          <path d="m20 3-7 7 2 2 7-7-2-2ZM11 12l-7 7M9 19l-4-4-2 2 4 4 2-2Z" />
+        </symbol>
+        <symbol id="sheet-icon-rune-star" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="7" />
+          <path d="M12 2v5m0 10v5M2 12h5m10 0h5M5 5l3.5 3.5m7 7L19 19m0-14-3.5 3.5m-7 7L5 19" />
+        </symbol>
+        <symbol id="sheet-icon-bag" viewBox="0 0 24 24">
+          <path d="M8 8c-2 2-4 5-4 9 0 3 3 4 8 4s8-1 8-4c0-4-2-7-4-9H8Z" />
+          <path d="M9 8 8 4h8l-1 4M7 11h10" />
+        </symbol>
+        <symbol id="sheet-icon-feather" viewBox="0 0 24 24">
+          <path d="M20 4C14 3 8 6 5 12c-1.5 3-1 6-1 8 2-2 4-4 7-5 6-2 8-7 9-11Z" />
+          <path d="M4 20c4-5 8-8 13-12M9 15l-1-5m5 2 4-1" />
+        </symbol>
+        <symbol id="sheet-icon-group" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="3" />
+          <circle cx="5" cy="10" r="2" />
+          <circle cx="19" cy="10" r="2" />
+          <path d="M7 20v-2c0-3 2-5 5-5s5 2 5 5v2M2 20v-2c0-2 1-4 3-4m17 6v-2c0-2-1-4-3-4" />
+        </symbol>
+        <symbol id="sheet-icon-book" viewBox="0 0 24 24">
+          <path d="M3 5c4-1 7 0 9 2v13c-2-2-5-3-9-2V5Zm18 0c-4-1-7 0-9 2v13c2-2 5-3 9-2V5Z" />
+          <path d="M12 7v13" />
+        </symbol>
+        <symbol id="sheet-icon-shield" viewBox="0 0 24 24">
+          <path d="M12 2 20 5v6c0 5-3 9-8 11-5-2-8-6-8-11V5l8-3Z" />
+          <path d="M12 5v13" />
+        </symbol>
+        <symbol id="sheet-icon-ward" viewBox="0 0 24 24">
+          <path d="M12 2 19 5v6c0 4-2 8-7 11-5-3-7-7-7-11V5l7-3Z" />
+          <path d="m9 14 6-6m-5 0h5v5" />
+        </symbol>
+        <symbol id="sheet-icon-wing" viewBox="0 0 24 24">
+          <path d="M21 4C13 5 7 9 4 16c4 1 8 0 11-2 3-2 5-6 6-10Z" />
+          <path d="M4 16c4-4 8-6 13-8M7 18c3 0 6-1 8-3" />
+        </symbol>
+        <symbol id="sheet-icon-boot" viewBox="0 0 24 24">
+          <path d="M8 3h8l-1 9 5 3c2 1 2 4-1 5H6c-3 0-4-3-2-5l4-3V3Z" />
+          <path d="M8 8h7M7 13c2 1 5 2 8 1" />
+        </symbol>
+        <symbol id="sheet-icon-heart" viewBox="0 0 24 24">
+          <path d="M12 21S3 15 3 8c0-3 2-5 5-5 2 0 3.5 1 4 2.5C12.5 4 14 3 16 3c3 0 5 2 5 5 0 7-9 13-9 13Z" />
+          <path d="m7 9 3 3 2-5 2 8 2-4h3" />
+        </symbol>
+        <symbol id="sheet-icon-drop" viewBox="0 0 24 24">
+          <path d="M12 2S5 10 5 15a7 7 0 0 0 14 0c0-5-7-13-7-13Z" />
+          <path d="M9 17c1 1 3 1 4 0" />
+        </symbol>
+        <symbol id="sheet-icon-arm" viewBox="0 0 24 24">
+          <path d="M7 20c-2-1-3-3-2-5l2-5 3 2 2-6 3 1-1 6 3-2c2 1 3 3 2 5-1 3-4 5-8 5l-4-1Z" />
+          <path d="M7 10 5 8l2-3 3 2" />
+        </symbol>
+        <symbol id="sheet-icon-eye" viewBox="0 0 24 24">
+          <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+        </symbol>
+        <symbol id="sheet-icon-sword" viewBox="0 0 24 24">
+          <path d="m14 4 6-2-2 6L8 18l-2-2L14 4Z" />
+          <path d="m5 14 5 5M3 21l4-4" />
+        </symbol>
+        <symbol id="sheet-icon-burst" viewBox="0 0 24 24">
+          <path d="m12 2 2 6 6-3-3 6 5 2-6 2 3 6-6-3-2 6-2-6-6 3 3-6-5-2 6-2-3-6 6 3 2-6Z" />
+        </symbol>
+        <symbol id="sheet-icon-target" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+        </symbol>
+        <symbol id="sheet-icon-spiral" viewBox="0 0 24 24">
+          <path d="M12 12c3-3 7 1 4 4-4 4-11 1-11-5 0-7 8-10 13-6 6 5 3 15-5 17" />
+        </symbol>
+        <symbol id="sheet-icon-hourglass" viewBox="0 0 24 24">
+          <path d="M6 3h12M6 21h12M8 3c0 4 1 6 4 9-3 3-4 5-4 9m8-18c0 4-1 6-4 9 3 3 4 5 4 9" />
+        </symbol>
+        <symbol id="sheet-icon-bolt" viewBox="0 0 24 24">
+          <path d="m13 2-8 12h6l-1 8 9-13h-6V2Z" />
+        </symbol>
+        <symbol id="sheet-icon-document" viewBox="0 0 24 24">
+          <path d="M6 2h8l4 4v16H6V2Z" />
+          <path d="M14 2v5h5M9 12h6m-6 4h6" />
+        </symbol>
+        <symbol id="sheet-icon-save" viewBox="0 0 24 24">
+          <path d="M4 3h13l3 3v15H4V3Z" />
+          <path d="M8 3v6h8V3M8 21v-8h8v8" />
+        </symbol>
+        <symbol id="sheet-icon-export" viewBox="0 0 24 24">
+          <path d="M12 3v12m-4-8 4-4 4 4M5 13v8h14v-8" />
+        </symbol>
+        <symbol id="sheet-icon-restore" viewBox="0 0 24 24">
+          <path d="M4 8V3m0 0h5M4 3l4 4a8 8 0 1 1-2 8" />
+        </symbol>
+        <symbol id="sheet-icon-plus" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14" />
+        </symbol>
+        <symbol id="sheet-icon-minus" viewBox="0 0 24 24">
+          <path d="M5 12h14" />
+        </symbol>
+        <symbol id="sheet-icon-compass" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="7" />
+          <path d="m15 9-2 4-4 2 2-4 4-2ZM12 2v3m0 14v3M2 12h3m14 0h3" />
+        </symbol>
+        <symbol id="sheet-icon-star" viewBox="0 0 24 24">
+          <path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z" />
+        </symbol>
+        <symbol id="sheet-icon-medallion" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 3v4m0 10v4M3 12h4m10 0h4" />
+        </symbol>
+        <symbol id="sheet-icon-attention" viewBox="0 0 24 24">
+          <path d="M12 3 22 21H2L12 3Z" />
+          <path d="M12 9v5m0 3v1" />
+        </symbol>
+      </svg>
+
+      <div class="sheet-shell">
+        <aside class="sheet-sidebar" aria-label="Navegação da ficha">
+          <div class="sheet-sidebar__brand">
+            <svg class="sheet-brand-star sheet-icon" aria-hidden="true"><use href="#sheet-icon-compass"></use></svg>
+            <img src="./assets/grimorio-book.svg" alt="" aria-hidden="true" />
+            <span class="sheet-brand-ornament" aria-hidden="true">
+              <i></i>
+              <svg class="sheet-icon"><use href="#sheet-icon-star"></use></svg>
+              <i></i>
+            </span>
+          </div>
+
+          <nav class="sheet-sidebar__nav" aria-label="Seções da ficha">
+            <button class="is-active" type="button" data-sheet-section="summary">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-crown"></use></svg>
+              <span>Resumo</span>
+              <i aria-hidden="true"></i>
+            </button>
+            <button type="button" data-sheet-section="future">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-swords"></use></svg>
+              <span>Combate</span>
+            </button>
+            <button type="button" data-sheet-section="future">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-rune-star"></use></svg>
+              <span>Habilidades</span>
+            </button>
+            <button type="button" data-sheet-section="future">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bag"></use></svg>
+              <span>Inventário</span>
+            </button>
+            <button type="button" data-sheet-section="future">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+              <span>História</span>
+            </button>
+            <button type="button" data-sheet-section="future">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-group"></use></svg>
+              <span>Companheiros</span>
+            </button>
+            <button type="button" data-sheet-section="future">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
+              <span>Registro</span>
+            </button>
+          </nav>
+
+          <div class="sheet-sidebar__footer">
+            <span aria-hidden="true"><i></i><svg class="sheet-icon"><use href="#sheet-icon-compass"></use></svg><i></i></span>
+            <p>As histórias mais poderosas começam aqui.</p>
+          </div>
+        </aside>
+
+        <div class="sheet-main">
+          <header class="sheet-topbar">
+            <div class="sheet-topbar__spacer" aria-hidden="true"></div>
+            <div class="sheet-title-block">
+              <h1 id="character-sheet-title" tabindex="-1">Grimório RPG — Registro do Personagem</h1>
+              <div class="sheet-title-ornament" aria-hidden="true">
+                <span></span>
+                <svg class="sheet-icon"><use href="#sheet-icon-star"></use></svg>
+                <span></span>
+              </div>
+              <p>Todo nome escrito neste grimório deixa uma marca sobre o mundo.</p>
+            </div>
+            <div class="sheet-top-actions" aria-label="Ações da ficha">
+              <span id="sheet-save-state" class="sheet-save-state" aria-live="polite">Salvo nesta sessão</span>
+              <button id="sheet-save-session" class="sheet-document-action" type="button">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-save"></use></svg>
+                <span>Salvar</span>
+              </button>
+              <button id="sheet-export-json" class="sheet-document-action" type="button">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-export"></use></svg>
+                <span>Exportar</span>
+              </button>
+            </div>
+            <p id="sheet-save-status" class="sheet-feedback" aria-live="polite"></p>
+          </header>
+
+          <section class="sheet-top-row" aria-label="Identidade e combate">
+            <section class="sheet-panel sheet-identity-panel" aria-labelledby="sheet-identity-heading">
+              <h2 id="sheet-identity-heading" class="sr-only">Identidade</h2>
+              <div class="sheet-identity">
+                <figure class="sheet-portrait-frame">
+                  <img id="sheet-portrait-image" class="sheet-portrait-image" alt="Retrato do personagem" hidden />
+                  <div id="sheet-portrait-empty" class="sheet-portrait-empty" aria-hidden="true">
+                    <svg class="sheet-icon"><use href="#sheet-icon-rune-star"></use></svg>
+                  </div>
+                  <span class="sheet-portrait-corner sheet-portrait-corner--tl" aria-hidden="true"></span>
+                  <span class="sheet-portrait-corner sheet-portrait-corner--tr" aria-hidden="true"></span>
+                  <span class="sheet-portrait-corner sheet-portrait-corner--bl" aria-hidden="true"></span>
+                  <span class="sheet-portrait-corner sheet-portrait-corner--br" aria-hidden="true"></span>
+                  <span class="sheet-portrait-medallion" aria-hidden="true">
+                    <svg class="sheet-icon"><use href="#sheet-icon-medallion"></use></svg>
+                  </span>
+                </figure>
+
+                <div class="sheet-identity-copy">
+                  <dl class="sheet-field-grid">
+                    <div class="sheet-field--name">
+                      <dt>Nome do personagem</dt>
+                      <dd><strong id="sheet-character-name" class="sheet-character-name"></strong></dd>
+                    </div>
+                    <div><dt>Jogador</dt><dd id="sheet-player-name"></dd></div>
+                    <div><dt>Campanha</dt><dd id="sheet-campaign-name"></dd></div>
+                    <div><dt>Mestre</dt><dd id="sheet-master-name"></dd></div>
+                    <div><dt>Classe / Arquétipo</dt><dd id="sheet-class-name"></dd></div>
+                    <div><dt>Espécie</dt><dd id="sheet-species-name"></dd></div>
+                    <div><dt>Origem</dt><dd id="sheet-origin-title"></dd></div>
+                    <div><dt>Linhagem / Formação</dt><dd id="sheet-lineage-name"></dd></div>
+                    <div><dt>Local</dt><dd id="sheet-origin-place"></dd></div>
+                  </dl>
+
+                  <dl class="sheet-progression-strip" aria-label="Progressão do personagem">
+                    <div class="sheet-progression-item sheet-progression-item--level">
+                      <dt>Nível</dt>
+                      <dd id="sheet-level"></dd>
+                    </div>
+                    <div class="sheet-progression-item sheet-progression-item--experience">
+                      <dt>Experiência</dt>
+                      <dd id="sheet-experience"></dd>
+                    </div>
+                    <div class="sheet-progression-item sheet-progression-item--pe">
+                      <dt aria-label="Pontos de Evolução">
+                        <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-medallion"></use></svg>
+                        PE
+                      </dt>
+                      <dd id="sheet-evolution-points">0</dd>
+                    </div>
+                    <div class="sheet-progression-item sheet-progression-item--pg">
+                      <dt aria-label="Pontos de Glória">
+                        <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-star"></use></svg>
+                        PG
+                      </dt>
+                      <dd id="sheet-glory-points">0</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </section>
+
+            <section class="sheet-combat-summary" aria-labelledby="sheet-combat-heading">
+              <h2 id="sheet-combat-heading" class="sr-only">Combate resumido</h2>
+              <dl class="sheet-combat-grid">
+                <div>
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-shield"></use></svg>
+                  <dt>Defesa</dt>
+                  <dd id="sheet-defense"></dd>
+                </div>
+                <div>
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-ward"></use></svg>
+                  <dt aria-label="Redução de Dano" title="Redução de Dano">RD</dt>
+                  <dd id="sheet-damage-reduction"></dd>
+                </div>
+                <div>
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-wing"></use></svg>
+                  <dt>Iniciativa</dt>
+                  <dd id="sheet-initiative"></dd>
+                </div>
+                <div>
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-boot"></use></svg>
+                  <dt>Movimento</dt>
+                  <dd id="sheet-movement"></dd>
+                </div>
+              </dl>
+            </section>
+          </section>
+
+          <section class="sheet-stats-row" aria-label="Recursos e atributos">
+            <article class="sheet-panel sheet-resource-card sheet-resource-card--life" aria-labelledby="sheet-life-heading">
+              <header class="sheet-resource-heading">
+                <h2 id="sheet-life-heading"><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-heart"></use></svg>Vida</h2>
+                <span id="sheet-life-status" class="sheet-resource-alert" hidden>Vida crítica</span>
+              </header>
+              <div class="sheet-resource-values">
+                <div><span>Atual</span><strong id="sheet-life-current-display"></strong></div>
+                <div><span>Máximo</span><strong id="sheet-life-max"></strong></div>
+              </div>
+              <div class="sheet-resource-meter" aria-hidden="true"><span id="sheet-life-bar"></span></div>
+              <div class="sheet-resource-footer">
+                <span id="sheet-life-percent"></span>
+                <button id="sheet-life-restore" class="sheet-icon-button" type="button" aria-label="Restaurar Vida" title="Restaurar Vida">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-restore"></use></svg>
+                </button>
+              </div>
+              <div class="sheet-resource-control">
+                <button id="sheet-life-minus" type="button" aria-label="Reduzir Vida atual" title="Reduzir Vida">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-minus"></use></svg>
+                </button>
+                <input id="sheet-life-current" type="number" min="0" inputmode="numeric" aria-label="Vida atual" />
+                <button id="sheet-life-plus" type="button" aria-label="Aumentar Vida atual" title="Aumentar Vida">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-plus"></use></svg>
+                </button>
+              </div>
+            </article>
+
+            <article class="sheet-panel sheet-resource-card sheet-resource-card--mana" aria-labelledby="sheet-mana-heading">
+              <header class="sheet-resource-heading">
+                <h2 id="sheet-mana-heading"><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-drop"></use></svg>Mana</h2>
+              </header>
+              <div class="sheet-resource-values">
+                <div><span>Atual</span><strong id="sheet-mana-current-display"></strong></div>
+                <div><span>Máximo</span><strong id="sheet-mana-max"></strong></div>
+              </div>
+              <div class="sheet-resource-meter" aria-hidden="true"><span id="sheet-mana-bar"></span></div>
+              <div class="sheet-resource-footer">
+                <span id="sheet-mana-percent"></span>
+                <button id="sheet-mana-restore" class="sheet-icon-button" type="button" aria-label="Restaurar Mana" title="Restaurar Mana">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-restore"></use></svg>
+                </button>
+              </div>
+              <div class="sheet-resource-control">
+                <button id="sheet-mana-minus" type="button" aria-label="Reduzir Mana atual" title="Reduzir Mana">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-minus"></use></svg>
+                </button>
+                <input id="sheet-mana-current" type="number" min="0" inputmode="numeric" aria-label="Mana atual" />
+                <button id="sheet-mana-plus" type="button" aria-label="Aumentar Mana atual" title="Aumentar Mana">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-plus"></use></svg>
+                </button>
+              </div>
+            </article>
+
+            <div id="sheet-attributes-list" class="sheet-attributes-list"></div>
+          </section>
+
+          <section class="sheet-vulnerability-strip" aria-labelledby="sheet-vulnerability-heading">
+            <h2 id="sheet-vulnerability-heading">Vulnerabilidade</h2>
+            <strong id="sheet-vulnerability-title"></strong>
+            <p id="sheet-vulnerability-description"></p>
+          </section>
+
+          <section class="sheet-middle-row" aria-label="Atalho de combate e armas">
+            <section class="sheet-panel combat-shortcut" aria-labelledby="sheet-combat-shortcut-heading">
+              <header class="sheet-section-heading">
+                <h2 id="sheet-combat-shortcut-heading">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-swords"></use></svg>
+                  Atalho de combate
+                </h2>
+              </header>
+              <dl>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-sword"></use></svg><dt>Arma equipada</dt><dd>Nenhuma</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-burst"></use></svg><dt>Dano</dt><dd>—</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-target"></use></svg><dt>Alcance</dt><dd>—</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-spiral"></use></svg><dt>Técnica selecionada</dt><dd>Nenhuma</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-hourglass"></use></svg><dt>Usos</dt><dd>—</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bolt"></use></svg><dt>Efeito ativo</dt><dd>Nenhum</dd></div>
+              </dl>
+            </section>
+
+            <section class="sheet-panel sheet-weapons-panel" aria-labelledby="sheet-weapons-heading">
+              <header class="sheet-section-heading">
+                <h2 id="sheet-weapons-heading"><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-sword"></use></svg>Armas e condições</h2>
+              </header>
+              <div class="sheet-static-table sheet-weapons-table" role="table" aria-label="Armas e condições">
+                <div class="sheet-static-table__head" role="row">
+                  <span role="columnheader">Item</span><span role="columnheader">Dano</span><span role="columnheader">Tipo</span><span role="columnheader">Efeito</span><span role="columnheader">Qtd.</span>
+                </div>
+                <div class="sheet-static-table__empty" role="row"><span role="cell">Nenhuma arma cadastrada.</span></div>
+              </div>
+            </section>
+          </section>
+
+          <section class="sheet-bottom-row" aria-label="Perícias, habilidades e inventário">
+            <section class="sheet-panel sheet-skills-panel" aria-labelledby="sheet-skills-heading">
+              <header class="sheet-section-heading">
+                <h2 id="sheet-skills-heading"><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-rune-star"></use></svg>Perícias — Consulta rápida</h2>
+              </header>
+              <div id="sheet-skills-list" class="sheet-skills-list"></div>
+            </section>
+
+            <div class="sheet-bottom-stack">
+              <section class="sheet-panel sheet-abilities-panel" aria-labelledby="sheet-abilities-heading">
+                <header class="sheet-section-heading">
+                  <h2 id="sheet-abilities-heading"><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-rune-star"></use></svg>Habilidades em uso</h2>
+                </header>
+                <div class="sheet-static-table sheet-abilities-table" role="table" aria-label="Habilidades">
+                  <div class="sheet-static-table__head" role="row">
+                    <span role="columnheader">Nome</span><span role="columnheader">Atributo</span><span role="columnheader">Ação</span><span role="columnheader">Situação</span><span role="columnheader">Uso</span>
+                  </div>
+                  <div class="sheet-static-table__empty" role="row"><span role="cell">Nenhuma habilidade cadastrada.</span></div>
+                </div>
+              </section>
+
+              <section class="sheet-panel sheet-inventory-panel" aria-labelledby="sheet-inventory-heading">
+                <header class="sheet-section-heading">
+                  <h2 id="sheet-inventory-heading"><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bag"></use></svg>Inventário</h2>
+                </header>
+                <div class="sheet-static-table sheet-inventory-table" role="table" aria-label="Inventário">
+                  <div class="sheet-static-table__head" role="row">
+                    <span role="columnheader">Item</span><span role="columnheader">Categoria</span><span role="columnheader">Qtd.</span><span role="columnheader">Peso</span><span role="columnheader">Localização</span>
+                  </div>
+                  <div class="sheet-static-table__empty" role="row"><span role="cell">Nenhum item cadastrado.</span></div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <footer class="sheet-footer">
+            <div class="sheet-footer__legend" aria-label="Legenda">
+              <span>Legenda:</span>
+              <b><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-medallion"></use></svg>Automático</b>
+              <b><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-attention"></use></svg>Atenção</b>
+              <b><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-star"></use></svg>Treinada</b>
+            </div>
+            <div class="sheet-footer__actions">
+              <span id="sheet-footer-save-state">Última atualização: salvo nesta sessão</span>
+              <button id="sheet-back-review" class="sheet-footer-link" type="button">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-document"></use></svg>
+                Voltar à Revisão
+              </button>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
