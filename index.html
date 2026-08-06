@@ -243,7 +243,7 @@
               </div>
               <input id="portrait-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
               <p id="portrait-status" class="portrait-status" aria-live="polite"></p>
-              <p class="portrait-help">JPG, PNG ou WebP. A imagem permanece somente no seu navegador.</p>
+              <p class="portrait-help">JPG, PNG ou WebP, até 12 MB. A imagem permanece somente no seu navegador.</p>
             </section>
 
             <form id="identity-form" class="identity-form" novalidate>
@@ -1098,6 +1098,43 @@
       </div>
     </section>
   </main>
+
+  <dialog id="portrait-crop-dialog" class="portrait-crop-dialog" aria-labelledby="portrait-crop-title">
+    <section class="portrait-crop-shell">
+      <header class="portrait-crop-header">
+        <p>Retrato 4:5</p>
+        <h2 id="portrait-crop-title">Ajustar enquadramento</h2>
+      </header>
+
+      <div class="portrait-crop-viewport">
+        <canvas
+          id="portrait-crop-canvas"
+          class="portrait-crop-canvas"
+          width="640"
+          height="800"
+          tabindex="0"
+          aria-label="Área de recorte do retrato"
+        ></canvas>
+        <span class="portrait-crop-corner portrait-crop-corner--tl" aria-hidden="true"></span>
+        <span class="portrait-crop-corner portrait-crop-corner--tr" aria-hidden="true"></span>
+        <span class="portrait-crop-corner portrait-crop-corner--bl" aria-hidden="true"></span>
+        <span class="portrait-crop-corner portrait-crop-corner--br" aria-hidden="true"></span>
+      </div>
+
+      <div class="portrait-crop-zoom">
+        <label for="portrait-crop-range">Zoom</label>
+        <input id="portrait-crop-range" type="range" min="100" max="300" value="100" step="1" />
+        <output id="portrait-crop-zoom-value" for="portrait-crop-range">100%</output>
+      </div>
+
+      <p id="portrait-crop-status" class="portrait-crop-status" aria-live="polite"></p>
+
+      <footer class="portrait-crop-actions">
+        <button id="portrait-crop-cancel" class="secondary-action-button" type="button">Cancelar</button>
+        <button id="portrait-crop-apply" class="wine-button" type="button">Usar retrato</button>
+      </footer>
+    </section>
+  </dialog>
 
   <script src="./script.js"></script>
 </body>

@@ -711,6 +711,16 @@ let paginaDePericiasAtual = 1;
 let temporizadorMensagemDeSalvamento = null;
 let fichaSalvaNaSessao = null;
 let fichaPossuiAlteracoes = false;
+let estadoDoRecorteDoRetrato = null;
+let ponteiroDoRecorteDoRetrato = null;
+
+const CONFIGURACAO_RETRATO = Object.freeze({
+  larguraFinal: 640,
+  alturaFinal: 800,
+  tamanhoMaximoArquivo: 12 * 1024 * 1024,
+  qualidadeWebp: 0.88,
+  zoomMaximo: 3
+});
 
 let etapaAtual = 1;
 
@@ -751,6 +761,13 @@ const removePortraitButton = document.querySelector("#remove-portrait");
 const portraitPreview = document.querySelector("#portrait-preview");
 const portraitEmpty = document.querySelector("#portrait-empty");
 const portraitStatus = document.querySelector("#portrait-status");
+const portraitCropDialog = document.querySelector("#portrait-crop-dialog");
+const portraitCropCanvas = document.querySelector("#portrait-crop-canvas");
+const portraitCropRange = document.querySelector("#portrait-crop-range");
+const portraitCropZoomValue = document.querySelector("#portrait-crop-zoom-value");
+const portraitCropStatus = document.querySelector("#portrait-crop-status");
+const portraitCropCancel = document.querySelector("#portrait-crop-cancel");
+const portraitCropApply = document.querySelector("#portrait-crop-apply");
 
 const speciesList = document.querySelector("#species-list");
 const speciesError = document.querySelector("#species-error");
@@ -1332,7 +1349,194 @@ function abrirSeletorDeRetrato() {
   portraitInput.click();
 }
 
-function selecionarRetrato(event) {
+function carregarImagemParaRecorte(arquivo) {
+  return new Promise(function (resolve, reject) {
+    const url = URL.createObjectURL(arquivo);
+    const imagem = new Image();
+
+    imagem.addEventListener("load", function () {
+      URL.revokeObjectURL(url);
+      resolve(imagem);
+    }, { once: true });
+
+    imagem.addEventListener("error", function () {
+      URL.revokeObjectURL(url);
+      reject(new Error("Não foi possível carregar esta imagem."));
+    }, { once: true });
+
+    imagem.src = url;
+  });
+}
+
+function limitarPosicaoDoRecorte() {
+  if (!estadoDoRecorteDoRetrato) return;
+
+  const estado = estadoDoRecorteDoRetrato;
+  const larguraDesenhada = estado.imagem.naturalWidth * estado.escala;
+  const alturaDesenhada = estado.imagem.naturalHeight * estado.escala;
+  const limiteX = CONFIGURACAO_RETRATO.larguraFinal - larguraDesenhada;
+  const limiteY = CONFIGURACAO_RETRATO.alturaFinal - alturaDesenhada;
+
+  estado.x = Math.min(0, Math.max(limiteX, estado.x));
+  estado.y = Math.min(0, Math.max(limiteY, estado.y));
+}
+
+function renderizarRecorteDoRetrato() {
+  if (!estadoDoRecorteDoRetrato) return;
+
+  const contexto = portraitCropCanvas.getContext("2d");
+  const estado = estadoDoRecorteDoRetrato;
+
+  contexto.clearRect(0, 0, portraitCropCanvas.width, portraitCropCanvas.height);
+  contexto.imageSmoothingEnabled = true;
+  contexto.imageSmoothingQuality = "high";
+  contexto.drawImage(
+    estado.imagem,
+    estado.x,
+    estado.y,
+    estado.imagem.naturalWidth * estado.escala,
+    estado.imagem.naturalHeight * estado.escala
+  );
+}
+
+function definirZoomDoRecorte(valor) {
+  if (!estadoDoRecorteDoRetrato) return;
+
+  const estado = estadoDoRecorteDoRetrato;
+  const fator = Math.min(
+    CONFIGURACAO_RETRATO.zoomMaximo,
+    Math.max(1, Number(valor) / 100)
+  );
+  const centroNaImagemX = (CONFIGURACAO_RETRATO.larguraFinal / 2 - estado.x) / estado.escala;
+  const centroNaImagemY = (CONFIGURACAO_RETRATO.alturaFinal / 2 - estado.y) / estado.escala;
+
+  estado.escala = estado.escalaMinima * fator;
+  estado.x = CONFIGURACAO_RETRATO.larguraFinal / 2 - centroNaImagemX * estado.escala;
+  estado.y = CONFIGURACAO_RETRATO.alturaFinal / 2 - centroNaImagemY * estado.escala;
+  limitarPosicaoDoRecorte();
+  renderizarRecorteDoRetrato();
+
+  portraitCropRange.value = String(Math.round(fator * 100));
+  portraitCropZoomValue.value = `${Math.round(fator * 100)}%`;
+  portraitCropZoomValue.textContent = portraitCropZoomValue.value;
+}
+
+function abrirEditorDeRecorte(imagem) {
+  const escalaMinima = Math.max(
+    CONFIGURACAO_RETRATO.larguraFinal / imagem.naturalWidth,
+    CONFIGURACAO_RETRATO.alturaFinal / imagem.naturalHeight
+  );
+
+  estadoDoRecorteDoRetrato = {
+    imagem,
+    escalaMinima,
+    escala: escalaMinima,
+    x: (CONFIGURACAO_RETRATO.larguraFinal - imagem.naturalWidth * escalaMinima) / 2,
+    y: (CONFIGURACAO_RETRATO.alturaFinal - imagem.naturalHeight * escalaMinima) / 2
+  };
+
+  portraitCropRange.value = "100";
+  portraitCropZoomValue.value = "100%";
+  portraitCropZoomValue.textContent = "100%";
+  portraitCropStatus.textContent = `${imagem.naturalWidth} × ${imagem.naturalHeight} px | saída 640 × 800 px`;
+  renderizarRecorteDoRetrato();
+  document.body.classList.add("portrait-crop-is-open");
+  portraitCropDialog.showModal();
+  portraitCropCanvas.focus();
+}
+
+function fecharEditorDeRecorte() {
+  if (portraitCropDialog.open) {
+    portraitCropDialog.close();
+  }
+}
+
+function aplicarRecorteDoRetrato() {
+  if (!estadoDoRecorteDoRetrato) return;
+
+  try {
+    personagem.retrato = portraitCropCanvas.toDataURL(
+      "image/webp",
+      CONFIGURACAO_RETRATO.qualidadeWebp
+    );
+    portraitStatus.textContent = "Retrato ajustado para 640 × 800 px.";
+    mostrarRetrato();
+    fecharEditorDeRecorte();
+  } catch (erro) {
+    portraitCropStatus.textContent = "Não foi possível finalizar o recorte.";
+  }
+}
+
+function iniciarArrasteDoRecorte(event) {
+  if (!estadoDoRecorteDoRetrato || event.button !== 0) return;
+
+  ponteiroDoRecorteDoRetrato = {
+    id: event.pointerId,
+    inicioX: event.clientX,
+    inicioY: event.clientY,
+    origemX: estadoDoRecorteDoRetrato.x,
+    origemY: estadoDoRecorteDoRetrato.y
+  };
+
+  portraitCropCanvas.setPointerCapture(event.pointerId);
+  portraitCropCanvas.classList.add("is-dragging");
+}
+
+function arrastarRecorte(event) {
+  if (!estadoDoRecorteDoRetrato || ponteiroDoRecorteDoRetrato?.id !== event.pointerId) return;
+
+  const retangulo = portraitCropCanvas.getBoundingClientRect();
+  const fatorX = portraitCropCanvas.width / retangulo.width;
+  const fatorY = portraitCropCanvas.height / retangulo.height;
+
+  estadoDoRecorteDoRetrato.x = ponteiroDoRecorteDoRetrato.origemX
+    + (event.clientX - ponteiroDoRecorteDoRetrato.inicioX) * fatorX;
+  estadoDoRecorteDoRetrato.y = ponteiroDoRecorteDoRetrato.origemY
+    + (event.clientY - ponteiroDoRecorteDoRetrato.inicioY) * fatorY;
+  limitarPosicaoDoRecorte();
+  renderizarRecorteDoRetrato();
+}
+
+function encerrarArrasteDoRecorte(event) {
+  if (ponteiroDoRecorteDoRetrato?.id !== event.pointerId) return;
+
+  if (portraitCropCanvas.hasPointerCapture(event.pointerId)) {
+    portraitCropCanvas.releasePointerCapture(event.pointerId);
+  }
+  ponteiroDoRecorteDoRetrato = null;
+  portraitCropCanvas.classList.remove("is-dragging");
+}
+
+function controlarRecortePeloTeclado(event) {
+  if (!estadoDoRecorteDoRetrato) return;
+
+  const deslocamento = event.shiftKey ? 32 : 12;
+  const movimentos = {
+    ArrowLeft: [deslocamento, 0],
+    ArrowRight: [-deslocamento, 0],
+    ArrowUp: [0, deslocamento],
+    ArrowDown: [0, -deslocamento]
+  };
+
+  if (movimentos[event.key]) {
+    event.preventDefault();
+    estadoDoRecorteDoRetrato.x += movimentos[event.key][0];
+    estadoDoRecorteDoRetrato.y += movimentos[event.key][1];
+    limitarPosicaoDoRecorte();
+    renderizarRecorteDoRetrato();
+    return;
+  }
+
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault();
+    definirZoomDoRecorte(Number(portraitCropRange.value) + 10);
+  } else if (event.key === "-") {
+    event.preventDefault();
+    definirZoomDoRecorte(Number(portraitCropRange.value) - 10);
+  }
+}
+
+async function selecionarRetrato(event) {
   const arquivo = event.target.files[0];
   const formatosPermitidos = ["image/jpeg", "image/png", "image/webp"];
 
@@ -1346,24 +1550,25 @@ function selecionarRetrato(event) {
     return;
   }
 
-  const leitor = new FileReader();
+  if (arquivo.size > CONFIGURACAO_RETRATO.tamanhoMaximoArquivo) {
+    portraitStatus.textContent = "A imagem deve ter no máximo 12 MB.";
+    portraitInput.value = "";
+    return;
+  }
 
-  leitor.addEventListener("load", function () {
-    if (typeof leitor.result !== "string") {
-      portraitStatus.textContent = "Não foi possível carregar esta imagem.";
-      return;
-    }
+  portraitStatus.textContent = "Preparando imagem...";
+  choosePortraitButton.disabled = true;
 
-    personagem.retrato = leitor.result;
+  try {
+    const imagem = await carregarImagemParaRecorte(arquivo);
     portraitStatus.textContent = "";
-    mostrarRetrato();
-  });
-
-  leitor.addEventListener("error", function () {
-    portraitStatus.textContent = "Não foi possível carregar esta imagem.";
-  });
-
-  leitor.readAsDataURL(arquivo);
+    abrirEditorDeRecorte(imagem);
+  } catch (erro) {
+    portraitStatus.textContent = erro.message || "Não foi possível carregar esta imagem.";
+  } finally {
+    choosePortraitButton.disabled = false;
+    portraitInput.value = "";
+  }
 }
 
 function mostrarRetrato() {
@@ -3869,6 +4074,22 @@ classTabs.addEventListener("keydown", function (event) {
 choosePortraitButton.addEventListener("click", abrirSeletorDeRetrato);
 removePortraitButton.addEventListener("click", removerRetrato);
 portraitInput.addEventListener("change", selecionarRetrato);
+portraitCropRange.addEventListener("input", function () {
+  definirZoomDoRecorte(portraitCropRange.value);
+});
+portraitCropCanvas.addEventListener("pointerdown", iniciarArrasteDoRecorte);
+portraitCropCanvas.addEventListener("pointermove", arrastarRecorte);
+portraitCropCanvas.addEventListener("pointerup", encerrarArrasteDoRecorte);
+portraitCropCanvas.addEventListener("pointercancel", encerrarArrasteDoRecorte);
+portraitCropCanvas.addEventListener("keydown", controlarRecortePeloTeclado);
+portraitCropCancel.addEventListener("click", fecharEditorDeRecorte);
+portraitCropApply.addEventListener("click", aplicarRecorteDoRetrato);
+portraitCropDialog.addEventListener("close", function () {
+  document.body.classList.remove("portrait-crop-is-open");
+  estadoDoRecorteDoRetrato = null;
+  ponteiroDoRecorteDoRetrato = null;
+  portraitCropCanvas.classList.remove("is-dragging");
+});
 importButton.addEventListener("click", abrirSeletorDeArquivo);
 fileInput.addEventListener("change", selecionarArquivo);
 masterButton.addEventListener("click", mostrarAvisoDoMestre);
