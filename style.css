@@ -43,13 +43,6 @@
   display: none !important;
 }
 
-.min-h-screen { min-height: 0; }
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.text-center { text-align: center; }
-.grid { display: grid; }
-
 html,
 body {
   width: 100%;
@@ -330,11 +323,18 @@ button {
 .landing-content {
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   min-width: 0;
   padding: 36px 18px 26px 74px;
+  text-align: center;
 }
 
 .brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
 }
 
@@ -408,6 +408,7 @@ button {
 }
 
 .action-grid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   width: min(720px, 100%);
@@ -3159,6 +3160,14 @@ button {
 }
 
 .attribute-card {
+  --attribute-seal-color: rgba(184, 134, 59, 0.82);
+  --attribute-seal-strong: var(--dourado);
+  --attribute-seal-glow: rgba(184, 134, 59, 0.34);
+  --attribute-frame-color: rgba(135, 94, 43, 0.3);
+  --sheet-attribute-paper-warmth: rgba(184, 134, 59, 0.01);
+
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 40px minmax(170px, 1fr) minmax(128px, auto) minmax(188px, auto);
   align-items: center;
@@ -3166,9 +3175,134 @@ button {
   height: 86px;
   min-height: 86px;
   padding: 8px 10px;
+  overflow: hidden;
   border-top: 1px solid rgba(184, 134, 59, 0.35);
   border-bottom: 1px solid rgba(184, 134, 59, 0.35);
-  background: rgba(252, 248, 239, 0.48);
+  outline: 1px solid var(--attribute-frame-color);
+  outline-offset: -4px;
+  background:
+    linear-gradient(var(--sheet-attribute-paper-warmth), var(--sheet-attribute-paper-warmth)),
+    rgba(252, 248, 239, 0.48);
+  transition:
+    --attribute-seal-color 1000ms var(--ease-soft),
+    --attribute-seal-glow 1000ms var(--ease-soft),
+    --sheet-attribute-paper-warmth 1000ms var(--ease-soft),
+    border-color 1000ms var(--ease-soft),
+    outline-color 1000ms var(--ease-soft),
+    box-shadow 1000ms var(--ease-soft);
+}
+
+.attribute-card::before,
+.attribute-card::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.attribute-card::before {
+  inset: 3px;
+  background:
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left top / 12px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left top / 1px 9px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right top / 12px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right top / 1px 9px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left bottom / 12px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left bottom / 1px 9px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right bottom / 12px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right bottom / 1px 9px no-repeat;
+}
+
+.attribute-card[data-attribute-motion="impact"]::before {
+  background:
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left top / 9px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left top / 1px 7px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right top / 9px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right top / 1px 7px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left bottom / 24px 2px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left bottom / 2px 14px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right bottom / 24px 2px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right bottom / 2px 14px no-repeat;
+}
+
+.attribute-card[data-attribute-motion="trail"]::after {
+  --sheet-attribute-trail-angle: 0deg;
+
+  inset: 3px;
+  box-sizing: border-box;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--sheet-attribute-trail-angle),
+    transparent 0deg 284deg,
+    rgba(211, 173, 109, 0.34) 292deg,
+    var(--attribute-seal-color) 318deg 348deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.attribute-card[data-attribute-motion="inscription"]::after {
+  top: 3px;
+  right: 7px;
+  bottom: 3px;
+  left: 7px;
+  background:
+    radial-gradient(circle, var(--attribute-seal-color) 0 1.5px, transparent 1.7px) left top / 18px 3px no-repeat,
+    radial-gradient(circle, var(--attribute-seal-color) 0 1.5px, transparent 1.7px) right bottom / 18px 3px no-repeat,
+    radial-gradient(circle, rgba(184, 134, 59, 0.34) 0 1.2px, transparent 1.45px) left top / 18px 3px repeat-x,
+    radial-gradient(circle, rgba(184, 134, 59, 0.34) 0 1.2px, transparent 1.45px) 9px bottom / 18px 3px repeat-x;
+}
+
+.attribute-card[data-attribute-motion="seal"]::before {
+  inset: 4px;
+  background:
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left top / 17px 2px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left top / 2px 13px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right top / 17px 2px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right top / 2px 13px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left bottom / 17px 2px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) left bottom / 2px 13px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right bottom / 17px 2px no-repeat,
+    linear-gradient(var(--attribute-seal-color), var(--attribute-seal-color)) right bottom / 2px 13px no-repeat;
+}
+
+.attribute-card.is-at-limit::before {
+  opacity: 0.72;
+}
+
+.attribute-card.is-at-limit[data-attribute-motion="trail"]::after,
+.attribute-card.is-at-limit[data-attribute-motion="inscription"]::after {
+  opacity: 0.72;
+}
+
+.attribute-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .attributes-list:has(.attribute-card:hover) .attribute-card:not(:hover) {
+    --attribute-seal-color: rgba(184, 134, 59, 0.66);
+    --attribute-seal-glow: rgba(184, 134, 59, 0.27);
+  }
+
+  .attribute-card:hover {
+    --attribute-frame-color: rgba(135, 94, 43, 0.48);
+    --sheet-attribute-paper-warmth: rgba(184, 134, 59, 0.07);
+
+    border-color: rgba(184, 134, 59, 0.72);
+    box-shadow:
+      0 3px 10px rgba(70, 42, 27, 0.08),
+      inset 0 0 0 1px rgba(211, 173, 109, 0.15);
+  }
 }
 
 .attribute-icon {
@@ -3292,7 +3426,68 @@ button {
 }
 
 .attribute-final-value {
+  position: relative;
+  isolation: isolate;
   font-size: 21px;
+}
+
+.attribute-final-value::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 31px;
+  height: 20px;
+  opacity: 0.09;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.attribute-card[data-attribute="forca"] .attribute-final-value::before {
+  width: 19px;
+  height: 19px;
+  border: 1px solid var(--attribute-seal-strong);
+  background:
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) center / 1px 100% no-repeat,
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) center / 100% 1px no-repeat;
+  transform: translate(-50%, -50%) rotate(45deg) scale(0.78);
+}
+
+.attribute-card[data-attribute="agilidade"] .attribute-final-value::before {
+  width: 30px;
+  height: 18px;
+  background: repeating-linear-gradient(
+    118deg,
+    transparent 0 5px,
+    var(--attribute-seal-strong) 5px 7px,
+    transparent 7px 11px
+  );
+  clip-path: polygon(0 50%, 18% 10%, 18% 38%, 58% 38%, 58% 10%, 100% 50%, 58% 90%, 58% 62%, 18% 62%, 18% 90%);
+}
+
+.attribute-card[data-attribute="intelecto"] .attribute-final-value::before {
+  width: 28px;
+  height: 18px;
+  border: 1px solid var(--attribute-seal-strong);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 20% 50%, var(--attribute-seal-strong) 0 1.5px, transparent 1.7px),
+    radial-gradient(circle at 50% 18%, var(--attribute-seal-strong) 0 1.2px, transparent 1.4px),
+    radial-gradient(circle at 78% 58%, var(--attribute-seal-strong) 0 1.5px, transparent 1.7px),
+    linear-gradient(25deg, transparent 47%, var(--attribute-seal-strong) 48% 51%, transparent 52%);
+}
+
+.attribute-card[data-attribute="resistencia"] .attribute-final-value::before {
+  width: 27px;
+  height: 18px;
+  background:
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) left top / 9px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) left top / 1px 100% no-repeat,
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) left bottom / 9px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) right top / 9px 1px no-repeat,
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) right top / 1px 100% no-repeat,
+    linear-gradient(var(--attribute-seal-strong), var(--attribute-seal-strong)) right bottom / 9px 1px no-repeat;
 }
 
 .attribute-final-value.is-changing-up {

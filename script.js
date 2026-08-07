@@ -1,3 +1,9 @@
+const { animarMudancaDeRecurso, deveReduzirMovimento } = window.GrimorioMotion;
+const dominioDoInventario = window.GrimorioInventoryDomain;
+const CONFIGURACAO_DO_INVENTARIO = dominioDoInventario.INVENTORY_CONFIG;
+const CONFIGURACAO_DE_RARIDADE = dominioDoInventario.RARITY_CONFIG;
+const CONFIGURACAO_DE_TIPO_DE_ITEM = dominioDoInventario.ITEM_TYPE_CONFIG;
+
 const personagem = {
   nome: "",
   jogador: "",
@@ -69,7 +75,10 @@ const personagem = {
   },
   armas: [],
   habilidades: [],
-  inventario: []
+  inventario: [],
+  economia: { ouro: 0, prata: 0 },
+  capacidadeInventario: { pesoMaximo: null },
+  equipamentos: { armadura: null }
 };
 
 const MODELO_PERSONAGEM = JSON.parse(JSON.stringify(personagem));
@@ -703,6 +712,27 @@ const caminhosDosSimbolos = {
   "analista-de-padroes": "M27 80c25-37 81-37 106 0-25 37-81 37-106 0zm53-23a23 23 0 1 1 0 46 23 23 0 0 1 0-46zm0 12a11 11 0 1 1 0 22 11 11 0 0 1 0-22zM35 42h20m50 0h20M35 118h20m50 0h20"
 };
 
+const LIMITE_HABILIDADES_RESUMO = 4;
+const TIPOS_HABILIDADE = new Set(["passiva", "tecnica", "reacao", "suprema", "outro"]);
+const CATALOGO_ICONES_HABILIDADE = Object.freeze([
+  { id: "habilidade-generica", simbolo: "rune-star", nome: "Runa" },
+  { id: "espada", simbolo: "sword", nome: "Espada" },
+  { id: "espadas", simbolo: "swords", nome: "Combate" },
+  { id: "escudo", simbolo: "shield", nome: "Escudo" },
+  { id: "protecao", simbolo: "ward", nome: "Proteção" },
+  { id: "energia", simbolo: "bolt", nome: "Energia" },
+  { id: "explosao", simbolo: "burst", nome: "Explosão" },
+  { id: "alvo", simbolo: "target", nome: "Alvo" },
+  { id: "mana", simbolo: "drop", nome: "Mana" },
+  { id: "vida", simbolo: "heart", nome: "Vida" },
+  { id: "movimento", simbolo: "wing", nome: "Movimento" },
+  { id: "tempo", simbolo: "hourglass", nome: "Tempo" },
+  { id: "mente", simbolo: "eye", nome: "Percepção" },
+  { id: "estrela", simbolo: "star", nome: "Estrela" },
+  { id: "livro", simbolo: "book", nome: "Conhecimento" },
+  { id: "coroa", simbolo: "crown", nome: "Suprema" }
+]);
+
 let categoriaDeClasseAtual = "Científicas e tecnológicas";
 let paginaDeClassesAtual = 1;
 let abaDeClasseAtual = "overview";
@@ -713,6 +743,36 @@ let fichaSalvaNaSessao = null;
 let fichaPossuiAlteracoes = false;
 let estadoDoRecorteDoRetrato = null;
 let ponteiroDoRecorteDoRetrato = null;
+let habilidadeSelecionadaId = null;
+let filtroTipoHabilidade = "todos";
+let filtroEstadoHabilidade = "todos";
+let buscaHabilidade = "";
+let habilidadePendente = null;
+let iconeHabilidadePendente = "habilidade-generica";
+let modoDialogHabilidade = "importar";
+const inventoryUIState = {
+  pendingPlacement: null,
+  reorganizingForPending: false,
+  movingItemId: null,
+  selectedItemId: null,
+  hoveredCell: null,
+  candidatePosition: null,
+  pointerSession: null,
+  discardingItemId: null
+};
+
+const SIMBOLOS_DE_TIPO_DE_ITEM = Object.freeze({
+  consumivel: "\u2697",
+  arma: "\u2694",
+  armadura: "\u2b21",
+  equipamento: "\u2699",
+  ferramenta: "\u2692",
+  material: "\u25c8",
+  outro: "\u2726"
+});
+const LIMIAR_DE_ARRASTE_DO_INVENTARIO = 4;
+const DURACAO_DE_ENCAIXE_DO_INVENTARIO = 210;
+const DURACAO_DE_RETORNO_DO_INVENTARIO = 240;
 
 const CONFIGURACAO_RETRATO = Object.freeze({
   larguraFinal: 640,
@@ -891,26 +951,115 @@ const sheetInitiative = document.querySelector("#sheet-initiative");
 const sheetMovement = document.querySelector("#sheet-movement");
 const sheetLifeCard = document.querySelector(".sheet-resource-card--life");
 const sheetLifeCurrent = document.querySelector("#sheet-life-current");
-const sheetLifeCurrentDisplay = document.querySelector("#sheet-life-current-display");
 const sheetLifeMax = document.querySelector("#sheet-life-max");
 const sheetLifeMinus = document.querySelector("#sheet-life-minus");
 const sheetLifePlus = document.querySelector("#sheet-life-plus");
-const sheetLifeRestore = document.querySelector("#sheet-life-restore");
 const sheetLifeBar = document.querySelector("#sheet-life-bar");
 const sheetLifePercent = document.querySelector("#sheet-life-percent");
 const sheetLifeStatus = document.querySelector("#sheet-life-status");
+const sheetManaCard = document.querySelector(".sheet-resource-card--mana");
 const sheetManaCurrent = document.querySelector("#sheet-mana-current");
-const sheetManaCurrentDisplay = document.querySelector("#sheet-mana-current-display");
 const sheetManaMax = document.querySelector("#sheet-mana-max");
 const sheetManaMinus = document.querySelector("#sheet-mana-minus");
 const sheetManaPlus = document.querySelector("#sheet-mana-plus");
-const sheetManaRestore = document.querySelector("#sheet-mana-restore");
 const sheetManaBar = document.querySelector("#sheet-mana-bar");
 const sheetManaPercent = document.querySelector("#sheet-mana-percent");
+const RECURSOS_DA_FICHA = [
+  {
+    atual: "vidaAtual",
+    maximo: "vidaMaxima",
+    input: sheetLifeCurrent,
+    maxDisplay: sheetLifeMax,
+    minusButton: sheetLifeMinus,
+    plusButton: sheetLifePlus,
+    bar: sheetLifeBar,
+    percent: sheetLifePercent
+  },
+  {
+    atual: "manaAtual",
+    maximo: "manaMaxima",
+    input: sheetManaCurrent,
+    maxDisplay: sheetManaMax,
+    minusButton: sheetManaMinus,
+    plusButton: sheetManaPlus,
+    bar: sheetManaBar,
+    percent: sheetManaPercent
+  }
+];
 const sheetAttributesList = document.querySelector("#sheet-attributes-list");
+const snapshotsAnterioresDosAtributosDaFicha = new Map();
 const sheetSkillsList = document.querySelector("#sheet-skills-list");
 const sheetVulnerabilityTitle = document.querySelector("#sheet-vulnerability-title");
 const sheetVulnerabilityDescription = document.querySelector("#sheet-vulnerability-description");
+const sheetViews = document.querySelectorAll("[data-sheet-view]");
+const sheetAbilitiesSummary = document.querySelector("#sheet-abilities-summary");
+const sheetOpenAbilities = document.querySelector("#sheet-open-abilities");
+const sheetOpenInventory = document.querySelector("#sheet-open-inventory");
+const sheetAbilitiesView = document.querySelector("#sheet-abilities-view");
+const sheetAbilitiesViewHeading = document.querySelector("#sheet-abilities-view-heading");
+const sheetAbilitySearch = document.querySelector("#sheet-ability-search");
+const sheetAbilityTypeFilter = document.querySelector("#sheet-ability-type-filter");
+const sheetAbilityStateFilter = document.querySelector("#sheet-ability-state-filter");
+const sheetImportAbility = document.querySelector("#sheet-import-ability");
+const sheetAbilityFile = document.querySelector("#sheet-ability-file");
+const sheetAbilityList = document.querySelector("#sheet-ability-list");
+const sheetAbilityDetails = document.querySelector("#sheet-ability-details");
+const sheetAbilityStats = document.querySelector("#sheet-ability-stats");
+const abilityImportDialog = document.querySelector("#ability-import-dialog");
+const abilityImportTitle = document.querySelector("#ability-import-title");
+const abilityImportPreview = document.querySelector("#ability-import-preview");
+const abilityDuplicateWarning = document.querySelector("#ability-duplicate-warning");
+const abilityIconOptions = document.querySelector("#ability-icon-options");
+const abilityImportStatus = document.querySelector("#ability-import-status");
+const abilityImportCancel = document.querySelector("#ability-import-cancel");
+const abilityImportConfirm = document.querySelector("#ability-import-confirm");
+const abilityRemoveDialog = document.querySelector("#ability-remove-dialog");
+const abilityRemoveDescription = document.querySelector("#ability-remove-description");
+const abilityRemoveCancel = document.querySelector("#ability-remove-cancel");
+const abilityRemoveConfirm = document.querySelector("#ability-remove-confirm");
+const sheetInventoryView = document.querySelector("#sheet-inventory-view");
+const sheetInventoryViewHeading = document.querySelector("#sheet-inventory-view-heading");
+const sheetInventoryUsedCells = document.querySelector("#sheet-inventory-used-cells");
+const sheetInventoryFreeCells = document.querySelector("#sheet-inventory-free-cells");
+const sheetInventoryOccupancy = document.querySelector("#sheet-inventory-occupancy");
+const sheetInventoryOccupancyBar = document.querySelector("#sheet-inventory-occupancy-bar");
+const sheetInventorySummaryStatus = document.querySelector("#sheet-inventory-summary-status");
+const sheetInventoryCapacity = document.querySelector("#sheet-inventory-capacity");
+const sheetImportItem = document.querySelector("#sheet-import-item");
+const sheetItemFile = document.querySelector("#sheet-item-file");
+const sheetInventoryGridScroll = document.querySelector("#sheet-inventory-grid-scroll");
+const sheetInventoryGrid = document.querySelector("#sheet-inventory-grid");
+const sheetInventoryCellLayer = document.querySelector("#sheet-inventory-cell-layer");
+const sheetInventoryPreviewLayer = document.querySelector("#sheet-inventory-preview-layer");
+const sheetInventoryItemLayer = document.querySelector("#sheet-inventory-item-layer");
+const sheetInventoryPlacementStatus = document.querySelector("#sheet-inventory-placement-status");
+const sheetInventoryDetails = document.querySelector("#sheet-inventory-details");
+const sheetInventoryDetailsEmpty = document.querySelector("#sheet-inventory-details-empty");
+const sheetInventoryItemActions = document.querySelector("#sheet-inventory-item-actions");
+const sheetInventoryReceived = document.querySelector("#sheet-inventory-received");
+const sheetInventoryArmorSlot = document.querySelector("#sheet-inventory-armor-slot");
+const sheetEquipItem = document.querySelector("#sheet-equip-item");
+const sheetRotateItem = document.querySelector("#sheet-rotate-item");
+const sheetInventoryWeight = document.querySelector("#sheet-inventory-weight");
+const sheetInventoryWeightBar = document.querySelector("#sheet-inventory-weight-bar");
+const sheetInventoryItemCount = document.querySelector("#sheet-inventory-item-count");
+const sheetInventorySpaceSummary = document.querySelector("#sheet-inventory-space-summary");
+const sheetInventoryGold = document.querySelector("#sheet-inventory-gold");
+const sheetInventorySilver = document.querySelector("#sheet-inventory-silver");
+const sheetInventoryMobileNav = document.querySelector(".sheet-inventory-mobile-nav");
+const sheetMoveItem = document.querySelector("#sheet-move-item");
+const sheetDiscardItem = document.querySelector("#sheet-discard-item");
+const sheetInventoryPendingActions = document.querySelector("#sheet-inventory-pending-actions");
+const sheetInventoryPendingHeading = document.querySelector("#sheet-inventory-pending-heading");
+const sheetInventoryPendingMessage = document.querySelector("#sheet-inventory-pending-message");
+const sheetReorganizeForItem = document.querySelector("#sheet-reorganize-for-item");
+const sheetRotatePendingItem = document.querySelector("#sheet-rotate-pending-item");
+const sheetDiscardPendingItem = document.querySelector("#sheet-discard-pending-item");
+const sheetCancelItemImport = document.querySelector("#sheet-cancel-item-import");
+const inventoryDiscardDialog = document.querySelector("#inventory-discard-dialog");
+const inventoryDiscardDescription = document.querySelector("#inventory-discard-description");
+const inventoryDiscardCancel = document.querySelector("#inventory-discard-cancel");
+const inventoryDiscardConfirm = document.querySelector("#inventory-discard-confirm");
 const sheetSaveStatus = document.querySelector("#sheet-save-status");
 const sheetFooterSaveState = document.querySelector("#sheet-footer-save-state");
 const creationSteps = document.querySelectorAll(".creation-step");
@@ -923,14 +1072,9 @@ const fields = [
 ];
 
 const consultaPonteiroPreciso = window.matchMedia("(hover: hover) and (pointer: fine)");
-const consultaMovimentoReduzido = window.matchMedia("(prefers-reduced-motion: reduce)");
 const etapasDaCriacao = [identityStep, speciesStep, classStep, originStep, attributesStep, reviewStep];
 let temporizadorDaTransicaoDeEtapa = null;
 let transicaoDaArteDaEspecie = 0;
-
-function deveReduzirMovimento() {
-  return consultaMovimentoReduzido.matches;
-}
 
 function podeUsarTilt() {
   return consultaPonteiroPreciso.matches && !deveReduzirMovimento();
@@ -2583,6 +2727,7 @@ function obterMensagemDoProximoNivel(atributo) {
 function renderizarAtributos(direcaoAlteracao, atributoAlterado) {
   const modificadores = obterModificadoresDaEspecie();
   const afinidade = obterAfinidadeDoPersonagem();
+  const motionDeAtributo = window.GrimorioAttributeMotion;
 
   attributesList.replaceChildren();
   attributesError.textContent = modificadores ? "" : "Não foi possível aplicar os modificadores da Espécie.";
@@ -2592,9 +2737,17 @@ function renderizarAtributos(direcaoAlteracao, atributoAlterado) {
     const modificador = modificadores ? modificadores[atributo.id] : 0;
     const valorFinal = valorDistribuido + modificador;
     const possuiAfinidade = afinidade === atributo.id;
+    const identidadeVisual = typeof motionDeAtributo?.obterVisualDoAtributo === "function"
+      ? motionDeAtributo.obterVisualDoAtributo(atributo.id)
+      : null;
 
     const card = document.createElement("article");
     card.className = "attribute-card";
+    card.dataset.attribute = atributo.id;
+    if (typeof identidadeVisual === "string" && identidadeVisual) {
+      card.dataset.attributeMotion = identidadeVisual;
+    }
+    card.classList.toggle("is-at-limit", valorFinal >= calcularLimiteFinal(atributo.id));
 
     const icon = document.createElement("span");
     icon.className = "attribute-icon";
@@ -2648,13 +2801,14 @@ function renderizarAtributos(direcaoAlteracao, atributoAlterado) {
     values.className = "attribute-values";
 
     [
-      ["Distribuído", valorDistribuido, ""],
-      ["Espécie", formatarModificador(modificador), modificador < 0 ? "attribute-modifier--negative" : modificador > 0 ? "attribute-modifier--positive" : ""],
-      ["Final", valorFinal, "attribute-final-value"]
-    ].forEach(function ([label, value, className]) {
+      ["Distribuído", valorDistribuido, "", "distributed"],
+      ["Espécie", formatarModificador(modificador), modificador < 0 ? "attribute-modifier--negative" : modificador > 0 ? "attribute-modifier--positive" : "", "species"],
+      ["Final", valorFinal, "attribute-final-value", ""]
+    ].forEach(function ([label, value, className, source]) {
       const item = document.createElement("div");
       const dt = document.createElement("dt");
       const dd = document.createElement("dd");
+      if (source) item.dataset.attributeSource = source;
       dt.textContent = label;
       dd.textContent = value;
       if (className) dd.className = className;
@@ -3013,7 +3167,38 @@ function renderizarResumoDosAtributos() {
 }
 
 function animarValorFinal(atributo, direcao) {
-  const elemento = attributesList.querySelector(`[data-final-value="${atributo}"]`);
+  const card = attributesList.querySelector(`[data-attribute="${atributo}"]`);
+  const motionDeAtributo = window.GrimorioAttributeMotion;
+  const motion = window.GrimorioMotion;
+  const identidadeVisual = card?.dataset.attributeMotion;
+
+  if (
+    card &&
+    typeof identidadeVisual === "string" &&
+    identidadeVisual &&
+    typeof motionDeAtributo?.obterClassesDaMudanca === "function" &&
+    typeof motion?.animarMudancaDeAtributo === "function"
+  ) {
+    const classesDaMudanca = motionDeAtributo.obterClassesDaMudanca({
+      changed: true,
+      source: "distributed",
+      direction: direcao
+    });
+    const classesUtilizaveis = Array.isArray(classesDaMudanca)
+      ? classesDaMudanca.filter(function (classe) {
+        return typeof classe === "string" && classe;
+      })
+      : [];
+
+    if (classesUtilizaveis.length > 0) {
+      motion.animarMudancaDeAtributo(card, classesUtilizaveis);
+      return;
+    }
+  }
+
+  const elemento = card
+    ? card.querySelector(".attribute-final-value")
+    : attributesList.querySelector(`[data-final-value="${atributo}"]`);
   if (!elemento) return;
 
   const classe = direcao === "up" ? "is-changing-up" : "is-changing-down";
@@ -3153,7 +3338,7 @@ function criarEnvelopeDaFicha() {
 
   return {
     tipo: "grimorio-ficha",
-    versao: 1,
+    versao: 2,
     salvoEm: new Date().toISOString(),
     personagem
   };
@@ -3184,56 +3369,63 @@ function salvarFichaJson(envelopePronto) {
   }
 }
 
-function prepararDadosIniciaisDaFicha() {
-  personagem.nivel ??= 1;
-  personagem.experiencia ??= 0;
-  personagem.pontosEvolucao ??= 0;
-  personagem.pontosGloria ??= 0;
-  personagem.recursos ??= {
+function prepararDadosIniciaisDaFicha(personagemAlvo = personagem, versaoDoInventario = 2) {
+  personagemAlvo.nivel ??= 1;
+  personagemAlvo.experiencia ??= 0;
+  personagemAlvo.pontosEvolucao ??= 0;
+  personagemAlvo.pontosGloria ??= 0;
+  personagemAlvo.recursos ??= {
     vidaAtual: 20,
     vidaMaxima: 20,
     manaAtual: 10,
     manaMaxima: 10
   };
-  personagem.combate ??= {
+  personagemAlvo.combate ??= {
     defesa: 0,
     reducaoDano: 0,
     iniciativa: 0,
     movimento: 0
   };
-  personagem.modificadoresTemporarios ??= {
+  personagemAlvo.modificadoresTemporarios ??= {
     forca: 0,
     agilidade: 0,
     intelecto: 0,
     resistencia: 0
   };
-  personagem.armas ??= [];
-  personagem.habilidades ??= [];
-  personagem.inventario ??= [];
+  personagemAlvo.armas ??= [];
+  personagemAlvo.habilidades ??= [];
+  personagemAlvo.inventario ??= [];
+  personagemAlvo.habilidades = personagemAlvo.habilidades.map(normalizarHabilidade);
+  personagemAlvo.inventario = dominioDoInventario.migrateInventory(
+    personagemAlvo.inventario,
+    versaoDoInventario
+  );
 
-  personagem.recursos.vidaMaxima ??= 20;
-  personagem.recursos.vidaAtual ??= personagem.recursos.vidaMaxima;
-  personagem.recursos.manaMaxima ??= 10;
-  personagem.recursos.manaAtual ??= personagem.recursos.manaMaxima;
-  personagem.combate.defesa ??= 0;
-  personagem.combate.reducaoDano ??= 0;
-  personagem.combate.iniciativa ??= 0;
-  personagem.combate.movimento ??= 0;
+  personagemAlvo.recursos.vidaMaxima ??= 20;
+  personagemAlvo.recursos.vidaAtual ??= personagemAlvo.recursos.vidaMaxima;
+  personagemAlvo.recursos.manaMaxima ??= 10;
+  personagemAlvo.recursos.manaAtual ??= personagemAlvo.recursos.manaMaxima;
+  personagemAlvo.combate.defesa ??= 0;
+  personagemAlvo.combate.reducaoDano ??= 0;
+  personagemAlvo.combate.iniciativa ??= 0;
+  personagemAlvo.combate.movimento ??= 0;
 
   atributosDeMeridian.forEach(function (atributo) {
-    personagem.modificadoresTemporarios[atributo.id] ??= 0;
+    personagemAlvo.modificadoresTemporarios[atributo.id] ??= 0;
   });
 
-  personagem.recursos.vidaAtual = limitarValor(
-    personagem.recursos.vidaAtual,
+  personagemAlvo.recursos.vidaAtual = limitarValor(
+    personagemAlvo.recursos.vidaAtual,
     0,
-    personagem.recursos.vidaMaxima
+    personagemAlvo.recursos.vidaMaxima
   );
-  personagem.recursos.manaAtual = limitarValor(
-    personagem.recursos.manaAtual,
+  personagemAlvo.recursos.manaAtual = limitarValor(
+    personagemAlvo.recursos.manaAtual,
     0,
-    personagem.recursos.manaMaxima
+    personagemAlvo.recursos.manaMaxima
   );
+
+  return personagemAlvo;
 }
 
 function obterValorOuNaoInformado(valor) {
@@ -3272,6 +3464,733 @@ function limitarValor(valor, minimo, maximo) {
   return Math.min(Math.max(normalizado, minimo), maximo);
 }
 
+function criarIdHabilidade() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+
+  return `habilidade-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function normalizarTermoHabilidade(valor) {
+  return String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizarTipoHabilidade(valor) {
+  const aliases = {
+    passive: "passiva",
+    technique: "tecnica",
+    reaction: "reacao",
+    supreme: "suprema",
+    other: "outro"
+  };
+  const tipo = aliases[normalizarTermoHabilidade(valor)] || normalizarTermoHabilidade(valor);
+  return TIPOS_HABILIDADE.has(tipo) ? tipo : "tecnica";
+}
+
+function normalizarListaHabilidade(valor) {
+  return Array.isArray(valor)
+    ? valor.map(function (item) { return String(item ?? "").trim(); }).filter(Boolean)
+    : [];
+}
+
+function normalizarUsosDaHabilidade(usos) {
+  if (!ehObjetoDeDados(usos)) return null;
+
+  const maximo = Math.max(0, Number.parseInt(usos.maximo ?? usos.max, 10) || 0);
+  return {
+    atual: limitarValor(usos.atual ?? usos.current, 0, maximo),
+    maximo,
+    recuperacao: String(usos.recuperacao ?? usos.recharge ?? "").trim()
+  };
+}
+
+function normalizarRecargaDaHabilidade(recarga) {
+  if (!ehObjetoDeDados(recarga)) return null;
+
+  const valor = Math.max(0, Number.parseInt(recarga.valor ?? recarga.value, 10) || 0);
+  return {
+    valor,
+    unidade: String(recarga.unidade ?? recarga.unit ?? "rodadas").trim() || "rodadas",
+    restante: limitarValor(recarga.restante ?? recarga.remaining, 0, valor)
+  };
+}
+
+function normalizarHabilidade(habilidade) {
+  const dados = ehObjetoDeDados(habilidade) ? habilidade : {};
+  const custosOriginais = ehObjetoDeDados(dados.custos) ? dados.custos : {};
+  const iconeSolicitado = String(dados.iconeId ?? dados.iconId ?? "habilidade-generica").trim();
+  const iconeExiste = CATALOGO_ICONES_HABILIDADE.some(function (icone) {
+    return icone.id === iconeSolicitado;
+  });
+
+  return {
+    id: String(dados.id || criarIdHabilidade()),
+    nome: String(dados.nome ?? dados.name ?? "Habilidade sem nome").trim() || "Habilidade sem nome",
+    tipo: normalizarTipoHabilidade(dados.tipo ?? dados.type),
+    iconeId: iconeExiste ? iconeSolicitado : "habilidade-generica",
+    descricao: String(dados.descricao ?? dados.description ?? "").trim(),
+    atributo: String(dados.atributo ?? dados.attribute ?? "").trim(),
+    acao: String(dados.acao ?? dados.action ?? "").trim(),
+    custos: {
+      mana: Math.max(0, Number(custosOriginais.mana ?? dados.manaCost) || 0),
+      pe: Math.max(0, Number(custosOriginais.pe ?? dados.peCost) || 0)
+    },
+    alcance: String(dados.alcance ?? dados.range?.label ?? "").trim(),
+    dano: String(dados.dano ?? dados.damage ?? "").trim(),
+    duracao: String(dados.duracao ?? dados.duration ?? "").trim(),
+    usos: normalizarUsosDaHabilidade(dados.usos ?? dados.uses),
+    recarga: normalizarRecargaDaHabilidade(dados.recarga ?? dados.cooldown),
+    efeitos: normalizarListaHabilidade(dados.efeitos ?? dados.effects),
+    requisitos: normalizarListaHabilidade(dados.requisitos ?? dados.requirements),
+    limitacoes: normalizarListaHabilidade(dados.limitacoes ?? dados.limitations),
+    observacoes: String(dados.observacoes ?? dados.notes ?? "").trim()
+  };
+}
+
+function obterEstadoHabilidade(habilidade) {
+  if (habilidade.tipo === "passiva") return "passiva";
+
+  if (habilidade.usos && habilidade.usos.maximo > 0 && habilidade.usos.atual <= 0) {
+    return "esgotada";
+  }
+
+  if (habilidade.recarga && habilidade.recarga.restante > 0) {
+    return "recarga";
+  }
+
+  return "disponivel";
+}
+
+function encontrarHabilidade(habilidadeId) {
+  return personagem.habilidades.find(function (habilidade) {
+    return habilidade.id === habilidadeId;
+  }) || null;
+}
+
+function obterDefinicaoIconeHabilidade(iconeId) {
+  return CATALOGO_ICONES_HABILIDADE.find(function (icone) {
+    return icone.id === iconeId;
+  }) || CATALOGO_ICONES_HABILIDADE[0];
+}
+
+function criarIconeHabilidade(iconeId) {
+  const definicao = obterDefinicaoIconeHabilidade(iconeId);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  svg.classList.add("sheet-icon");
+  svg.setAttribute("aria-hidden", "true");
+  use.setAttribute("href", `#sheet-icon-${definicao.simbolo}`);
+  svg.append(use);
+  return svg;
+}
+
+function obterRotuloTipoHabilidade(tipo) {
+  return {
+    passiva: "Passiva",
+    tecnica: "Técnica",
+    reacao: "Reação",
+    suprema: "Suprema",
+    outro: "Outro"
+  }[tipo] || "Técnica";
+}
+
+function obterRotuloEstadoHabilidade(estado) {
+  return {
+    passiva: "Passiva",
+    esgotada: "Sem usos",
+    recarga: "Em recarga",
+    disponivel: "Disponível"
+  }[estado] || "Disponível";
+}
+
+function obterResumoOperacionalHabilidade(habilidade) {
+  if (habilidade.tipo === "passiva") return "Sempre ativa";
+  if (habilidade.usos) return `${habilidade.usos.atual}/${habilidade.usos.maximo} usos`;
+  if (habilidade.recarga?.restante > 0) {
+    return `${habilidade.recarga.restante} ${habilidade.recarga.unidade}`;
+  }
+  return "Disponível";
+}
+
+function criarItemVisualHabilidade(habilidade, modoResumo) {
+  const button = document.createElement("button");
+  const estado = obterEstadoHabilidade(habilidade);
+  button.type = "button";
+  button.className = modoResumo ? "sheet-ability-summary-item" : "sheet-ability-list-item";
+  button.dataset.abilityId = habilidade.id;
+  button.classList.toggle("is-selected", !modoResumo && habilidade.id === habilidadeSelecionadaId);
+  button.classList.add(`is-${estado}`);
+  button.setAttribute("aria-label", `${habilidade.nome}: ${obterRotuloEstadoHabilidade(estado)}`);
+
+  if (!modoResumo) {
+    button.setAttribute("role", "row");
+    const criarCelula = function (valor, classe) {
+      const cell = document.createElement("span");
+      cell.className = classe || "";
+      const texto = valor || "—";
+      cell.textContent = texto;
+      if (texto !== "—") cell.title = texto;
+      return cell;
+    };
+
+    const marker = document.createElement("span");
+    marker.className = `sheet-ability-table-state sheet-ability-col-state is-${estado}`;
+    marker.title = obterRotuloEstadoHabilidade(estado);
+    marker.setAttribute("aria-label", obterRotuloEstadoHabilidade(estado));
+    marker.append(criarIconeHabilidade(
+      estado === "recarga" ? "tempo" : estado === "esgotada" ? "habilidade-generica" : "estrela"
+    ));
+
+    const nameCell = document.createElement("span");
+    nameCell.className = "sheet-ability-table-name sheet-ability-col-name";
+    nameCell.title = habilidade.nome;
+    const tableIcon = document.createElement("span");
+    tableIcon.className = "sheet-ability-table-icon";
+    tableIcon.append(criarIconeHabilidade(habilidade.iconeId));
+    const tableName = document.createElement("strong");
+    tableName.textContent = habilidade.nome;
+    nameCell.append(tableIcon, tableName);
+
+    const type = criarCelula(obterRotuloTipoHabilidade(habilidade.tipo), "sheet-ability-table-type sheet-ability-col-type");
+    type.classList.add(`is-${habilidade.tipo}`);
+    const status = criarCelula(obterRotuloEstadoHabilidade(estado), `sheet-ability-table-status sheet-ability-col-status is-${estado}`);
+
+    button.append(
+      marker,
+      nameCell,
+      type,
+      criarCelula(habilidade.custos.mana || "—", "sheet-ability-col-mana sheet-ability-table-number"),
+      criarCelula(habilidade.custos.pe || "—", "sheet-ability-col-pe sheet-ability-table-number"),
+      criarCelula(habilidade.acao, "sheet-ability-col-action"),
+      criarCelula(habilidade.atributo ? habilidade.atributo.toUpperCase() : "—", "sheet-ability-table-attribute sheet-ability-col-attribute"),
+      criarCelula(habilidade.alcance, "sheet-ability-col-range"),
+      criarCelula(habilidade.dano, "sheet-ability-col-damage"),
+      criarCelula(habilidade.duracao, "sheet-ability-col-duration"),
+      criarCelula(habilidade.usos ? `${habilidade.usos.atual}/${habilidade.usos.maximo}` : "—", "sheet-ability-col-uses sheet-ability-table-number"),
+      criarCelula(habilidade.recarga ? `${habilidade.recarga.restante}/${habilidade.recarga.valor}` : "—", "sheet-ability-col-cooldown sheet-ability-table-number"),
+      status
+    );
+    return button;
+  }
+
+  const icon = document.createElement("span");
+  icon.className = "sheet-ability-item-icon";
+  icon.append(criarIconeHabilidade(habilidade.iconeId));
+
+  const copy = document.createElement("span");
+  copy.className = "sheet-ability-item-copy";
+  const name = document.createElement("strong");
+  name.textContent = habilidade.nome;
+  const meta = document.createElement("small");
+  const atributo = habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : "";
+  meta.textContent = `${obterRotuloTipoHabilidade(habilidade.tipo)}${atributo}`;
+  copy.append(name, meta);
+
+  const operation = document.createElement("span");
+  operation.className = "sheet-ability-item-operation";
+  operation.textContent = obterResumoOperacionalHabilidade(habilidade);
+
+  button.append(icon, copy, operation);
+  return button;
+}
+
+function renderizarResumoDeHabilidades() {
+  sheetAbilitiesSummary.replaceChildren();
+  const habilidades = personagem.habilidades.slice(0, LIMITE_HABILIDADES_RESUMO);
+
+  if (habilidades.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "sheet-ability-empty sheet-ability-empty--summary";
+    empty.innerHTML = "<strong>Nenhuma habilidade adicionada.</strong><span>Use “Ver todas” para importar um arquivo JSON.</span>";
+    sheetAbilitiesSummary.append(empty);
+    return;
+  }
+
+  habilidades.forEach(function (habilidade) {
+    sheetAbilitiesSummary.append(criarItemVisualHabilidade(habilidade, true));
+  });
+}
+
+function obterHabilidadesFiltradas() {
+  const busca = normalizarTermoHabilidade(buscaHabilidade);
+  return personagem.habilidades.filter(function (habilidade) {
+    const correspondeAoTipo = filtroTipoHabilidade === "todos" || habilidade.tipo === filtroTipoHabilidade;
+    const correspondeAoEstado = filtroEstadoHabilidade === "todos"
+      || obterEstadoHabilidade(habilidade) === filtroEstadoHabilidade;
+    const correspondeABusca = !busca || normalizarTermoHabilidade(
+      `${habilidade.nome} ${habilidade.tipo} ${habilidade.atributo} ${habilidade.descricao}`
+    ).includes(busca);
+    return correspondeAoTipo && correspondeAoEstado && correspondeABusca;
+  });
+}
+
+function renderizarListaDeHabilidades() {
+  sheetAbilityList.replaceChildren();
+  const habilidades = obterHabilidadesFiltradas();
+
+  if (habilidades.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "sheet-ability-empty";
+    const title = document.createElement("strong");
+    const description = document.createElement("span");
+    title.textContent = personagem.habilidades.length ? "Nenhum resultado." : "Nenhuma habilidade adicionada.";
+    description.textContent = personagem.habilidades.length
+      ? "Altere a busca ou o filtro de tipo."
+      : "Importe um arquivo JSON para começar.";
+    empty.append(title, description);
+    sheetAbilityList.append(empty);
+    renderizarDetalhesDaHabilidade();
+    return;
+  }
+
+  if (!habilidades.some(function (habilidade) { return habilidade.id === habilidadeSelecionadaId; })) {
+    habilidadeSelecionadaId = habilidades[0].id;
+  }
+
+  habilidades.forEach(function (habilidade) {
+    sheetAbilityList.append(criarItemVisualHabilidade(habilidade, false));
+  });
+  renderizarDetalhesDaHabilidade();
+}
+
+function criarDadoDaHabilidade(rotulo, valor, iconeId) {
+  if (valor === "" || valor === null || valor === undefined || valor === 0) return null;
+  const wrapper = document.createElement("div");
+  const term = document.createElement("dt");
+  const description = document.createElement("dd");
+  term.textContent = rotulo;
+  description.textContent = valor;
+  if (iconeId) {
+    const icon = document.createElement("span");
+    icon.className = "sheet-ability-fact-icon";
+    icon.append(criarIconeHabilidade(iconeId));
+    wrapper.append(icon);
+  }
+  wrapper.append(term, description);
+  return wrapper;
+}
+
+function criarSecaoTextualHabilidade(titulo, conteudo) {
+  const itens = Array.isArray(conteudo) ? conteudo : [];
+  if (!itens.length && !String(conteudo ?? "").trim()) return null;
+
+  const section = document.createElement("section");
+  const modificador = normalizarTermoHabilidade(titulo).replace(/\s+/g, "-");
+  section.className = `sheet-ability-text-section sheet-ability-text-section--${modificador}`;
+  const heading = document.createElement("h3");
+  heading.textContent = titulo;
+  section.append(heading);
+
+  if (Array.isArray(conteudo)) {
+    const list = document.createElement("ul");
+    conteudo.forEach(function (item) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.append(li);
+    });
+    section.append(list);
+  } else {
+    const paragraph = document.createElement("p");
+    paragraph.textContent = conteudo;
+    section.append(paragraph);
+  }
+
+  return section;
+}
+
+function criarControleOperacionalHabilidade(habilidade, tipo) {
+  const dados = habilidade[tipo];
+  if (!dados) return null;
+
+  const section = document.createElement("section");
+  section.className = "sheet-ability-counter";
+  const heading = document.createElement("h3");
+  heading.textContent = tipo === "usos" ? "Usos" : "Recarga";
+  const controls = document.createElement("div");
+  controls.className = "sheet-ability-counter__controls";
+
+  const minus = document.createElement("button");
+  minus.type = "button";
+  minus.dataset.abilityAction = tipo === "usos" ? "decrease-uses" : "decrease-cooldown";
+  minus.setAttribute("aria-label", `Diminuir ${heading.textContent.toLowerCase()} de ${habilidade.nome}`);
+  minus.append(criarIconeHabilidade("habilidade-generica"));
+  minus.firstElementChild.replaceChildren();
+  const minusUse = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  minusUse.setAttribute("href", "#sheet-icon-minus");
+  minus.firstElementChild.append(minusUse);
+
+  const value = document.createElement("strong");
+  value.textContent = tipo === "usos"
+    ? `${dados.atual} / ${dados.maximo}`
+    : `${dados.restante} / ${dados.valor} ${dados.unidade}`;
+
+  const plus = document.createElement("button");
+  plus.type = "button";
+  plus.dataset.abilityAction = tipo === "usos" ? "increase-uses" : "increase-cooldown";
+  plus.setAttribute("aria-label", `Aumentar ${heading.textContent.toLowerCase()} de ${habilidade.nome}`);
+  plus.append(criarIconeHabilidade("habilidade-generica"));
+  plus.firstElementChild.replaceChildren();
+  const plusUse = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  plusUse.setAttribute("href", "#sheet-icon-plus");
+  plus.firstElementChild.append(plusUse);
+
+  const atual = tipo === "usos" ? dados.atual : dados.restante;
+  const maximo = tipo === "usos" ? dados.maximo : dados.valor;
+  minus.disabled = atual <= 0;
+  plus.disabled = atual >= maximo;
+  controls.append(minus, value, plus);
+  section.append(heading, controls);
+  return section;
+}
+
+function renderizarDetalhesDaHabilidade() {
+  sheetAbilityDetails.replaceChildren();
+  const panelHeading = document.createElement("header");
+  panelHeading.className = "sheet-ability-details__panel-heading";
+  panelHeading.append(criarIconeHabilidade("estrela"));
+  const panelTitle = document.createElement("h2");
+  panelTitle.textContent = "Detalhes da habilidade selecionada";
+  panelHeading.append(panelTitle);
+  sheetAbilityDetails.append(panelHeading);
+
+  const habilidade = encontrarHabilidade(habilidadeSelecionadaId);
+
+  if (!habilidade) {
+    const empty = document.createElement("div");
+    empty.className = "sheet-ability-empty sheet-ability-empty--details";
+    empty.innerHTML = "<strong>Selecione uma habilidade.</strong><span>Os detalhes e controles aparecerão aqui.</span>";
+    sheetAbilityDetails.append(empty);
+    return;
+  }
+
+  const header = document.createElement("header");
+  header.className = "sheet-ability-details__header";
+  const identity = document.createElement("div");
+  identity.className = "sheet-ability-details__identity";
+  const icon = document.createElement("span");
+  icon.className = `sheet-ability-details__icon is-${habilidade.tipo}`;
+  icon.append(criarIconeHabilidade(habilidade.iconeId));
+  const copy = document.createElement("div");
+  const overline = document.createElement("span");
+  overline.textContent = `${obterRotuloTipoHabilidade(habilidade.tipo)}${habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : ""}`;
+  const title = document.createElement("h2");
+  title.textContent = habilidade.nome;
+  const state = document.createElement("small");
+  const estado = obterEstadoHabilidade(habilidade);
+  state.className = `sheet-ability-state is-${estado}`;
+  state.textContent = obterRotuloEstadoHabilidade(estado);
+  copy.append(overline, title, state);
+  identity.append(icon, copy);
+
+  const actions = document.createElement("details");
+  actions.className = "sheet-ability-details__actions";
+  const actionsSummary = document.createElement("summary");
+  actionsSummary.textContent = "⋯";
+  actionsSummary.setAttribute("aria-label", `Mais ações para ${habilidade.nome}`);
+  const actionsMenu = document.createElement("div");
+  actionsMenu.className = "sheet-ability-details__actions-menu";
+  const changeIcon = document.createElement("button");
+  changeIcon.type = "button";
+  changeIcon.dataset.abilityAction = "change-icon";
+  changeIcon.textContent = "Alterar ícone";
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.dataset.abilityAction = "remove";
+  remove.textContent = "Remover";
+  actionsMenu.append(changeIcon, remove);
+  actions.append(actionsSummary, actionsMenu);
+  header.append(identity, actions);
+
+  const facts = document.createElement("dl");
+  facts.className = "sheet-ability-facts";
+  [
+    criarDadoDaHabilidade("Mana", habilidade.custos.mana, "mana"),
+    criarDadoDaHabilidade("Atributo", habilidade.atributo, "mente"),
+    criarDadoDaHabilidade("Alcance", habilidade.alcance, "alvo"),
+    criarDadoDaHabilidade("Ação", habilidade.acao, "tempo"),
+    criarDadoDaHabilidade("Duração", habilidade.duracao, "tempo"),
+    criarDadoDaHabilidade("Dano", habilidade.dano, "espada"),
+    criarDadoDaHabilidade("PE", habilidade.custos.pe, "estrela")
+  ].filter(Boolean).forEach(function (fact) { facts.append(fact); });
+
+  const counters = document.createElement("div");
+  counters.className = "sheet-ability-counters";
+  [
+    criarControleOperacionalHabilidade(habilidade, "usos"),
+    criarControleOperacionalHabilidade(habilidade, "recarga")
+  ].filter(Boolean).forEach(function (counter) { counters.append(counter); });
+
+  const content = document.createElement("div");
+  content.className = "sheet-ability-details__content";
+  const primaryColumn = document.createElement("div");
+  primaryColumn.className = "sheet-ability-text-column sheet-ability-text-column--primary";
+  [
+    criarSecaoTextualHabilidade("Descrição", habilidade.descricao),
+    criarSecaoTextualHabilidade("Condições e efeitos", habilidade.efeitos)
+  ].filter(Boolean).forEach(function (section) { primaryColumn.append(section); });
+
+  const textColumns = [
+    primaryColumn.children.length ? primaryColumn : null,
+    criarSecaoTextualHabilidade("Requisitos", habilidade.requisitos),
+    criarSecaoTextualHabilidade("Limitações", habilidade.limitacoes),
+    criarSecaoTextualHabilidade("Observações", habilidade.observacoes)
+  ].filter(Boolean);
+  content.classList.add(`has-${textColumns.length}-columns`);
+  textColumns.forEach(function (section) { content.append(section); });
+
+  const overview = document.createElement("div");
+  overview.className = "sheet-ability-details__overview";
+  overview.append(header);
+  if (facts.children.length) overview.append(facts);
+  if (counters.children.length) overview.append(counters);
+  sheetAbilityDetails.append(overview);
+  if (content.children.length) sheetAbilityDetails.append(content);
+}
+
+function renderizarEstatisticasDeHabilidades() {
+  sheetAbilityStats.replaceChildren();
+  const totaisDeUsos = personagem.habilidades.reduce(function (total, habilidade) {
+    if (!habilidade.usos) return total;
+    total.atual += habilidade.usos.atual;
+    total.maximo += habilidade.usos.maximo;
+    return total;
+  }, { atual: 0, maximo: 0 });
+
+  const estatisticas = [
+    { rotulo: "Total de habilidades", valor: personagem.habilidades.length, icone: "book" },
+    { rotulo: "Passivas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "passiva"; }).length, icone: "wing" },
+    { rotulo: "Técnicas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "tecnica"; }).length, icone: "rune-star" },
+    { rotulo: "Supremas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "suprema"; }).length, icone: "crown" },
+    { rotulo: "Usos restantes", valor: `${totaisDeUsos.atual} / ${totaisDeUsos.maximo}`, icone: "hourglass" }
+  ];
+
+  estatisticas.forEach(function (estatistica) {
+    const item = document.createElement("div");
+    const icon = document.createElement("span");
+    icon.append(criarIconeHabilidade(
+      CATALOGO_ICONES_HABILIDADE.find(function (definicao) {
+        return definicao.simbolo === estatistica.icone;
+      })?.id || "habilidade-generica"
+    ));
+    const copy = document.createElement("span");
+    const label = document.createElement("small");
+    const value = document.createElement("strong");
+    label.textContent = estatistica.rotulo;
+    value.textContent = estatistica.valor;
+    copy.append(label, value);
+    item.append(icon, copy);
+    sheetAbilityStats.append(item);
+  });
+}
+
+function renderizarHabilidadesDaFicha() {
+  renderizarResumoDeHabilidades();
+  renderizarListaDeHabilidades();
+  renderizarEstatisticasDeHabilidades();
+}
+
+function renderizarHabilidadesAposMutacao() {
+  marcarFichaComoAlterada();
+  renderizarHabilidadesDaFicha();
+}
+
+function alterarUsosDaHabilidade(habilidadeId, diferenca) {
+  const habilidade = encontrarHabilidade(habilidadeId);
+  if (!habilidade?.usos) return;
+  const proximo = limitarValor(habilidade.usos.atual + diferenca, 0, habilidade.usos.maximo);
+  if (proximo === habilidade.usos.atual) return;
+  habilidade.usos.atual = proximo;
+  renderizarHabilidadesAposMutacao();
+}
+
+function alterarRecargaDaHabilidade(habilidadeId, diferenca) {
+  const habilidade = encontrarHabilidade(habilidadeId);
+  if (!habilidade?.recarga) return;
+  const proximo = limitarValor(habilidade.recarga.restante + diferenca, 0, habilidade.recarga.valor);
+  if (proximo === habilidade.recarga.restante) return;
+  habilidade.recarga.restante = proximo;
+  renderizarHabilidadesAposMutacao();
+}
+
+function ativarSecaoDaFicha(secao, habilidadeId) {
+  if (!["summary", "abilities", "inventory"].includes(secao)) return;
+  if (habilidadeId && encontrarHabilidade(habilidadeId)) habilidadeSelecionadaId = habilidadeId;
+
+  sheetViews.forEach(function (view) {
+    view.hidden = view.dataset.sheetView !== secao;
+  });
+  sheetSidebar.querySelectorAll("button[data-sheet-section]").forEach(function (button) {
+    const ativa = button.dataset.sheetSection === secao;
+    button.classList.toggle("is-active", ativa);
+    if (ativa) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+
+  if (secao === "abilities") {
+    renderizarListaDeHabilidades();
+    sheetAbilitiesViewHeading.focus({ preventScroll: true });
+  }
+  if (secao === "inventory") {
+    sheetInventoryViewHeading.focus({ preventScroll: true });
+  }
+  mostrarMensagemDaFicha("");
+}
+
+function existeHabilidadeComMesmoNome(nome) {
+  const nomeNormalizado = normalizarTermoHabilidade(nome);
+  return personagem.habilidades.some(function (habilidade) {
+    return normalizarTermoHabilidade(habilidade.nome) === nomeNormalizado;
+  });
+}
+
+function validarHabilidadeImportada(dados) {
+  if (!ehObjetoDeDados(dados)) {
+    throw new Error("O arquivo não contém uma habilidade válida.");
+  }
+
+  const versao = Number(dados.schemaVersion ?? dados.versao ?? 1);
+  if (Number.isFinite(versao) && versao > 1) {
+    throw new Error("A habilidade foi criada em uma versão mais recente do Grimório RPG.");
+  }
+
+  const conteudo = dados.habilidade ?? dados.ability ?? dados;
+  if (!ehObjetoDeDados(conteudo)) {
+    throw new Error("O campo 'habilidade' precisa ser um objeto.");
+  }
+  if (!String(conteudo.nome ?? conteudo.name ?? "").trim()) {
+    throw new Error("O campo 'nome' é obrigatório.");
+  }
+
+  const habilidade = normalizarHabilidade(conteudo);
+  habilidade.id = criarIdHabilidade();
+  return habilidade;
+}
+
+function renderizarOpcoesDeIcone() {
+  abilityIconOptions.replaceChildren();
+  CATALOGO_ICONES_HABILIDADE.forEach(function (icone) {
+    const label = document.createElement("label");
+    label.className = "ability-icon-option";
+    label.title = icone.nome;
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "ability-icon";
+    input.value = icone.id;
+    input.checked = icone.id === iconeHabilidadePendente;
+    const visual = document.createElement("span");
+    visual.append(criarIconeHabilidade(icone.id));
+    const name = document.createElement("span");
+    name.className = "sr-only";
+    name.textContent = icone.nome;
+    label.append(input, visual, name);
+    abilityIconOptions.append(label);
+  });
+}
+
+function abrirDialogDeIcone(habilidade, modo) {
+  habilidadePendente = habilidade;
+  modoDialogHabilidade = modo;
+  iconeHabilidadePendente = habilidade.iconeId || "habilidade-generica";
+  abilityImportTitle.textContent = modo === "icone"
+    ? `Alterar ícone de ${habilidade.nome}`
+    : "Revise os dados e escolha um ícone";
+  abilityImportConfirm.textContent = modo === "icone" ? "Salvar ícone" : "Adicionar à ficha";
+  abilityImportStatus.textContent = "";
+  abilityImportPreview.replaceChildren();
+
+  const name = document.createElement("strong");
+  name.textContent = habilidade.nome;
+  const meta = document.createElement("span");
+  meta.textContent = `${obterRotuloTipoHabilidade(habilidade.tipo)}${habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : ""}`;
+  const description = document.createElement("p");
+  description.textContent = habilidade.descricao || "Sem descrição.";
+  abilityImportPreview.append(name, meta, description);
+
+  const duplicada = modo === "importar" && existeHabilidadeComMesmoNome(habilidade.nome);
+  abilityDuplicateWarning.hidden = !duplicada;
+  abilityDuplicateWarning.textContent = duplicada
+    ? `Já existe uma habilidade chamada “${habilidade.nome}”. Confirme para importar mesmo assim.`
+    : "";
+  if (duplicada) abilityImportConfirm.textContent = "Importar mesmo assim";
+
+  renderizarOpcoesDeIcone();
+  abilityImportDialog.showModal();
+  const selecionado = abilityIconOptions.querySelector("input:checked");
+  if (selecionado) selecionado.focus();
+}
+
+async function importarArquivoDeHabilidade(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+
+  try {
+    if (!arquivo.name.toLowerCase().endsWith(".json")) {
+      throw new Error("Selecione um arquivo de habilidade em formato JSON.");
+    }
+    if (arquivo.size > 1024 * 1024) {
+      throw new Error("O arquivo de habilidade excede o limite de 1 MB.");
+    }
+
+    const dados = JSON.parse(await arquivo.text());
+    abrirDialogDeIcone(validarHabilidadeImportada(dados), "importar");
+  } catch (erro) {
+    mostrarMensagemDaFicha(
+      erro instanceof SyntaxError
+        ? "O arquivo não contém um JSON válido."
+        : erro.message || "Não foi possível importar esta habilidade.",
+      true
+    );
+  } finally {
+    sheetAbilityFile.value = "";
+  }
+}
+
+function confirmarDialogDeHabilidade() {
+  if (!habilidadePendente) return;
+  habilidadePendente.iconeId = iconeHabilidadePendente;
+
+  if (modoDialogHabilidade === "icone") {
+    renderizarHabilidadesAposMutacao();
+  } else {
+    personagem.habilidades.push(normalizarHabilidade(habilidadePendente));
+    habilidadeSelecionadaId = habilidadePendente.id;
+    renderizarHabilidadesAposMutacao();
+  }
+
+  abilityImportDialog.close();
+  habilidadePendente = null;
+}
+
+function solicitarRemocaoDaHabilidade() {
+  const habilidade = encontrarHabilidade(habilidadeSelecionadaId);
+  if (!habilidade) return;
+  abilityRemoveDescription.textContent = `“${habilidade.nome}” será removida da ficha atual.`;
+  abilityRemoveDialog.showModal();
+  abilityRemoveConfirm.focus();
+}
+
+function removerHabilidadeSelecionada() {
+  const indice = personagem.habilidades.findIndex(function (habilidade) {
+    return habilidade.id === habilidadeSelecionadaId;
+  });
+  if (indice < 0) return;
+
+  personagem.habilidades.splice(indice, 1);
+  habilidadeSelecionadaId = personagem.habilidades[indice]?.id
+    || personagem.habilidades[indice - 1]?.id
+    || null;
+  abilityRemoveDialog.close();
+  renderizarHabilidadesAposMutacao();
+}
+
 function marcarFichaComoAlterada() {
   fichaPossuiAlteracoes = true;
   atualizarEstadoDeSalvamento();
@@ -3282,8 +4201,9 @@ function alterarVidaAtual(diferenca) {
 }
 
 function definirVidaAtual(valor) {
+  const valorAnterior = personagem.recursos.vidaAtual;
   const proximoValor = limitarValor(valor, 0, personagem.recursos.vidaMaxima);
-  if (proximoValor === personagem.recursos.vidaAtual) {
+  if (proximoValor === valorAnterior) {
     renderizarRecursosDaFicha();
     return;
   }
@@ -3291,10 +4211,10 @@ function definirVidaAtual(valor) {
   personagem.recursos.vidaAtual = proximoValor;
   marcarFichaComoAlterada();
   renderizarRecursosDaFicha();
-}
-
-function restaurarVida() {
-  definirVidaAtual(personagem.recursos.vidaMaxima);
+  animarMudancaDeRecurso(
+    sheetLifeCard,
+    proximoValor < valorAnterior ? "is-taking-damage" : "is-being-healed"
+  );
 }
 
 function alterarManaAtual(diferenca) {
@@ -3302,8 +4222,9 @@ function alterarManaAtual(diferenca) {
 }
 
 function definirManaAtual(valor) {
+  const valorAnterior = personagem.recursos.manaAtual;
   const proximoValor = limitarValor(valor, 0, personagem.recursos.manaMaxima);
-  if (proximoValor === personagem.recursos.manaAtual) {
+  if (proximoValor === valorAnterior) {
     renderizarRecursosDaFicha();
     return;
   }
@@ -3311,15 +4232,15 @@ function definirManaAtual(valor) {
   personagem.recursos.manaAtual = proximoValor;
   marcarFichaComoAlterada();
   renderizarRecursosDaFicha();
-}
-
-function restaurarMana() {
-  definirManaAtual(personagem.recursos.manaMaxima);
+  animarMudancaDeRecurso(
+    sheetManaCard,
+    proximoValor < valorAnterior ? "is-spending-mana" : "is-restoring-mana"
+  );
 }
 
 function calcularPorcentagem(atual, maximo) {
   if (maximo <= 0) return 0;
-  return Math.round((atual / maximo) * 100);
+  return Math.round(Math.min(100, Math.max(0, (atual / maximo) * 100)));
 }
 
 function renderizarIdentidadeDaFicha() {
@@ -3363,7 +4284,6 @@ function renderizarRecursoDaFicha(config) {
 
   config.input.max = maximo;
   config.input.value = atual;
-  config.display.textContent = atual;
   config.maxDisplay.textContent = maximo;
   config.minusButton.disabled = atual <= 0;
   config.plusButton.disabled = atual >= maximo;
@@ -3372,29 +4292,7 @@ function renderizarRecursoDaFicha(config) {
 }
 
 function renderizarRecursosDaFicha() {
-  renderizarRecursoDaFicha({
-    atual: "vidaAtual",
-    maximo: "vidaMaxima",
-    input: sheetLifeCurrent,
-    display: sheetLifeCurrentDisplay,
-    maxDisplay: sheetLifeMax,
-    minusButton: sheetLifeMinus,
-    plusButton: sheetLifePlus,
-    bar: sheetLifeBar,
-    percent: sheetLifePercent
-  });
-
-  renderizarRecursoDaFicha({
-    atual: "manaAtual",
-    maximo: "manaMaxima",
-    input: sheetManaCurrent,
-    display: sheetManaCurrentDisplay,
-    maxDisplay: sheetManaMax,
-    minusButton: sheetManaMinus,
-    plusButton: sheetManaPlus,
-    bar: sheetManaBar,
-    percent: sheetManaPercent
-  });
+  RECURSOS_DA_FICHA.forEach(renderizarRecursoDaFicha);
 
   const vidaMaxima = personagem.recursos.vidaMaxima;
   const vidaCritica = vidaMaxima > 0 && personagem.recursos.vidaAtual / vidaMaxima <= 0.25;
@@ -3404,6 +4302,7 @@ function renderizarRecursosDaFicha() {
 
 function renderizarAtributosDaFicha() {
   const modificadores = obterModificadoresDaEspecie() || criarModificadoresZerados();
+  const motionDeAtributo = window.GrimorioAttributeMotion;
   const iconesPorAtributo = {
     forca: "sheet-icon-arm",
     agilidade: "sheet-icon-wing",
@@ -3417,6 +4316,16 @@ function renderizarAtributosDaFicha() {
     const modificadorEspecie = modificadores[atributo.id] || 0;
     const temporario = obterModificadorTemporario(atributo.id);
     const final = distribuido + modificadorEspecie + temporario;
+    const snapshotAtual = motionDeAtributo?.criarSnapshotDoAtributo({
+      distributed: distribuido,
+      species: modificadorEspecie,
+      temporary: temporario,
+      total: final
+    });
+    const snapshotAnterior = snapshotsAnterioresDosAtributosDaFicha.get(atributo.id);
+    const mudanca = snapshotAnterior && snapshotAtual
+      ? motionDeAtributo.compararSnapshotsDoAtributo(snapshotAnterior, snapshotAtual)
+      : null;
     const card = document.createElement("article");
     const titulo = document.createElement("h3");
     const icone = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -3426,6 +4335,9 @@ function renderizarAtributosDaFicha() {
     const lista = document.createElement("dl");
 
     card.className = "sheet-attribute-card";
+    card.dataset.attribute = atributo.id;
+    card.dataset.attributeMotion = motionDeAtributo?.obterVisualDoAtributo(atributo.id) || "";
+    card.classList.toggle("is-at-limit", final >= calcularLimiteFinal(atributo.id));
     icone.setAttribute("class", "sheet-icon");
     icone.setAttribute("aria-hidden", "true");
     usoDoIcone.setAttribute("href", `#${iconesPorAtributo[atributo.id]}`);
@@ -3437,14 +4349,15 @@ function renderizarAtributosDaFicha() {
     lista.className = "sheet-attribute-breakdown";
 
     [
-      ["Distribuído", distribuido, ""],
-      ["Espécie", formatarModificador(modificadorEspecie), modificadorEspecie > 0 ? "sheet-modifier-positive" : modificadorEspecie < 0 ? "sheet-modifier-negative" : ""],
-      ["Temporário", formatarModificador(temporario), temporario > 0 ? "sheet-modifier-positive" : temporario < 0 ? "sheet-modifier-negative" : ""]
-    ].forEach(function ([label, value, className]) {
+      ["Distribuído", distribuido, "", "distributed"],
+      ["Espécie", formatarModificador(modificadorEspecie), modificadorEspecie > 0 ? "sheet-modifier-positive" : modificadorEspecie < 0 ? "sheet-modifier-negative" : "", "species"],
+      ["Temporário", formatarModificador(temporario), temporario > 0 ? "sheet-modifier-positive" : temporario < 0 ? "sheet-modifier-negative" : "", "temporary"]
+    ].forEach(function ([label, value, className, source]) {
       const linha = document.createElement("div");
       const dt = document.createElement("dt");
       const dd = document.createElement("dd");
 
+      linha.dataset.attributeSource = source;
       dt.textContent = label;
       dd.textContent = value;
       if (className) dd.className = className;
@@ -3454,14 +4367,24 @@ function renderizarAtributosDaFicha() {
 
     card.append(titulo, finalLabel, finalValue, lista);
     sheetAttributesList.append(card);
+
+    if (mudanca?.changed) {
+      const classesDaMudanca = motionDeAtributo.obterClassesDaMudanca(mudanca);
+      window.GrimorioMotion?.animarMudancaDeAtributo(card, classesDaMudanca);
+    }
+    if (snapshotAtual) snapshotsAnterioresDosAtributosDaFicha.set(atributo.id, snapshotAtual);
   });
+}
+
+function resetarSnapshotsDosAtributosDaFicha() {
+  snapshotsAnterioresDosAtributosDaFicha.clear();
 }
 
 function criarCabecalhoDaTabelaDePericiasDaFicha() {
   const header = document.createElement("div");
   header.className = "sheet-skill-row sheet-skill-row--header";
   header.setAttribute("role", "row");
-  ["Perícia", "Atributo", "Treinada?", "Dado", "Bônus"].forEach(function (texto) {
+  ["Perícia", "Atributo", "Dado", "Bônus"].forEach(function (texto) {
     const span = document.createElement("span");
     span.textContent = texto;
     span.setAttribute("role", "columnheader");
@@ -3471,7 +4394,6 @@ function criarCabecalhoDaTabelaDePericiasDaFicha() {
 }
 
 function criarLinhaDePericiaDaFicha(pericia) {
-  const treinada = personagem.pericias[pericia.id] === true;
   const row = document.createElement("div");
   row.className = "sheet-skill-row";
   row.setAttribute("role", "row");
@@ -3479,8 +4401,7 @@ function criarLinhaDePericiaDaFicha(pericia) {
   [
     pericia.nome,
     obterSiglaDoAtributo(pericia.atributo),
-    treinada ? "SIM" : "NÃO",
-    treinada ? CONFIGURACAO_PERICIAS.dadoTreinado : CONFIGURACAO_PERICIAS.dadoNaoTreinado,
+    CONFIGURACAO_PERICIAS.dadoTreinado,
     calcularValorFinalDaFicha(pericia.atributo)
   ].forEach(function (valor, index) {
     const span = document.createElement("span");
@@ -3489,8 +4410,6 @@ function criarLinhaDePericiaDaFicha(pericia) {
     if (index === 1) {
       span.className = `sheet-skill-attribute sheet-skill-attribute--${pericia.atributo}`;
     }
-    if (index === 2 && treinada) span.className = "sheet-trained";
-    if (index === 2 && !treinada) span.className = "sheet-untrained";
     row.append(span);
   });
 
@@ -3500,17 +4419,18 @@ function criarLinhaDePericiaDaFicha(pericia) {
 function renderizarPericiasDaFicha() {
   sheetSkillsList.replaceChildren();
 
-  [PERICIAS.slice(0, 11), PERICIAS.slice(11, 22)].forEach(function (periciasDaColuna, indice) {
-    const tabela = document.createElement("div");
-    tabela.className = "sheet-skills-table";
-    tabela.setAttribute("role", "table");
-    tabela.setAttribute("aria-label", indice === 0 ? "Perícias 1 a 11" : "Perícias 12 a 22");
-    tabela.append(criarCabecalhoDaTabelaDePericiasDaFicha());
-    periciasDaColuna.forEach(function (pericia) {
-      tabela.append(criarLinhaDePericiaDaFicha(pericia));
-    });
-    sheetSkillsList.append(tabela);
+  const periciasTreinadas = PERICIAS.filter(function (pericia) {
+    return personagem.pericias[pericia.id] === true;
   });
+  const tabela = document.createElement("div");
+  tabela.className = "sheet-skills-table";
+  tabela.setAttribute("role", "table");
+  tabela.setAttribute("aria-label", "Perícias treinadas");
+  tabela.append(criarCabecalhoDaTabelaDePericiasDaFicha());
+  periciasTreinadas.forEach(function (pericia) {
+    tabela.append(criarLinhaDePericiaDaFicha(pericia));
+  });
+  sheetSkillsList.append(tabela);
 }
 
 function obterTituloDaVulnerabilidadeParaFicha(especie, variante, vulnerabilidade) {
@@ -3589,12 +4509,1224 @@ function mostrarMensagemDaFicha(mensagem, erro) {
   mostrarMensagemDeSalvamento(mensagem, erro);
 }
 
+function obterConfiguracaoVisualDoItem(item) {
+  const definicao = item.item;
+  return {
+    raridade: CONFIGURACAO_DE_RARIDADE[definicao.raridade] || CONFIGURACAO_DE_RARIDADE.comum,
+    tipo: CONFIGURACAO_DE_TIPO_DE_ITEM[definicao.tipo] || CONFIGURACAO_DE_TIPO_DE_ITEM.outro
+  };
+}
+
+function obterSimboloVisualDoItem(item) {
+  return SIMBOLOS_DE_TIPO_DE_ITEM[item.item.tipo] || SIMBOLOS_DE_TIPO_DE_ITEM.outro;
+}
+
+function criarArteDoItem(item, classe) {
+  const moldura = document.createElement("span");
+  moldura.className = classe || "sheet-inventory-item__art";
+  moldura.dataset.itemSymbol = obterSimboloVisualDoItem(item);
+  if (item.item.imagem) {
+    const imagem = document.createElement("img");
+    imagem.src = item.item.imagem;
+    imagem.alt = "";
+    imagem.loading = "lazy";
+    imagem.addEventListener("error", function () {
+      imagem.remove();
+      moldura.classList.add("uses-fallback");
+    }, { once: true });
+    moldura.append(imagem);
+  } else {
+    moldura.classList.add("uses-fallback");
+  }
+  return moldura;
+}
+
+function formatarPeso(valor) {
+  return `${Number(valor || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg`;
+}
+
+function criarElementoComTexto(tag, classe, texto) {
+  const elemento = document.createElement(tag);
+  if (classe) elemento.className = classe;
+  elemento.textContent = texto;
+  return elemento;
+}
+
+function criarLinhaDeDetalheDoInventario(rotulo, valor) {
+  const linha = document.createElement("div");
+  const termo = document.createElement("dt");
+  const descricao = document.createElement("dd");
+
+  linha.className = "sheet-inventory-details__row";
+  termo.textContent = rotulo;
+  descricao.textContent = valor;
+  linha.append(termo, descricao);
+  return linha;
+}
+
+function obterItemDoInventarioPorId(itemId) {
+  return personagem.inventario.find(function (item) {
+    return item.id === itemId;
+  }) || null;
+}
+
+function resetarEstadoTransitorioDoInventario() {
+  inventoryUIState.pendingPlacement = null;
+  inventoryUIState.reorganizingForPending = false;
+  inventoryUIState.movingItemId = null;
+  inventoryUIState.selectedItemId = null;
+  inventoryUIState.hoveredCell = null;
+  inventoryUIState.candidatePosition = null;
+  inventoryUIState.pointerSession = null;
+  inventoryUIState.discardingItemId = null;
+}
+
+function obterDisponibilidadeDoItemPendente() {
+  const itemPendente = inventoryUIState.pendingPlacement;
+  if (!itemPendente) return null;
+
+  return dominioDoInventario.getInventoryPlacementAvailability(
+    personagem.inventario,
+    itemPendente,
+    { rotation: itemPendente.rotacao }
+  );
+}
+
+function obterItemEmPosicionamento() {
+  if (inventoryUIState.movingItemId) {
+    return obterItemDoInventarioPorId(inventoryUIState.movingItemId);
+  }
+  return inventoryUIState.pendingPlacement;
+}
+
+function avaliarPosicionamentoAtual() {
+  const item = obterItemEmPosicionamento();
+  const posicao = inventoryUIState.candidatePosition;
+  if (!item || !posicao) return null;
+
+  return dominioDoInventario.canPlaceItem(personagem.inventario, item, posicao, {
+    rotation: item.rotacao,
+    ignoreItemId: inventoryUIState.movingItemId || undefined
+  });
+}
+
+function descreverResultadoDoPosicionamento(resultado) {
+  if (!resultado) return "Escolha uma célula da mochila.";
+  if (resultado.valid) return "Posição válida. Confirme para concluir.";
+  if (resultado.code === "item-too-large") return "O item é maior do que os limites da mochila.";
+  if (resultado.detail === "collision") return "Posição inválida: o espaço está ocupado por outro item.";
+  return "Posição inválida: parte do item ficaria fora da mochila.";
+}
+
+function renderizarPreviewDoInventario() {
+  const item = obterItemEmPosicionamento();
+  const posicao = inventoryUIState.candidatePosition;
+  const resultado = avaliarPosicionamentoAtual();
+
+  sheetInventoryGrid.classList.toggle("is-positioning", Boolean(item));
+  sheetInventoryGrid.classList.toggle("has-valid-preview", Boolean(resultado?.valid));
+  sheetInventoryGrid.classList.toggle("has-invalid-preview", Boolean(resultado && !resultado.valid));
+
+  if (!item || !posicao || !resultado) {
+    sheetInventoryPreviewLayer.replaceChildren();
+    return;
+  }
+
+  const fragmento = document.createDocumentFragment();
+  const classeDeEstado = resultado.valid ? "is-valid" : "is-invalid";
+  resultado.cells.forEach(function (celula) {
+    if (
+      celula.x < 0
+      || celula.y < 0
+      || celula.x >= CONFIGURACAO_DO_INVENTARIO.columns
+      || celula.y >= CONFIGURACAO_DO_INVENTARIO.rows
+    ) return;
+
+    const marcador = document.createElement("span");
+    marcador.className = `sheet-inventory-preview-cell ${classeDeEstado}`;
+    marcador.style.gridColumnStart = String(celula.x + 1);
+    marcador.style.gridRowStart = String(celula.y + 1);
+    fragmento.append(marcador);
+  });
+
+  const contorno = document.createElement("span");
+  contorno.className = `sheet-inventory-preview-footprint ${classeDeEstado}`;
+  contorno.classList.toggle("is-moving", Boolean(inventoryUIState.movingItemId));
+  contorno.style.gridColumn = `${posicao.x + 1} / span ${resultado.dimensions.largura}`;
+  contorno.style.gridRow = `${posicao.y + 1} / span ${resultado.dimensions.altura}`;
+  contorno.dataset.label = resultado.valid ? "✓ Encaixe" : "× Bloqueado";
+  fragmento.append(contorno);
+  sheetInventoryPreviewLayer.replaceChildren(fragmento);
+}
+
+function atualizarFeedbackVisualDoPosicionamento() {
+  const resultado = avaliarPosicionamentoAtual();
+  const chaves = new Set((resultado?.cells || []).map(function (celula) {
+    return `${celula.x}:${celula.y}`;
+  }));
+
+  sheetInventoryCellLayer.querySelectorAll(".sheet-inventory-cell").forEach(function (celula) {
+    const fazParte = chaves.has(`${celula.dataset.x}:${celula.dataset.y}`);
+    celula.classList.toggle("is-preview-valid", fazParte && resultado?.valid === true);
+    celula.classList.toggle("is-preview-invalid", fazParte && resultado?.valid === false);
+  });
+  renderizarPreviewDoInventario();
+
+  if (resultado) {
+    sheetInventoryPlacementStatus.textContent = descreverResultadoDoPosicionamento(resultado);
+  }
+}
+
+function renderizarResumoDoInventario(celulasUsadas) {
+  const capacidade = CONFIGURACAO_DO_INVENTARIO.capacity;
+  const celulasLivres = capacidade - celulasUsadas;
+  const percentualOcupado = capacidade > 0 ? (celulasUsadas / capacidade) * 100 : 0;
+  const rotuloOcupadas = celulasUsadas === 1 ? "célula ocupada" : "células ocupadas";
+  const rotuloLivres = celulasLivres === 1 ? "célula livre" : "células livres";
+
+  sheetInventoryUsedCells.textContent = `${celulasUsadas} de ${capacidade} ${rotuloOcupadas}`;
+  sheetInventoryFreeCells.textContent = `${celulasLivres} ${rotuloLivres}`;
+  sheetInventoryCapacity.textContent = `${celulasUsadas} / ${capacidade} células`;
+  sheetInventoryOccupancy.setAttribute("aria-valuemax", String(capacidade));
+  sheetInventoryOccupancy.setAttribute("aria-valuenow", String(celulasUsadas));
+  sheetInventoryOccupancy.setAttribute(
+    "aria-valuetext",
+    `${celulasUsadas} de ${capacidade} células ocupadas`
+  );
+  sheetInventoryOccupancyBar.style.width = `${percentualOcupado}%`;
+
+  if (celulasUsadas === 0) {
+    sheetInventorySummaryStatus.textContent = "A mochila está vazia e pronta para receber itens.";
+  } else if (celulasUsadas === capacidade) {
+    sheetInventorySummaryStatus.textContent = "A mochila está completamente ocupada.";
+  } else {
+    const quantidadeDeItens = personagem.inventario.length;
+    const rotuloDeItens = quantidadeDeItens === 1 ? "item organizado" : "itens organizados";
+    sheetInventorySummaryStatus.textContent = `${quantidadeDeItens} ${rotuloDeItens} na mochila.`;
+  }
+}
+
+function sincronizarConfiguracaoVisualDaMochila(celulasUsadas) {
+  const { columns, rows, capacity } = CONFIGURACAO_DO_INVENTARIO;
+  const descricao = `Mochila com ${columns} colunas e ${rows} linhas; ${celulasUsadas} de ${capacity} células ocupadas.`;
+
+  sheetInventoryGrid.style.setProperty("--inventory-columns", String(columns));
+  sheetInventoryGrid.style.setProperty("--inventory-rows", String(rows));
+  sheetInventoryGrid.dataset.columns = String(columns);
+  sheetInventoryGrid.dataset.rows = String(rows);
+  sheetInventoryGrid.setAttribute("aria-label", descricao);
+  sheetInventoryGridScroll.setAttribute("aria-label", descricao);
+  sheetInventoryCellLayer.style.setProperty("--inventory-columns", String(columns));
+  sheetInventoryCellLayer.style.setProperty("--inventory-rows", String(rows));
+  sheetInventoryPreviewLayer.style.setProperty("--inventory-columns", String(columns));
+  sheetInventoryPreviewLayer.style.setProperty("--inventory-rows", String(rows));
+  sheetInventoryItemLayer.style.setProperty("--inventory-columns", String(columns));
+  sheetInventoryItemLayer.style.setProperty("--inventory-rows", String(rows));
+}
+
+function renderizarCamadaDeCelulasDoInventario(matrizDeOcupacao) {
+  const fragmento = document.createDocumentFragment();
+  const modoInterativo = Boolean(inventoryUIState.pendingPlacement || inventoryUIState.movingItemId);
+  const posicaoPreferida = inventoryUIState.candidatePosition || inventoryUIState.hoveredCell;
+  const posicaoDoTabStop = posicaoPreferida
+    && Number.isInteger(posicaoPreferida.x)
+    && Number.isInteger(posicaoPreferida.y)
+    && posicaoPreferida.x >= 0
+    && posicaoPreferida.x < CONFIGURACAO_DO_INVENTARIO.columns
+    && posicaoPreferida.y >= 0
+    && posicaoPreferida.y < CONFIGURACAO_DO_INVENTARIO.rows
+    ? posicaoPreferida
+    : { x: 0, y: 0 };
+  const itensPorId = new Map(personagem.inventario.map(function (item) {
+    return [item.id, item];
+  }));
+
+  if (modoInterativo) {
+    sheetInventoryCellLayer.removeAttribute("aria-hidden");
+  } else {
+    sheetInventoryCellLayer.setAttribute("aria-hidden", "true");
+  }
+
+  for (let y = 0; y < CONFIGURACAO_DO_INVENTARIO.rows; y += 1) {
+    for (let x = 0; x < CONFIGURACAO_DO_INVENTARIO.columns; x += 1) {
+      const itemId = matrizDeOcupacao[y][x];
+      const item = itemId ? itensPorId.get(itemId) : null;
+      const celula = document.createElement(modoInterativo ? "button" : "span");
+
+      celula.className = "sheet-inventory-cell";
+      celula.classList.add(item ? "is-occupied" : "is-free");
+      celula.dataset.x = String(x);
+      celula.dataset.y = String(y);
+      celula.style.gridColumnStart = String(x + 1);
+      celula.style.gridRowStart = String(y + 1);
+
+      if (modoInterativo) {
+        celula.type = "button";
+        celula.tabIndex = x === posicaoDoTabStop.x && y === posicaoDoTabStop.y ? 0 : -1;
+        celula.setAttribute(
+          "aria-label",
+          item
+            ? `Coluna ${x + 1}, linha ${y + 1}: ocupada por ${item.item.nome}.`
+            : `Coluna ${x + 1}, linha ${y + 1}: célula livre.`
+        );
+        celula.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight Enter Escape");
+      }
+
+      fragmento.append(celula);
+    }
+  }
+
+  sheetInventoryCellLayer.replaceChildren(fragmento);
+}
+
+function criarBotaoDeItemDoInventario(item) {
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
+  const visual = obterConfiguracaoVisualDoItem(item);
+  const selecionado = inventoryUIState.selectedItemId === item.id;
+  const botao = document.createElement("button");
+  const arte = criarArteDoItem(item);
+  const legenda = document.createElement("span");
+  const nome = document.createElement("strong");
+  const metadados = document.createElement("span");
+
+  botao.type = "button";
+  botao.className = "sheet-inventory-item";
+  botao.classList.add(visual.raridade.cssClass);
+  botao.classList.toggle("is-selected", selecionado);
+  botao.classList.toggle("is-dragging", inventoryUIState.movingItemId === item.id);
+  botao.dataset.inventoryItemId = item.id;
+  botao.dataset.itemType = item.item.tipo;
+  botao.dataset.itemWidth = String(dimensoes.largura);
+  botao.dataset.itemHeight = String(dimensoes.altura);
+  botao.dataset.itemSymbol = SIMBOLOS_DE_TIPO_DE_ITEM[item.item.tipo] || SIMBOLOS_DE_TIPO_DE_ITEM.outro;
+  botao.style.gridColumn = `${item.posicao.x + 1} / span ${dimensoes.largura}`;
+  botao.style.gridRow = `${item.posicao.y + 1} / span ${dimensoes.altura}`;
+  botao.setAttribute("aria-controls", "sheet-inventory-details");
+  botao.setAttribute("aria-pressed", String(selecionado));
+  botao.setAttribute(
+    "aria-label",
+    `${item.item.nome}, ${visual.raridade.label}, ${dimensoes.largura} por ${dimensoes.altura} células, coluna ${item.posicao.x + 1}, linha ${item.posicao.y + 1}.`
+  );
+
+  nome.textContent = item.item.nome;
+  metadados.textContent = item.item.atributoPrincipal?.valor || visual.raridade.label;
+  legenda.className = "sheet-inventory-item__caption";
+  legenda.append(nome, metadados);
+  if (item.item.quantidade > 1) {
+    const quantidade = document.createElement("b");
+    quantidade.className = "sheet-inventory-item__quantity";
+    quantidade.textContent = `×${item.item.quantidade}`;
+    botao.append(quantidade);
+  }
+  botao.append(arte, legenda);
+  return botao;
+}
+
+function renderizarCamadaDeItensDoInventario() {
+  const fragmento = document.createDocumentFragment();
+  const elementoFocado = document.activeElement;
+  const itemIdFocado = elementoFocado
+    && sheetInventoryItemLayer.contains(elementoFocado)
+    ? elementoFocado.dataset.inventoryItemId || null
+    : null;
+
+  if (personagem.inventario.length === 0) {
+    const estadoVazio = document.createElement("p");
+    estadoVazio.className = "sheet-inventory-grid-empty";
+    estadoVazio.textContent = "Mochila vazia";
+    fragmento.append(estadoVazio);
+  } else {
+    personagem.inventario.forEach(function (item) {
+      fragmento.append(criarBotaoDeItemDoInventario(item));
+    });
+  }
+
+  sheetInventoryItemLayer.replaceChildren(fragmento);
+
+  if (itemIdFocado) {
+    const novoBotaoFocado = Array.from(sheetInventoryItemLayer.children).find(function (elemento) {
+      return elemento.dataset.inventoryItemId === itemIdFocado;
+    });
+    novoBotaoFocado?.focus({ preventScroll: true });
+  }
+}
+
+function criarDetalhesVisuaisDoItem(item, opcoes = {}) {
+  const visual = obterConfiguracaoVisualDoItem(item);
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
+  const conteudo = document.createElement("article");
+  const cabecalho = document.createElement("header");
+  const nome = document.createElement("h3");
+  const raridade = document.createElement("span");
+  const arte = criarArteDoItem(item, "sheet-inventory-details__art");
+  const destaque = document.createElement("div");
+  const descricao = document.createElement("p");
+  const lista = document.createElement("dl");
+
+  conteudo.className = "sheet-inventory-details__content";
+  conteudo.classList.add(visual.raridade.cssClass);
+  conteudo.dataset.itemSymbol = SIMBOLOS_DE_TIPO_DE_ITEM[item.item.tipo] || SIMBOLOS_DE_TIPO_DE_ITEM.outro;
+  cabecalho.className = "sheet-inventory-details__title";
+  nome.textContent = item.item.nome;
+  raridade.className = "sheet-inventory-details__rarity";
+  raridade.textContent = opcoes.pendente
+    ? `Importado · ${visual.raridade.label}`
+    : visual.raridade.label;
+  cabecalho.append(nome, raridade);
+
+  destaque.className = "sheet-inventory-details__hero-stat";
+  destaque.append(
+    criarElementoComTexto("span", "", item.item.atributoPrincipal?.rotulo || visual.tipo.label),
+    criarElementoComTexto("strong", "", item.item.atributoPrincipal?.valor || formatarPeso(item.item.peso))
+  );
+
+  descricao.className = "sheet-inventory-details__description";
+  descricao.textContent = item.item.descricao || "Nenhuma descrição informada.";
+
+  lista.className = "sheet-inventory-details__metadata";
+  lista.append(
+    criarLinhaDeDetalheDoInventario("Tipo", visual.tipo.label),
+    criarLinhaDeDetalheDoInventario("Tamanho", `${dimensoes.largura} × ${dimensoes.altura} células`),
+    criarLinhaDeDetalheDoInventario("Peso", formatarPeso(item.item.peso)),
+    criarLinhaDeDetalheDoInventario("Rotação", `${item.rotacao}°`)
+  );
+
+  if (item.item.propriedades?.length) {
+    const propriedades = document.createElement("div");
+    propriedades.className = "sheet-inventory-details__properties";
+    item.item.propriedades.forEach(function (propriedade) {
+      const tag = document.createElement("span");
+      tag.textContent = propriedade;
+      propriedades.append(tag);
+    });
+    lista.after(propriedades);
+    conteudo.append(cabecalho, arte, destaque, descricao, lista, propriedades);
+    return conteudo;
+  }
+
+  if (opcoes.pendente) {
+    lista.append(criarLinhaDeDetalheDoInventario("Estado", "Aguardando posicionamento"));
+  } else {
+    lista.append(
+      criarLinhaDeDetalheDoInventario(
+        "Posição",
+        `Coluna ${item.posicao.x + 1}, linha ${item.posicao.y + 1}`
+      )
+    );
+  }
+
+  conteudo.append(cabecalho, arte, destaque, descricao, lista);
+  return conteudo;
+}
+
+function renderizarDetalhesDoInventario() {
+  const itemPendente = inventoryUIState.pendingPlacement;
+  const itemSelecionado = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
+  const deveMostrarItemPendente = itemPendente
+    && (!inventoryUIState.reorganizingForPending || !itemSelecionado);
+
+  if (deveMostrarItemPendente) {
+    sheetInventoryDetails.replaceChildren(criarDetalhesVisuaisDoItem(itemPendente, { pendente: true }));
+    sheetInventoryItemActions.hidden = true;
+    return;
+  }
+
+  if (!itemSelecionado) {
+    inventoryUIState.selectedItemId = null;
+    sheetInventoryDetails.replaceChildren(sheetInventoryDetailsEmpty);
+    sheetInventoryItemActions.hidden = true;
+    sheetInventoryPlacementStatus.textContent = "Selecione um item para ver seus detalhes ou reorganizar a mochila.";
+    return;
+  }
+
+  sheetInventoryDetails.replaceChildren(criarDetalhesVisuaisDoItem(itemSelecionado));
+  sheetInventoryItemActions.hidden = false;
+  const ehArmadura = itemSelecionado.item.tipo === "armadura" || itemSelecionado.item.equipavelEm === "armadura";
+  sheetEquipItem.hidden = !ehArmadura;
+  sheetEquipItem.textContent = "Equipar armadura";
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(itemSelecionado, itemSelecionado.rotacao);
+  sheetRotateItem.hidden = dimensoes.largura === dimensoes.altura;
+  sheetMoveItem.textContent = inventoryUIState.movingItemId === itemSelecionado.id
+    ? "Cancelar movimento"
+    : "Mover item";
+  sheetInventoryPlacementStatus.textContent = inventoryUIState.movingItemId === itemSelecionado.id
+    ? `Movendo ${itemSelecionado.item.nome}. Use as setas e Enter, toque em uma célula ou arraste o item.`
+    : `${itemSelecionado.item.nome} selecionado.`;
+}
+
+function renderizarItemRecebido() {
+  const item = inventoryUIState.pendingPlacement;
+  if (!item) {
+    sheetInventoryReceived.classList.remove("has-item");
+    sheetInventoryReceived.innerHTML = `
+      <div class="sheet-inventory-received__empty">
+        <span class="sheet-inventory-received__seal" aria-hidden="true">✦</span>
+        <strong>Bancada livre</strong>
+        <p>Itens importados aparecem aqui antes de entrar na mochila.</p>
+      </div>`;
+    return;
+  }
+
+  const visual = obterConfiguracaoVisualDoItem(item);
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
+  const cartao = document.createElement("article");
+  const arte = criarArteDoItem(item, "sheet-inventory-received__art");
+  const proporcao = Math.max(0.45, Math.min(1.45, dimensoes.largura / dimensoes.altura));
+  arte.style.setProperty("--received-ratio", String(proporcao));
+  cartao.className = `sheet-inventory-received__card ${visual.raridade.cssClass}`;
+  cartao.append(arte);
+  const texto = document.createElement("div");
+  texto.append(
+    criarElementoComTexto("span", "sheet-inventory-received__rarity", `${visual.tipo.label} · ${visual.raridade.label}`),
+    criarElementoComTexto("h4", "", item.item.nome),
+    criarElementoComTexto("p", "", item.item.descricao || "Uma nova peça aguarda lugar na mochila.")
+  );
+  const lista = document.createElement("dl");
+  lista.append(
+    criarLinhaDeDetalheDoInventario(
+      item.item.atributoPrincipal?.rotulo || "Peso",
+      item.item.atributoPrincipal?.valor || formatarPeso(item.item.peso)
+    ),
+    criarLinhaDeDetalheDoInventario("Volume", `${dimensoes.largura} × ${dimensoes.altura}`)
+  );
+  texto.append(lista);
+  cartao.append(texto);
+  sheetInventoryReceived.classList.add("has-item");
+  sheetInventoryReceived.replaceChildren(cartao);
+}
+
+function renderizarEquipamentoDoInventario() {
+  const armadura = personagem.equipamentos?.armadura;
+  sheetInventoryArmorSlot.classList.toggle("has-item", Boolean(armadura));
+  if (!armadura) {
+    sheetInventoryArmorSlot.setAttribute("aria-label", "Slot de armadura vazio");
+    sheetInventoryArmorSlot.innerHTML = `<span class="sheet-inventory-armor-slot__ghost" aria-hidden="true">♜</span><span><small>Armadura</small><strong>Nenhuma equipada</strong></span>`;
+    return;
+  }
+  const arte = criarArteDoItem(armadura, "sheet-inventory-armor-slot__art");
+  const texto = document.createElement("span");
+  texto.append(
+    criarElementoComTexto("small", "", "Armadura equipada"),
+    criarElementoComTexto("strong", "", armadura.item.nome),
+    criarElementoComTexto("em", "", armadura.item.atributoPrincipal?.valor || formatarPeso(armadura.item.peso))
+  );
+  sheetInventoryArmorSlot.replaceChildren(arte, texto);
+  sheetInventoryArmorSlot.setAttribute("aria-label", `${armadura.item.nome}, armadura equipada. Ative para desequipar.`);
+}
+
+function renderizarResumoPremiumDoInventario(celulasUsadas) {
+  const armadura = personagem.equipamentos?.armadura;
+  const pesoMochila = personagem.inventario.reduce(function (total, item) {
+    return total + Number(item.item.peso || 0) * Number(item.item.quantidade || 1);
+  }, 0);
+  const pesoTotal = pesoMochila + (armadura ? Number(armadura.item.peso || 0) * Number(armadura.item.quantidade || 1) : 0);
+  const pesoMaximo = Number(personagem.capacidadeInventario?.pesoMaximo || 0);
+  sheetInventoryWeight.textContent = pesoMaximo > 0 ? `${formatarPeso(pesoTotal)} / ${formatarPeso(pesoMaximo)}` : formatarPeso(pesoTotal);
+  sheetInventoryWeightBar.style.width = `${pesoMaximo > 0 ? Math.min(100, (pesoTotal / pesoMaximo) * 100) : Math.min(100, pesoTotal * 2.5)}%`;
+  sheetInventoryItemCount.textContent = String(personagem.inventario.length + (armadura ? 1 : 0));
+  sheetInventorySpaceSummary.textContent = `${celulasUsadas} / ${CONFIGURACAO_DO_INVENTARIO.capacity}`;
+  sheetInventoryGold.textContent = String(personagem.economia?.ouro || 0);
+  sheetInventorySilver.textContent = String(personagem.economia?.prata || 0);
+}
+
+function renderizarEstadoDoItemPendente() {
+  const itemPendente = inventoryUIState.pendingPlacement;
+
+  if (!itemPendente) {
+    inventoryUIState.reorganizingForPending = false;
+    sheetInventoryPendingActions.hidden = true;
+    sheetReorganizeForItem.hidden = false;
+    return;
+  }
+
+  const disponibilidade = obterDisponibilidadeDoItemPendente();
+  const dimensoes = disponibilidade.dimensions;
+  sheetRotatePendingItem.hidden = itemPendente.item.tamanho.largura === itemPendente.item.tamanho.altura;
+  const visual = obterConfiguracaoVisualDoItem(itemPendente);
+  const resumo = `${itemPendente.item.nome} · ${dimensoes.largura} × ${dimensoes.altura} · ${visual.raridade.label}`;
+
+  sheetInventoryPendingActions.hidden = false;
+  sheetReorganizeForItem.hidden = disponibilidade.code !== "no-space-available"
+    || inventoryUIState.reorganizingForPending;
+
+  if (inventoryUIState.reorganizingForPending) {
+    sheetInventoryPendingHeading.textContent = "Reorganização manual";
+    sheetInventoryPendingMessage.textContent = `${resumo}. Selecione um item já guardado e use Mover item para liberar espaço. O item importado continuará pendente.`;
+    sheetInventoryPlacementStatus.textContent = "Reorganização manual ativa. Nenhum item foi movido automaticamente.";
+    return;
+  }
+
+  if (disponibilidade.code === "item-too-large") {
+    sheetInventoryPendingHeading.textContent = "Item incompatível com a mochila";
+    sheetInventoryPendingMessage.textContent = `${resumo}. As dimensões excedem os limites da mochila; reorganizar os itens não resolverá.`;
+    sheetInventoryPlacementStatus.textContent = "Este item é grande demais para a mochila. Cancele a importação ou descarte o item importado.";
+    return;
+  }
+
+  if (disponibilidade.code === "no-space-available") {
+    sheetInventoryPendingHeading.textContent = "Item aguardando espaço";
+    sheetInventoryPendingMessage.textContent = `${resumo}. Não existe uma posição válida na organização atual.`;
+    sheetInventoryPlacementStatus.textContent = "Não há espaço disponível na organização atual. Reorganize manualmente, cancele ou descarte o item importado.";
+    return;
+  }
+
+  sheetInventoryPendingHeading.textContent = "Item aguardando posicionamento";
+  sheetInventoryPendingMessage.textContent = `${resumo}. Escolha uma posição válida na mochila para confirmar a importação.`;
+  sheetInventoryPlacementStatus.textContent = "Item validado. A posição destacada é apenas uma sugestão; escolha e confirme uma posição para adicioná-lo.";
+}
+
+function renderizarInventario() {
+  const matrizDeOcupacao = dominioDoInventario.createOccupancyMatrix(personagem.inventario);
+  const celulasUsadas = dominioDoInventario.getUsedInventoryCells(personagem.inventario);
+
+  sincronizarConfiguracaoVisualDaMochila(celulasUsadas);
+  renderizarResumoDoInventario(celulasUsadas);
+  renderizarCamadaDeCelulasDoInventario(matrizDeOcupacao);
+  renderizarCamadaDeItensDoInventario();
+  renderizarItemRecebido();
+  renderizarEquipamentoDoInventario();
+  renderizarResumoPremiumDoInventario(celulasUsadas);
+  renderizarDetalhesDoInventario();
+  renderizarEstadoDoItemPendente();
+  atualizarFeedbackVisualDoPosicionamento();
+}
+
+function executarMutacaoDoInventario(mutacao, opcoes = {}) {
+  if (typeof mutacao !== "function") {
+    throw new TypeError("A mutação do inventário deve ser uma função.");
+  }
+
+  const resultado = mutacao(personagem.inventario, inventoryUIState);
+  // Mutações persistentes retornam true somente depois de efetivar o commit no inventário.
+  if (opcoes.persistente !== false && resultado === true) marcarFichaComoAlterada();
+  renderizarInventario();
+  return resultado;
+}
+
+function abrirSeletorDeItemDoInventario() {
+  if (inventoryUIState.pendingPlacement) {
+    sheetInventoryPlacementStatus.textContent = "Posicione, cancele ou descarte o item pendente antes de importar outro.";
+    return;
+  }
+
+  sheetItemFile.value = "";
+  sheetItemFile.click();
+}
+
+function obterDefinicaoDoItemImportado(dados) {
+  if (!ehObjetoDeDados(dados) || dados.tipo !== "grimorio-item") {
+    throw new Error("Este JSON não é um item do Grimório RPG.");
+  }
+
+  if (typeof dados.schemaVersion !== "number" || ![1, 2].includes(dados.schemaVersion)) {
+    throw new Error("A versão do item não é compatível com o Grimório RPG.");
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(dados, "item")) {
+    throw new Error("O arquivo JSON não contém os dados do item.");
+  }
+
+  return dominioDoInventario.normalizeItemDefinition(dados.item);
+}
+
+function criarItemPendenteDaImportacao(definicao) {
+  const idsEmUso = new Set(personagem.inventario.map(function (item) {
+    return item.id;
+  }));
+
+  return {
+    id: dominioDoInventario.createInventoryItemId(undefined, idsEmUso),
+    item: definicao,
+    rotacao: 0
+  };
+}
+
+async function importarArquivoDeItem(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+
+  if (!arquivo.name.toLowerCase().endsWith(".json")) {
+    sheetInventoryPlacementStatus.textContent = "Selecione um arquivo de item com extensão .json.";
+    return;
+  }
+
+  if (arquivo.size > 1024 * 1024) {
+    sheetInventoryPlacementStatus.textContent = "O arquivo de item excede o limite de 1 MB.";
+    return;
+  }
+
+  sheetImportItem.disabled = true;
+  sheetImportItem.setAttribute("aria-busy", "true");
+  sheetInventoryPlacementStatus.textContent = "Validando item importado...";
+
+  try {
+    const conteudo = await arquivo.text();
+    const dados = JSON.parse(conteudo);
+    const definicao = obterDefinicaoDoItemImportado(dados);
+    const itemPendente = criarItemPendenteDaImportacao(definicao);
+    const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(
+      personagem.inventario,
+      itemPendente,
+      { rotation: 0 }
+    );
+
+    executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+      estadoDaInterface.pendingPlacement = itemPendente;
+      estadoDaInterface.reorganizingForPending = false;
+      estadoDaInterface.movingItemId = null;
+      estadoDaInterface.selectedItemId = null;
+      estadoDaInterface.hoveredCell = null;
+      estadoDaInterface.candidatePosition = disponibilidade.available
+        ? { x: disponibilidade.position.x, y: disponibilidade.position.y }
+        : null;
+      estadoDaInterface.pointerSession = null;
+    }, { persistente: false });
+  } catch (erro) {
+    sheetInventoryPlacementStatus.textContent = erro instanceof SyntaxError
+      ? "O arquivo não contém um JSON válido."
+      : erro.message || "Não foi possível importar este item.";
+  } finally {
+    sheetImportItem.disabled = false;
+    sheetImportItem.removeAttribute("aria-busy");
+  }
+}
+
+function limparItemPendenteDoInventario(mensagem) {
+  if (!inventoryUIState.pendingPlacement) return;
+
+  executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    estadoDaInterface.pendingPlacement = null;
+    estadoDaInterface.reorganizingForPending = false;
+    estadoDaInterface.movingItemId = null;
+    estadoDaInterface.hoveredCell = null;
+    estadoDaInterface.candidatePosition = null;
+    estadoDaInterface.pointerSession = null;
+  }, { persistente: false });
+
+  sheetInventoryPlacementStatus.textContent = mensagem;
+}
+
+function cancelarImportacaoDeItem() {
+  limparItemPendenteDoInventario("Importação cancelada. Nenhum item foi adicionado à mochila.");
+}
+
+function descartarItemImportado() {
+  limparItemPendenteDoInventario("Item importado descartado antes de entrar na mochila.");
+}
+
+function reorganizarMochilaParaItemPendente() {
+  if (!inventoryUIState.pendingPlacement) return;
+
+  const disponibilidade = obterDisponibilidadeDoItemPendente();
+  if (disponibilidade.code !== "no-space-available") {
+    renderizarInventario();
+    return;
+  }
+
+  executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    estadoDaInterface.reorganizingForPending = true;
+    estadoDaInterface.selectedItemId = null;
+    estadoDaInterface.movingItemId = null;
+    estadoDaInterface.hoveredCell = null;
+    estadoDaInterface.candidatePosition = null;
+    estadoDaInterface.pointerSession = null;
+  }, { persistente: false });
+}
+
+function obterPosicaoDaCelulaPeloPonteiro(event) {
+  const retangulo = sheetInventoryGrid.getBoundingClientRect();
+  if (retangulo.width <= 0 || retangulo.height <= 0) return null;
+
+  return {
+    x: Math.floor(((event.clientX - retangulo.left) / retangulo.width) * CONFIGURACAO_DO_INVENTARIO.columns),
+    y: Math.floor(((event.clientY - retangulo.top) / retangulo.height) * CONFIGURACAO_DO_INVENTARIO.rows)
+  };
+}
+
+function definirPosicaoCandidata(posicao, opcoes = {}) {
+  if (!posicao) return;
+  inventoryUIState.candidatePosition = { x: posicao.x, y: posicao.y };
+  inventoryUIState.hoveredCell = { x: posicao.x, y: posicao.y };
+
+  const celulas = sheetInventoryCellLayer.querySelectorAll(".sheet-inventory-cell");
+  celulas.forEach(function (celula) {
+    const ehDestino = Number(celula.dataset.x) === posicao.x && Number(celula.dataset.y) === posicao.y;
+    celula.tabIndex = ehDestino ? 0 : -1;
+    if (ehDestino && opcoes.focar === true) celula.focus({ preventScroll: true });
+  });
+  atualizarFeedbackVisualDoPosicionamento();
+}
+
+function recalcularItemPendenteAposReorganizacao(inventario, estadoDaInterface) {
+  if (!estadoDaInterface.pendingPlacement) return;
+  const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(
+    inventario,
+    estadoDaInterface.pendingPlacement,
+    { rotation: estadoDaInterface.pendingPlacement.rotacao }
+  );
+
+  if (disponibilidade.available) {
+    estadoDaInterface.reorganizingForPending = false;
+    estadoDaInterface.candidatePosition = {
+      x: disponibilidade.position.x,
+      y: disponibilidade.position.y
+    };
+  } else {
+    estadoDaInterface.candidatePosition = null;
+  }
+}
+
+function aplicarFeedbackDeAssentamento(itemId, opcoes = {}) {
+  const botao = sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(itemId)}"]`);
+  if (!botao) return null;
+
+  botao.classList.remove("is-settling");
+  void botao.offsetWidth;
+  botao.classList.add("is-settling");
+  window.setTimeout(function () {
+    botao.classList.remove("is-settling");
+  }, DURACAO_DE_ENCAIXE_DO_INVENTARIO + 80);
+  if (opcoes.focar !== false) botao.focus({ preventScroll: true });
+  return botao;
+}
+
+function aplicarFeedbackDePosicaoRecusada() {
+  const itemId = inventoryUIState.movingItemId || inventoryUIState.selectedItemId;
+  const botao = itemId
+    ? sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(itemId)}"]`)
+    : null;
+  const alvo = botao || sheetInventoryPreviewLayer.querySelector(".sheet-inventory-preview-footprint");
+  if (!alvo) return;
+  alvo.classList.remove("is-invalid-return");
+  void alvo.offsetWidth;
+  alvo.classList.add("is-invalid-return");
+  window.setTimeout(function () {
+    alvo.classList.remove("is-invalid-return");
+  }, DURACAO_DE_RETORNO_DO_INVENTARIO + 40);
+}
+
+function confirmarPosicionamentoAtual(opcoes = {}) {
+  const item = obterItemEmPosicionamento();
+  const resultado = avaliarPosicionamentoAtual();
+  const posicao = inventoryUIState.candidatePosition;
+  if (!item || !resultado || !posicao) return false;
+
+  if (!resultado.valid) {
+    sheetInventoryPlacementStatus.textContent = descreverResultadoDoPosicionamento(resultado);
+    aplicarFeedbackDePosicaoRecusada();
+    return false;
+  }
+
+  const estavaMovendo = Boolean(inventoryUIState.movingItemId);
+  const itemId = item.id;
+  if (
+    estavaMovendo
+    && item.posicao.x === posicao.x
+    && item.posicao.y === posicao.y
+  ) {
+    cancelarMovimentoDoInventario();
+    sheetInventoryPlacementStatus.textContent = "Movimento cancelado: o item já estava nessa posição.";
+    return false;
+  }
+  executarMutacaoDoInventario(function (inventario, estadoDaInterface) {
+    if (estavaMovendo) {
+      const indice = inventario.findIndex(function (itemAtual) {
+        return itemAtual.id === itemId;
+      });
+      if (indice < 0) return false;
+      inventario[indice] = {
+        ...inventario[indice],
+        posicao: { x: posicao.x, y: posicao.y }
+      };
+      estadoDaInterface.movingItemId = null;
+      estadoDaInterface.pointerSession = null;
+      estadoDaInterface.hoveredCell = null;
+      estadoDaInterface.candidatePosition = null;
+      recalcularItemPendenteAposReorganizacao(inventario, estadoDaInterface);
+      return true;
+    }
+
+    inventario.push({
+      id: item.id,
+      item: item.item,
+      posicao: { x: posicao.x, y: posicao.y },
+      rotacao: item.rotacao
+    });
+    estadoDaInterface.pendingPlacement = null;
+    estadoDaInterface.reorganizingForPending = false;
+    estadoDaInterface.selectedItemId = item.id;
+    estadoDaInterface.hoveredCell = null;
+    estadoDaInterface.candidatePosition = null;
+    estadoDaInterface.pointerSession = null;
+    return true;
+  });
+
+  aplicarFeedbackDeAssentamento(itemId, { focar: opcoes.focarItem !== false });
+  return true;
+}
+
+function cancelarMovimentoDoInventario(opcoes = {}) {
+  const itemId = inventoryUIState.movingItemId;
+  if (!itemId) return;
+
+  executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    estadoDaInterface.movingItemId = null;
+    estadoDaInterface.hoveredCell = null;
+    estadoDaInterface.candidatePosition = null;
+    estadoDaInterface.pointerSession = null;
+  }, { persistente: false });
+
+  if (opcoes.focarItem !== false) {
+    const botao = sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(itemId)}"]`);
+    botao?.focus({ preventScroll: true });
+  }
+}
+
+function iniciarModoExplicitoDeMovimento() {
+  const item = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
+  if (!item) return;
+  if (inventoryUIState.movingItemId === item.id) {
+    cancelarMovimentoDoInventario();
+    return;
+  }
+
+  executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    estadoDaInterface.movingItemId = item.id;
+    estadoDaInterface.hoveredCell = { x: item.posicao.x, y: item.posicao.y };
+    estadoDaInterface.candidatePosition = { x: item.posicao.x, y: item.posicao.y };
+    estadoDaInterface.pointerSession = null;
+  }, { persistente: false });
+
+  const celulaInicial = sheetInventoryCellLayer.querySelector(
+    `[data-x="${item.posicao.x}"][data-y="${item.posicao.y}"]`
+  );
+  celulaInicial?.focus({ preventScroll: true });
+}
+
+function girarItemAtivoDoInventario() {
+  const item = obterItemEmPosicionamento() || obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
+  if (!item) return;
+  const tamanho = item.item.tamanho;
+  if (tamanho.largura === tamanho.altura) return;
+  const novaRotacao = item.rotacao === 90 ? 0 : 90;
+
+  if (inventoryUIState.pendingPlacement === item) {
+    item.rotacao = novaRotacao;
+    const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(personagem.inventario, item, { rotation: novaRotacao });
+    inventoryUIState.candidatePosition = disponibilidade.available ? disponibilidade.position : null;
+    renderizarInventario();
+    return;
+  }
+
+  const resultado = dominioDoInventario.canPlaceItem(personagem.inventario, item, item.posicao, {
+    rotation: novaRotacao,
+    ignoreItemId: item.id
+  });
+  if (!resultado.valid) {
+    sheetInventoryPlacementStatus.textContent = "Não há espaço para girar esta peça aqui. Mova-a para uma área livre e tente novamente.";
+    aplicarFeedbackDePosicaoRecusada();
+    return;
+  }
+  executarMutacaoDoInventario(function () {
+    item.rotacao = novaRotacao;
+    return true;
+  });
+  aplicarFeedbackDeAssentamento(item.id);
+}
+
+function equiparArmaduraSelecionada() {
+  const item = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
+  if (!item || (item.item.tipo !== "armadura" && item.item.equipavelEm !== "armadura")) return;
+  if (personagem.equipamentos.armadura) {
+    sheetInventoryPlacementStatus.textContent = "Desequipe a armadura atual antes de vestir outra.";
+    return;
+  }
+  executarMutacaoDoInventario(function (inventario, estadoDaInterface) {
+    const indice = inventario.findIndex(function (entrada) { return entrada.id === item.id; });
+    if (indice < 0) return false;
+    personagem.equipamentos.armadura = inventario.splice(indice, 1)[0];
+    estadoDaInterface.selectedItemId = null;
+    return true;
+  });
+  sheetInventoryPlacementStatus.textContent = `${item.item.nome} equipada.`;
+}
+
+function desequiparArmadura() {
+  const armadura = personagem.equipamentos?.armadura;
+  if (!armadura) return;
+  const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(personagem.inventario, armadura, { rotation: armadura.rotacao });
+  if (!disponibilidade.available) {
+    sheetInventoryPlacementStatus.textContent = "Não há espaço na mochila para guardar a armadura equipada.";
+    return;
+  }
+  executarMutacaoDoInventario(function (inventario, estadoDaInterface) {
+    armadura.posicao = disponibilidade.position;
+    inventario.push(armadura);
+    personagem.equipamentos.armadura = null;
+    estadoDaInterface.selectedItemId = armadura.id;
+    return true;
+  });
+  aplicarFeedbackDeAssentamento(armadura.id);
+}
+
+function iniciarArrasteDeItem(event) {
+  if (event.button !== 0 || !event.isPrimary) return;
+  const botao = event.target.closest("button[data-inventory-item-id]");
+  if (!botao) return;
+  const item = obterItemDoInventarioPorId(botao.dataset.inventoryItemId);
+  if (!item) return;
+  if (inventoryUIState.movingItemId && inventoryUIState.movingItemId !== item.id) return;
+
+  const celulaDoPonteiro = obterPosicaoDaCelulaPeloPonteiro(event);
+  if (!celulaDoPonteiro) return;
+  inventoryUIState.selectedItemId = item.id;
+  inventoryUIState.movingItemId = item.id;
+  inventoryUIState.candidatePosition = { x: item.posicao.x, y: item.posicao.y };
+  inventoryUIState.pointerSession = {
+    pointerId: event.pointerId,
+    itemId: item.id,
+    origin: { x: item.posicao.x, y: item.posicao.y },
+    offset: {
+      x: celulaDoPonteiro.x - item.posicao.x,
+      y: celulaDoPonteiro.y - item.posicao.y
+    },
+    pointerOffset: {
+      x: event.clientX - botao.getBoundingClientRect().left,
+      y: event.clientY - botao.getBoundingClientRect().top
+    },
+    originRect: botao.getBoundingClientRect(),
+    startPointer: { x: event.clientX, y: event.clientY },
+    latestPointer: { x: event.clientX, y: event.clientY },
+    renderedPointer: { x: event.clientX, y: event.clientY },
+    tilt: 0,
+    proxy: null,
+    animationFrame: 0,
+    moved: false
+  };
+  botao.setPointerCapture(event.pointerId);
+  atualizarFeedbackVisualDoPosicionamento();
+  event.preventDefault();
+}
+
+function iniciarArrasteDeItemRecebido(event) {
+  if (event.button !== 0 || !event.isPrimary || !inventoryUIState.pendingPlacement) return;
+  const cartao = event.target.closest(".sheet-inventory-received__card");
+  if (!cartao) return;
+  const retangulo = cartao.getBoundingClientRect();
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(inventoryUIState.pendingPlacement, inventoryUIState.pendingPlacement.rotacao);
+  inventoryUIState.candidatePosition = null;
+  inventoryUIState.pointerSession = {
+    pointerId: event.pointerId,
+    itemId: inventoryUIState.pendingPlacement.id,
+    source: "received",
+    origin: null,
+    offset: { x: Math.floor(dimensoes.largura / 2), y: Math.floor(dimensoes.altura / 2) },
+    pointerOffset: { x: Math.min(event.clientX - retangulo.left, retangulo.width / 2), y: Math.min(event.clientY - retangulo.top, retangulo.height / 2) },
+    originRect: retangulo,
+    startPointer: { x: event.clientX, y: event.clientY },
+    latestPointer: { x: event.clientX, y: event.clientY },
+    renderedPointer: { x: event.clientX, y: event.clientY },
+    tilt: 0,
+    proxy: null,
+    animationFrame: 0,
+    moved: false
+  };
+  cartao.setPointerCapture(event.pointerId);
+  event.preventDefault();
+}
+
+function criarProxyVisualDoArraste(sessao) {
+  const origem = sessao.source === "received"
+    ? sheetInventoryReceived.querySelector(".sheet-inventory-received__card")
+    : sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(sessao.itemId)}"]`);
+  if (!origem) return null;
+
+  let proxy;
+  if (sessao.source === "received") {
+    const item = inventoryUIState.pendingPlacement;
+    const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
+    proxy = criarBotaoDeItemDoInventario({ ...item, posicao: { x: 0, y: 0 } });
+    const gridRect = sheetInventoryGrid.getBoundingClientRect();
+    sessao.originRect = origem.getBoundingClientRect();
+    proxy.style.width = `${(gridRect.width / CONFIGURACAO_DO_INVENTARIO.columns) * dimensoes.largura}px`;
+    proxy.style.height = `${(gridRect.height / CONFIGURACAO_DO_INVENTARIO.rows) * dimensoes.altura}px`;
+  } else {
+    proxy = origem.cloneNode(true);
+    proxy.style.width = `${sessao.originRect.width}px`;
+    proxy.style.height = `${sessao.originRect.height}px`;
+  }
+  proxy.removeAttribute("id");
+  proxy.removeAttribute("aria-controls");
+  proxy.removeAttribute("aria-pressed");
+  proxy.removeAttribute("aria-label");
+  proxy.removeAttribute("tabindex");
+  proxy.setAttribute("aria-hidden", "true");
+  proxy.classList.remove("is-selected", "is-dragging", "is-settling", "is-invalid-return");
+  proxy.classList.add("sheet-inventory-drag-proxy");
+  proxy.style.setProperty("--drag-x", `${sessao.originRect.left}px`);
+  proxy.style.setProperty("--drag-y", `${sessao.originRect.top}px`);
+  proxy.style.setProperty("--drag-tilt", "0deg");
+  document.body.append(proxy);
+
+  origem.classList.add("is-drag-origin");
+  sheetInventoryGrid.classList.add("is-dragging-item");
+  sessao.proxy = proxy;
+  return proxy;
+}
+
+function desenharProxyDoArraste(sessao) {
+  sessao.animationFrame = 0;
+  if (!sessao.proxy) return;
+
+  const deltaX = sessao.latestPointer.x - sessao.renderedPointer.x;
+  const inclinacaoAlvo = Math.max(-0.45, Math.min(0.45, deltaX * 0.055));
+  sessao.tilt += (inclinacaoAlvo - sessao.tilt) * 0.46;
+  sessao.renderedPointer = { ...sessao.latestPointer };
+  sessao.proxy.style.setProperty("--drag-x", `${sessao.latestPointer.x - sessao.pointerOffset.x}px`);
+  sessao.proxy.style.setProperty("--drag-y", `${sessao.latestPointer.y - sessao.pointerOffset.y}px`);
+  sessao.proxy.style.setProperty("--drag-tilt", `${sessao.tilt.toFixed(3)}deg`);
+}
+
+function agendarDesenhoDoProxy(sessao, event) {
+  sessao.latestPointer = { x: event.clientX, y: event.clientY };
+  if (sessao.animationFrame) return;
+  sessao.animationFrame = window.requestAnimationFrame(function () {
+    desenharProxyDoArraste(sessao);
+  });
+}
+
+function atualizarArrasteDeItem(event) {
+  const sessao = inventoryUIState.pointerSession;
+  if (!sessao || sessao.pointerId !== event.pointerId) return;
+  const distancia = Math.hypot(
+    event.clientX - sessao.startPointer.x,
+    event.clientY - sessao.startPointer.y
+  );
+  if (!sessao.moved && distancia < LIMIAR_DE_ARRASTE_DO_INVENTARIO) return;
+  if (!sessao.moved) {
+    sessao.moved = true;
+    criarProxyVisualDoArraste(sessao);
+  }
+  agendarDesenhoDoProxy(sessao, event);
+  const celula = obterPosicaoDaCelulaPeloPonteiro(event);
+  if (!celula) return;
+  const candidata = {
+    x: celula.x - sessao.offset.x,
+    y: celula.y - sessao.offset.y
+  };
+  definirPosicaoCandidata(candidata);
+  event.preventDefault();
+}
+
+function removerProxyDoInventario(sessao) {
+  if (sessao.animationFrame) window.cancelAnimationFrame(sessao.animationFrame);
+  sessao.animationFrame = 0;
+  sessao.proxy?.remove();
+  sessao.proxy = null;
+  document.querySelectorAll(".sheet-inventory-item.is-drag-origin, .sheet-inventory-received__card.is-drag-origin").forEach(function (elemento) {
+    elemento.classList.remove("is-drag-origin");
+  });
+  sheetInventoryGrid.classList.remove("is-dragging-item");
+}
+
+function animarProxyAteRetangulo(sessao, retangulo, tipo) {
+  const proxy = sessao.proxy;
+  if (!proxy || !retangulo) {
+    removerProxyDoInventario(sessao);
+    return;
+  }
+
+  if (sessao.animationFrame) {
+    window.cancelAnimationFrame(sessao.animationFrame);
+    desenharProxyDoArraste(sessao);
+  }
+  proxy.classList.add(tipo === "retorno" ? "is-returning" : "is-dropping");
+  proxy.style.setProperty("--drag-target-x", `${retangulo.left}px`);
+  proxy.style.setProperty("--drag-target-y", `${retangulo.top}px`);
+  proxy.style.setProperty("--drag-recoil-x", `${sessao.latestPointer.x >= sessao.startPointer.x ? 5 : -5}px`);
+  window.setTimeout(function () {
+    removerProxyDoInventario(sessao);
+  }, tipo === "retorno" ? DURACAO_DE_RETORNO_DO_INVENTARIO + 24 : DURACAO_DE_ENCAIXE_DO_INVENTARIO + 24);
+}
+
+function encerrarArrasteDeItem(event, cancelado) {
+  const sessao = inventoryUIState.pointerSession;
+  if (!sessao || sessao.pointerId !== event.pointerId) return;
+  const deveConfirmar = !cancelado && sessao.moved && avaliarPosicionamentoAtual()?.valid === true;
+  inventoryUIState.pointerSession = null;
+
+  if (deveConfirmar) {
+    confirmarPosicionamentoAtual({ focarItem: false });
+    const destino = sheetInventoryItemLayer.querySelector(
+      `[data-inventory-item-id="${CSS.escape(sessao.itemId)}"]`
+    );
+    animarProxyAteRetangulo(sessao, destino?.getBoundingClientRect(), "encaixe");
+    destino?.focus({ preventScroll: true });
+  } else {
+    const houveMovimento = sessao.moved;
+    cancelarMovimentoDoInventario({ focarItem: false });
+    if (houveMovimento && !cancelado) {
+      sheetInventoryPlacementStatus.textContent = "Movimento recusado. O item permaneceu na posição anterior.";
+    }
+    if (houveMovimento) {
+      animarProxyAteRetangulo(sessao, sessao.originRect, "retorno");
+      aplicarFeedbackDePosicaoRecusada();
+      window.setTimeout(function () {
+        const origem = sheetInventoryItemLayer.querySelector(
+          `[data-inventory-item-id="${CSS.escape(sessao.itemId)}"]`
+        );
+        origem?.focus({ preventScroll: true });
+      }, DURACAO_DE_RETORNO_DO_INVENTARIO);
+    } else {
+      removerProxyDoInventario(sessao);
+    }
+  }
+  event.preventDefault();
+}
+
+function abrirConfirmacaoDeDescarte() {
+  const item = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
+  if (!item) return;
+  inventoryUIState.discardingItemId = item.id;
+  inventoryDiscardDescription.textContent = `Descartar ${item.item.nome}? Este item será removido da ficha.`;
+  inventoryDiscardDialog.showModal();
+  inventoryDiscardCancel.focus({ preventScroll: true });
+}
+
+function cancelarDescarteDoInventario() {
+  inventoryUIState.discardingItemId = null;
+  inventoryDiscardDialog.close();
+  sheetDiscardItem.focus({ preventScroll: true });
+}
+
+function confirmarDescarteDoInventario() {
+  const itemId = inventoryUIState.discardingItemId;
+  if (!itemId) return;
+  inventoryDiscardDialog.close();
+  executarMutacaoDoInventario(function (inventario, estadoDaInterface) {
+    const indice = inventario.findIndex(function (item) {
+      return item.id === itemId;
+    });
+    if (indice < 0) return false;
+    inventario.splice(indice, 1);
+    estadoDaInterface.discardingItemId = null;
+    estadoDaInterface.selectedItemId = null;
+    estadoDaInterface.movingItemId = null;
+    estadoDaInterface.pointerSession = null;
+    recalcularItemPendenteAposReorganizacao(inventario, estadoDaInterface);
+    return true;
+  });
+  sheetImportItem.focus({ preventScroll: true });
+}
+
 function renderizarFicha() {
   renderizarIdentidadeDaFicha();
   renderizarCombateDaFicha();
   renderizarRecursosDaFicha();
   renderizarAtributosDaFicha();
   renderizarPericiasDaFicha();
+  renderizarHabilidadesDaFicha();
+  renderizarInventario();
   renderizarVulnerabilidadeDaFicha();
   renderizarEstadoDeSalvamento();
 }
@@ -3605,12 +5737,14 @@ function exibirFicha() {
   creationView.hidden = true;
   landingView.hidden = true;
   characterSheetScreen.hidden = false;
+  ativarSecaoDaFicha("summary");
   characterSheetTitle.focus();
 }
 
 function abrirFicha() {
   if (!validarAtributosEPericias()) return;
 
+  if (fichaSalvaNaSessao === null) resetarSnapshotsDosAtributosDaFicha();
   prepararDadosIniciaisDaFicha();
   renderizarFicha();
   if (fichaSalvaNaSessao === null) {
@@ -3829,24 +5963,44 @@ function obterPersonagemDoArquivo(dados) {
       throw new Error("Este JSON não é uma ficha do Grimório RPG.");
     }
 
-    const versao = Number(dados.versao);
-    if (Number.isFinite(versao) && versao > 1) {
+    const versao = dados.versao === undefined || dados.versao === null
+      ? 1
+      : dados.versao;
+    if (typeof versao === "number" && Number.isInteger(versao) && versao > 2) {
       throw new Error("Esta ficha foi criada em uma versão mais recente do Grimório RPG.");
     }
+
+    if (typeof versao !== "number" || !Number.isInteger(versao) || (versao !== 1 && versao !== 2)) {
+      throw new Error("A versão desta ficha não é compatível com o Grimório RPG.");
+    }
+
+    if (!ehObjetoDeDados(dados.personagem)) {
+      throw new Error("O arquivo JSON não contém os dados da ficha.");
+    }
+
+    if (!ehObjetoDeDados(dados.personagem.atributos) || !ehObjetoDeDados(dados.personagem.pericias)) {
+      throw new Error("O JSON não possui os dados necessários de uma ficha de personagem.");
+    }
+
+    return {
+      personagem: dados.personagem,
+      versao
+    };
   }
 
-  const dadosDoPersonagem = ehObjetoDeDados(dados.personagem)
-    ? dados.personagem
-    : dados;
+  const dadosDoPersonagem = dados;
 
   if (!ehObjetoDeDados(dadosDoPersonagem.atributos) || !ehObjetoDeDados(dadosDoPersonagem.pericias)) {
     throw new Error("O JSON não possui os dados necessários de uma ficha de personagem.");
   }
 
-  return dadosDoPersonagem;
+  return {
+    personagem: dadosDoPersonagem,
+    versao: 1
+  };
 }
 
-function aplicarPersonagemImportado(dadosImportados) {
+function aplicarPersonagemImportado(dadosImportados, versaoDaFicha) {
   const dadosNormalizados = JSON.parse(JSON.stringify(MODELO_PERSONAGEM));
 
   Object.keys(dadosNormalizados).forEach(function (campo) {
@@ -3856,6 +6010,11 @@ function aplicarPersonagemImportado(dadosImportados) {
     const valorImportado = dadosImportados[campo];
 
     if (Array.isArray(valorPadrao)) {
+      if (campo === "inventario") {
+        dadosNormalizados[campo] = JSON.parse(JSON.stringify(valorImportado));
+        return;
+      }
+
       dadosNormalizados[campo] = Array.isArray(valorImportado)
         ? JSON.parse(JSON.stringify(valorImportado))
         : valorPadrao;
@@ -3876,10 +6035,13 @@ function aplicarPersonagemImportado(dadosImportados) {
     dadosNormalizados[campo] = valorImportado;
   });
 
+  prepararDadosIniciaisDaFicha(dadosNormalizados, versaoDaFicha);
+
   Object.keys(personagem).forEach(function (campo) {
     delete personagem[campo];
   });
   Object.assign(personagem, dadosNormalizados);
+  resetarEstadoTransitorioDoInventario();
 }
 
 async function selecionarArquivo(event) {
@@ -3903,10 +6065,10 @@ async function selecionarArquivo(event) {
   try {
     const conteudo = await arquivo.text();
     const dados = JSON.parse(conteudo);
-    const dadosDoPersonagem = obterPersonagemDoArquivo(dados);
+    const fichaImportada = obterPersonagemDoArquivo(dados);
 
-    aplicarPersonagemImportado(dadosDoPersonagem);
-    prepararDadosIniciaisDaFicha();
+    aplicarPersonagemImportado(fichaImportada.personagem, fichaImportada.versao);
+    resetarSnapshotsDosAtributosDaFicha();
     renderizarFicha();
     salvarFichaNaSessao(criarEnvelopeDaFicha(), false);
 
@@ -3940,22 +6102,186 @@ sheetSidebar.addEventListener("click", function (event) {
   const button = event.target.closest("button[data-sheet-section]");
   if (!button) return;
 
-  if (button.dataset.sheetSection === "summary") {
-    mostrarMensagemDaFicha("");
+  if (["summary", "abilities", "inventory"].includes(button.dataset.sheetSection)) {
+    ativarSecaoDaFicha(button.dataset.sheetSection);
     return;
   }
 
   mostrarMensagemDaFicha("Esta seção ainda está em desenvolvimento.");
 });
+sheetOpenAbilities.addEventListener("click", function () {
+  ativarSecaoDaFicha("abilities");
+});
+sheetOpenInventory.addEventListener("click", function () {
+  ativarSecaoDaFicha("inventory");
+});
+sheetImportItem.addEventListener("click", abrirSeletorDeItemDoInventario);
+sheetItemFile.addEventListener("change", importarArquivoDeItem);
+sheetReorganizeForItem.addEventListener("click", reorganizarMochilaParaItemPendente);
+sheetRotatePendingItem.addEventListener("click", girarItemAtivoDoInventario);
+sheetDiscardPendingItem.addEventListener("click", descartarItemImportado);
+sheetCancelItemImport.addEventListener("click", cancelarImportacaoDeItem);
+sheetInventoryItemLayer.addEventListener("click", function (event) {
+  const button = event.target.closest("button[data-inventory-item-id]");
+  if (!button) return;
+  if (inventoryUIState.movingItemId && inventoryUIState.movingItemId !== button.dataset.inventoryItemId) {
+    sheetInventoryPlacementStatus.textContent = "Conclua ou cancele o movimento atual antes de selecionar outro item.";
+    return;
+  }
+
+  executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    estadoDaInterface.selectedItemId = button.dataset.inventoryItemId;
+  }, { persistente: false });
+});
+sheetMoveItem.addEventListener("click", iniciarModoExplicitoDeMovimento);
+sheetRotateItem.addEventListener("click", girarItemAtivoDoInventario);
+sheetEquipItem.addEventListener("click", equiparArmaduraSelecionada);
+sheetInventoryArmorSlot.addEventListener("click", desequiparArmadura);
+sheetDiscardItem.addEventListener("click", abrirConfirmacaoDeDescarte);
+sheetInventoryMobileNav.addEventListener("click", function (event) {
+  const botao = event.target.closest("button[data-inventory-mobile-view]");
+  if (!botao) return;
+  const alvo = botao.dataset.inventoryMobileView;
+  sheetInventoryView.dataset.mobileView = alvo;
+  sheetInventoryMobileNav.querySelectorAll("button").forEach(function (item) {
+    const ativo = item === botao;
+    item.classList.toggle("is-active", ativo);
+    item.setAttribute("aria-pressed", String(ativo));
+  });
+});
+inventoryDiscardCancel.addEventListener("click", cancelarDescarteDoInventario);
+inventoryDiscardConfirm.addEventListener("click", confirmarDescarteDoInventario);
+inventoryDiscardDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  cancelarDescarteDoInventario();
+});
+sheetInventoryItemLayer.addEventListener("pointerdown", iniciarArrasteDeItem);
+sheetInventoryItemLayer.addEventListener("pointermove", atualizarArrasteDeItem);
+sheetInventoryItemLayer.addEventListener("pointerup", function (event) {
+  encerrarArrasteDeItem(event, false);
+});
+sheetInventoryItemLayer.addEventListener("pointercancel", function (event) {
+  encerrarArrasteDeItem(event, true);
+});
+sheetInventoryReceived.addEventListener("pointerdown", iniciarArrasteDeItemRecebido);
+sheetInventoryReceived.addEventListener("pointermove", atualizarArrasteDeItem);
+sheetInventoryReceived.addEventListener("pointerup", function (event) {
+  encerrarArrasteDeItem(event, false);
+});
+sheetInventoryReceived.addEventListener("pointercancel", function (event) {
+  encerrarArrasteDeItem(event, true);
+});
+sheetInventoryGrid.addEventListener("pointermove", function (event) {
+  if (inventoryUIState.pointerSession || !obterItemEmPosicionamento()) return;
+  const celula = obterPosicaoDaCelulaPeloPonteiro(event);
+  if (celula) definirPosicaoCandidata(celula);
+});
+sheetInventoryCellLayer.addEventListener("click", function (event) {
+  const celula = event.target.closest("button[data-x][data-y]");
+  if (!celula || !obterItemEmPosicionamento()) return;
+  definirPosicaoCandidata({ x: Number(celula.dataset.x), y: Number(celula.dataset.y) });
+  confirmarPosicionamentoAtual();
+});
+sheetInventoryCellLayer.addEventListener("keydown", function (event) {
+  const celula = event.target.closest("button[data-x][data-y]");
+  if (!celula || !obterItemEmPosicionamento()) return;
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    if (inventoryUIState.movingItemId) cancelarMovimentoDoInventario();
+    else cancelarImportacaoDeItem();
+    return;
+  }
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    definirPosicaoCandidata({ x: Number(celula.dataset.x), y: Number(celula.dataset.y) });
+    confirmarPosicionamentoAtual();
+    return;
+  }
+  if (event.key.toLowerCase() === "r") {
+    event.preventDefault();
+    girarItemAtivoDoInventario();
+    return;
+  }
+
+  const deslocamentos = {
+    ArrowLeft: { x: -1, y: 0 },
+    ArrowRight: { x: 1, y: 0 },
+    ArrowUp: { x: 0, y: -1 },
+    ArrowDown: { x: 0, y: 1 }
+  };
+  const deslocamento = deslocamentos[event.key];
+  if (!deslocamento) return;
+  event.preventDefault();
+  definirPosicaoCandidata({
+    x: Math.max(0, Math.min(CONFIGURACAO_DO_INVENTARIO.columns - 1, Number(celula.dataset.x) + deslocamento.x)),
+    y: Math.max(0, Math.min(CONFIGURACAO_DO_INVENTARIO.rows - 1, Number(celula.dataset.y) + deslocamento.y))
+  }, { focar: true });
+});
+sheetAbilitiesSummary.addEventListener("click", function (event) {
+  const button = event.target.closest("button[data-ability-id]");
+  if (button) ativarSecaoDaFicha("abilities", button.dataset.abilityId);
+});
+sheetAbilityList.addEventListener("click", function (event) {
+  const button = event.target.closest("button[data-ability-id]");
+  if (!button) return;
+  habilidadeSelecionadaId = button.dataset.abilityId;
+  renderizarListaDeHabilidades();
+});
+sheetAbilityDetails.addEventListener("click", function (event) {
+  const button = event.target.closest("button[data-ability-action]");
+  if (!button) return;
+
+  const action = button.dataset.abilityAction;
+  button.closest("details")?.removeAttribute("open");
+  if (action === "decrease-uses") alterarUsosDaHabilidade(habilidadeSelecionadaId, -1);
+  if (action === "increase-uses") alterarUsosDaHabilidade(habilidadeSelecionadaId, 1);
+  if (action === "decrease-cooldown") alterarRecargaDaHabilidade(habilidadeSelecionadaId, -1);
+  if (action === "increase-cooldown") alterarRecargaDaHabilidade(habilidadeSelecionadaId, 1);
+  if (action === "change-icon") {
+    const habilidade = encontrarHabilidade(habilidadeSelecionadaId);
+    if (habilidade) abrirDialogDeIcone(habilidade, "icone");
+  }
+  if (action === "remove") solicitarRemocaoDaHabilidade();
+});
+sheetAbilitySearch.addEventListener("input", function () {
+  buscaHabilidade = sheetAbilitySearch.value;
+  renderizarListaDeHabilidades();
+});
+sheetAbilityTypeFilter.addEventListener("change", function () {
+  filtroTipoHabilidade = sheetAbilityTypeFilter.value;
+  renderizarListaDeHabilidades();
+});
+sheetAbilityStateFilter.addEventListener("change", function () {
+  filtroEstadoHabilidade = sheetAbilityStateFilter.value;
+  renderizarListaDeHabilidades();
+});
+sheetImportAbility.addEventListener("click", function () {
+  sheetAbilityFile.value = "";
+  sheetAbilityFile.click();
+});
+sheetAbilityFile.addEventListener("change", importarArquivoDeHabilidade);
+abilityIconOptions.addEventListener("change", function (event) {
+  if (event.target.matches('input[name="ability-icon"]')) {
+    iconeHabilidadePendente = event.target.value;
+  }
+});
+abilityImportCancel.addEventListener("click", function () {
+  abilityImportDialog.close();
+  habilidadePendente = null;
+});
+abilityImportConfirm.addEventListener("click", confirmarDialogDeHabilidade);
+abilityRemoveCancel.addEventListener("click", function () {
+  abilityRemoveDialog.close();
+});
+abilityRemoveConfirm.addEventListener("click", removerHabilidadeSelecionada);
 sheetLifeMinus.addEventListener("click", function () { alterarVidaAtual(-1); });
 sheetLifePlus.addEventListener("click", function () { alterarVidaAtual(1); });
-sheetLifeRestore.addEventListener("click", restaurarVida);
 sheetLifeCurrent.addEventListener("blur", function () {
   definirVidaAtual(sheetLifeCurrent.value);
 });
 sheetManaMinus.addEventListener("click", function () { alterarManaAtual(-1); });
 sheetManaPlus.addEventListener("click", function () { alterarManaAtual(1); });
-sheetManaRestore.addEventListener("click", restaurarMana);
 sheetManaCurrent.addEventListener("blur", function () {
   definirManaAtual(sheetManaCurrent.value);
 });
