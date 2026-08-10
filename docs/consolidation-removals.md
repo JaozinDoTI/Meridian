@@ -82,3 +82,13 @@ A etapa retirou 29 linhas e 16 seletores; a regra ativa que atenua outros itens 
 | Morto, removido | `.sheet-inventory-loadout`, `.sheet-inventory-armor-slot*` e arte de armadura da composição anterior | `.inventory-equipment*`, `.inventory-equipment-slot*` e `.inventory-card*` | nenhum produtor das classes antigas; equipar, desequipar, troca de estado e snapshots aprovados |
 
 Foram removidas 12 linhas compactadas e 11 seletores. O teste funcional confirma a ida da Espada Colossal para a mão principal e seu retorno a uma posição válida da mochila.
+
+## Fase 3 — Inventário: inspeção e ledger
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Duplicado, consolidado | detalhes e ações sob `.sheet-inventory-premium-shell` | `.inventory-details-panel` e regras contextualizadas por `.inventory-shell` | seleção, conteúdo completo, rotação e ações aprovados |
+| Ativo, fundido | `letter-spacing` do rótulo do atributo principal | `.inventory-shell .sheet-inventory-details__hero-stat span` | declaração computada preservada e snapshots idênticos |
+| Morto, removido | `.sheet-inventory-ledger*` da composição anterior | `.inventory-ledger*` atual | produtores antigos ausentes; peso, itens, espaços e moedas preservados |
+
+A auditoria passou a 1.599 seletores; os 29 seletores retirados não tinham autoridade visual após a composição V2/V3.
