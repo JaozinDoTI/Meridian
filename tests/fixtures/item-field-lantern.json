@@ -1,0 +1,19 @@
+{
+  "tipo": "grimorio-item",
+  "schemaVersion": 2,
+  "item": {
+    "nome": "Lanterna de Campo",
+    "tipo": "ferramenta",
+    "raridade": "incomum",
+    "descricao": "Uma lanterna robusta para expedições prolongadas.",
+    "peso": 1.5,
+    "tamanho": { "largura": 1, "altura": 2 },
+    "quantidade": 1,
+    "imagem": "",
+    "atributoPrincipal": { "rotulo": "Luz", "valor": "6 m" },
+    "propriedades": ["Resistente", "Recarregável"],
+    "equipavelEm": "",
+    "empilhavel": false,
+    "limiteEmpilhamento": 1
+  }
+}

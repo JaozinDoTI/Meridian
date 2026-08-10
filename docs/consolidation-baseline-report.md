@@ -41,6 +41,7 @@ Os itens abaixo pertencem ao baseline e não devem ser corrigidos incidentalment
 2. Capturas `fullPage` em celular e tablet registram uma área bege vazia alta abaixo do conteúdo visível.
 3. A navegação inferior móvel ocupa sua posição fixa sobre a área visível do conteúdo.
 4. No Inventário desktop, a arte e os detalhes de itens equipados ficam visualmente compactados dentro do slot.
+5. A ativação da carta da Bancada pelo teclado anuncia o modo de posicionamento, mas a camada de células continua renderizada com `span`; por isso `Enter`, setas e `Escape` não alcançam o listener que exige `button[data-x][data-y]`.
 
 Cada correção funcional ou visual desses pontos deve ser tratada separadamente, com critério de aceite e baseline atualizado de forma explícita.
 
