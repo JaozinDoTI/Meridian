@@ -101,3 +101,11 @@ A auditoria passou a 1.599 seletores; os 29 seletores retirados não tinham auto
 | Morto, removido | reduced motion do shell premium inexistente | `css/motion/inventory.css` | cenário explícito com preferência reduzida aprovado |
 
 Foram retirados 27 seletores responsivos antigos. A navegação do Inventário continua sendo a navegação global da ficha, sem uma segunda navegação móvel interna.
+
+## Fase 3 — Inventário: containers espaciais
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Morto, removido | `.sheet-inventory-workspace`, grid/details panels, toolbar, capacidade e grid shell da primeira versão espacial | `.inventory-workspace`, `.inventory-header`, `.inventory-capacity`, `.inventory-backpack` e `.inventory-sidecar` | classes antigas sem produtor; contratos e snapshots aprovados |
+
+As 104 linhas removidas eram exclusivamente containers da composição anterior. As bases ainda consumidas de grid, células, itens e preview não participaram deste commit.
