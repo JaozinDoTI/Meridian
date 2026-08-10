@@ -139,3 +139,13 @@ O gate visual inicialmente recusou a extração porque o badge espacial particip
 | Duplicado, removido | base não contextualizada de preview válido/inválido | `.inventory-shell .sheet-inventory-preview-*` | revalidação final e screenshots preservadas |
 
 Foram removidas 88 linhas líquidas; a auditoria caiu para 1.541 seletores e 65 sobreposições.
+
+## Fase 3 — Inventário: inspeção e ações finais
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, fundido | scrollbar, ícone vazio, metadata e peso tipográfico da inspeção espacial | `.inventory-details-panel` e `.inventory-shell .sheet-inventory-details*` | seleção, rotação e inspeção completa aprovadas |
+| Ativo, reposicionado | `.sheet-danger-action` | seção de ações do Inventário atual | cancelar e confirmar descarte aprovados |
+| Morto/duplicado, removido | details panel, heading e pending actions da composição espacial antiga | `.inventory-sidecar`, `.inventory-region-heading`, `.inventory-details-panel` e `.inventory-pending-actions` | produtores antigos ausentes e snapshots idênticos |
+
+O bloco antigo de inspeção/ações caiu de 118 para 22 linhas canônicas; a auditoria registra agora 1.523 seletores.
