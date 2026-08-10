@@ -240,3 +240,13 @@ A auditoria caiu para 71 sobreposições entre arquivos. O gate final aprovou 20
 | Infraestrutura, corrigida | auditor DOM acoplado a `script.js` | descoberta dos scripts locais declarados em `index.html` | 327 IDs, 261 consultas e 15 scripts auditados |
 
 Este commit é uma divisão mecânica de responsabilidades e preserva o carregamento clássico. `js/app.js` contém apenas listeners e bootstrap; nenhuma função de domínio ou renderização permanece nele. As extrações puras de Habilidades e import/export seguem em commits separados.
+
+## Fase 7 — JavaScript: domínio de Habilidades
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, extraído | normalização de schema, aliases, custos, usos e recarga | `js/domain/abilities.js` | testes puros de normalização e importação E2E aprovados |
+| Ativo, extraído | precedência da situação, rótulos e resumo operacional | `js/domain/abilities.js` | passiva → esgotada → recarga → disponível preservado por teste |
+| Original, removido | implementações puras dentro de `abilities-controller.js` | ponte de controller que injeta somente o catálogo de ícones | busca, filtros, resumos, mutações e diálogos aprovados |
+
+O gate final aprovou 20 testes de navegador, 8 testes de domínio e 15 snapshots. O domínio não acessa DOM nem estado persistente.
