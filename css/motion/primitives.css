@@ -22,3 +22,84 @@
     transition-duration: .01ms !important;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .character-sheet-screen *,
+  .character-sheet-screen *::before,
+  .character-sheet-screen *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .attribute-card,
+  .attribute-card::before,
+  .attribute-card::after,
+  .attribute-card .attribute-icon,
+  .attribute-card .attribute-icon::before,
+  .attribute-card .attribute-icon::after,
+  .attribute-card .attribute-final-value,
+  .attribute-card .attribute-final-value::before,
+  .attribute-card .attribute-final-value::after,
+  .attribute-card [data-attribute-source],
+  .attribute-card [data-attribute-source]::before,
+  .attribute-card [data-attribute-source]::after,
+  .attribute-card [data-attribute-source] dd {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  [data-sheet-view]:not([hidden]),
+  .sheet-vulnerability-card__heading .sheet-icon,
+  .sheet-resource-card--life.is-critical .sheet-resource-heading .sheet-icon {
+    animation: none;
+    transform: none;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing,
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::before,
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::after,
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing [data-attribute-source] dd,
+  .sheet-attribute-card.is-attribute-changing .sheet-attribute-final,
+  .attribute-card.is-attribute-changing .attribute-final-value,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]:hover::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]:hover::after,
+  .sheet-attribute-card:hover .sheet-attribute-final,
+  .attribute-card:hover .attribute-final-value,
+  .sheet-attribute-card[data-attribute]:hover h3 .sheet-icon,
+  .attribute-card[data-attribute]:hover .attribute-icon {
+    animation: none !important;
+    text-shadow: none !important;
+    transform: none !important;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::after,
+  :is(.sheet-attribute-card, .attribute-card) [data-attribute-source]::after,
+  .sheet-attribute-card[data-attribute] h3 .sheet-icon,
+  .attribute-card[data-attribute] .attribute-icon {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="impact"]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="seal"]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="trail"]::after,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="inscription"]::after {
+    opacity: 0.56;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card).is-at-limit::before {
+    opacity: 0.72;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::after,
+  :is(.sheet-attribute-card, .attribute-card) [data-attribute-source]::after,
+  .sheet-attribute-card[data-attribute] h3 .sheet-icon,
+  .attribute-card[data-attribute] .attribute-icon {
+    filter: none !important;
+  }
+}

@@ -167,3 +167,13 @@ A Fase 3 termina com 1.512 seletores e 64 sobreposições. Toda apresentação e
 | Ativo, movido | `.sheet-inventory-summary*` e barra `.sheet-inventory-occupancy` | `css/features/sheet-summary.css` | contagens da coleção completa, progresso e 15 snapshots aprovados |
 
 Esses seletores representam o card resumido presente na view `summary`; a tela completa de Inventário deixou de ser sua proprietária.
+
+## Fase 4 — Resumo: retirada do CSS raiz
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | conteúdo remanescente de `character-sheet.css` | `css/features/sheet-summary.css`, preservando a ordem total antes das regras incrementais já canônicas | 18 contratos funcionais e 15 snapshots aprovados |
+| Ativo, movido | fallback global de `prefers-reduced-motion` no fim de `motion.css` | `css/motion/primitives.css` | propriedades computadas comparadas com o checkpoint e cinco viewports aprovados |
+| Legado, removido | import de `character-sheet.css` na layer `legacy` | import canônico de `features/sheet-summary.css` | auditoria registra 1.512 seletores e 70 sobreposições, sem o arquivo raiz |
+
+A retirada foi atômica porque promover apenas as regras-base do Resumo fazia essas regras vencerem os breakpoints ainda legados. A ordem completa foi mantida no destino; os blocos realmente compartilhados serão extraídos dali para `components` e `layouts` em commits separados.
