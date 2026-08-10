@@ -119,3 +119,13 @@ As 104 linhas removidas eram exclusivamente containers da composição anterior.
 | Ativo, fundido | feedback de célula válida/inválida | `.inventory-shell .sheet-inventory-cell.is-preview-*` | colisão e preview continuam cobertos pelos testes de domínio e navegador |
 
 O commit substituiu 134 linhas por 50 linhas canônicas, reduzindo a auditoria para 1.557 seletores e 67 sobreposições entre arquivos.
+
+## Fase 3 — Inventário: cartas espaciais e estados de drag
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, fundido | base não contextualizada de `.sheet-inventory-item`, tipografia interna e badge de footprint | `.inventory-shell .sheet-inventory-item`, `.item-card--spatial*` e badge contextualizado | comparação de todas as propriedades computadas e 15 snapshots idênticos |
+| Ativo, movido | `is-dragging`, escala da origem e atenuação dos demais itens | `css/motion/inventory.css` | teclado, drag válido/inválido, retorno e reduced motion aprovados |
+| Ativo, fundido | cores de raridade e `--item-glow` | cinco regras `.is-rarity-*` da V3.1 | fallback, borda, brilho e arte preservados |
+
+O gate visual inicialmente recusou a extração porque o badge espacial participava da segunda track implícita do grid. A regra computada foi identificada, explicitada no seletor canônico e só então os 15 snapshots voltaram ao baseline. O resultado líquido remove 69 linhas e reduz a auditoria a 1.553 seletores e 66 sobreposições.

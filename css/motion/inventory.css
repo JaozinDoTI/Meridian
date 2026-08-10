@@ -31,6 +31,20 @@
   filter: grayscale(.72) saturate(.45);
 }
 
+.inventory-shell .sheet-inventory-item.is-dragging {
+  opacity: .72;
+  cursor: grabbing;
+  filter: saturate(.8);
+}
+
+.inventory-shell .sheet-inventory-item.is-drag-origin {
+  transform: scale(.975);
+}
+
+.inventory-shell .sheet-inventory-grid.is-dragging-item .sheet-inventory-item:not(.is-drag-origin) {
+  filter: saturate(.7) brightness(.72);
+}
+
 .inventory-bench-card.is-drag-origin :is(
   .inventory-card__eyebrow,
   .inventory-card__name,

@@ -1,133 +1,3 @@
-.sheet-inventory-grid.is-dragging-item .sheet-inventory-item:not(.is-drag-origin) { filter: saturate(.7) brightness(.72); }
-
-/* Spatial inventory */
-.sheet-inventory-view {
-  grid-row: 2 / 7;
-  min-width: 0;
-  min-height: 0;
-  padding-bottom: 1px;
-}
-
-.sheet-inventory-item {
-  --item-accent: #b6aa98;
-  --item-glow: rgba(182, 170, 152, 0.16);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  min-width: 0;
-  min-height: 0;
-  padding: 9px;
-  overflow: hidden;
-  border: 1px solid var(--item-accent);
-  border-radius: 6px 6px 4px 4px;
-  color: #fff8e9;
-  background:
-    linear-gradient(180deg, transparent 48%, rgba(13, 7, 6, 0.8) 78%),
-    radial-gradient(circle at 26% 18%, rgba(255, 246, 217, 0.14), transparent 34%),
-    repeating-linear-gradient(104deg, rgba(255, 245, 219, 0.027) 0 1px, transparent 1px 6px),
-    linear-gradient(145deg, rgba(88, 57, 37, 0.97), rgba(37, 21, 16, 0.98));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 249, 231, 0.08),
-    inset 0 -14px 22px rgba(11, 6, 5, 0.2),
-    0 4px 10px rgba(15, 8, 6, 0.4),
-    0 0 11px var(--item-glow);
-  font: inherit;
-  text-align: left;
-  cursor: grab;
-  pointer-events: auto;
-  touch-action: none;
-  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, filter 150ms ease;
-}
-
-.sheet-inventory-item::before {
-  position: absolute;
-  inset: 0;
-  content: "";
-  border-top: 2px solid var(--item-accent);
-  border-bottom: 1px solid color-mix(in srgb, var(--item-accent) 28%, transparent);
-  opacity: 0.82;
-  pointer-events: none;
-}
-
-.sheet-inventory-item::after {
-  position: absolute;
-  top: 9px;
-  left: 50%;
-  color: color-mix(in srgb, var(--item-accent) 68%, #fff1d0);
-  content: attr(data-item-symbol);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(19px, 3vw, 34px);
-  line-height: 1;
-  opacity: 0.58;
-  filter: drop-shadow(0 2px 3px rgba(10, 5, 4, 0.65));
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
-.sheet-inventory-item:hover,
-.sheet-inventory-item:focus-visible,
-.sheet-inventory-item.is-selected {
-  z-index: 2;
-  outline: none;
-  border-color: color-mix(in srgb, var(--item-accent) 82%, white);
-  box-shadow: inset 0 0 0 1px rgba(255, 249, 231, 0.13), 0 6px 18px rgba(15, 8, 6, 0.42), 0 0 19px var(--item-glow);
-  transform: translateY(-4px) scale(1.012);
-}
-
-.sheet-inventory-item.is-selected {
-  outline: 2px solid rgba(255, 244, 211, 0.88);
-  outline-offset: -4px;
-}
-
-.sheet-inventory-item.is-dragging {
-  opacity: 0.72;
-  cursor: grabbing;
-  filter: saturate(0.8);
-}
-
-.sheet-inventory-item.is-drag-origin {
-  opacity: 0.2;
-  border-style: dashed;
-  box-shadow: inset 0 0 18px rgba(9, 5, 4, 0.7);
-  filter: grayscale(0.75) saturate(0.35);
-  transform: scale(0.975);
-}
-
-.sheet-inventory-item strong,
-.sheet-inventory-item span {
-  position: relative;
-  z-index: 1;
-  display: block;
-  max-width: 100%;
-}
-
-.sheet-inventory-item strong {
-  overflow: hidden;
-  font-size: 11px;
-  letter-spacing: 0.015em;
-  line-height: 1.15;
-  text-overflow: ellipsis;
-}
-
-.sheet-inventory-item span {
-  margin-top: 3px;
-  overflow: hidden;
-  color: rgba(255, 248, 233, 0.7);
-  font-size: 7px;
-  letter-spacing: 0.05em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.is-rarity-common { --item-accent: #b6aa98; --item-glow: rgba(182, 170, 152, 0.15); }
-.is-rarity-uncommon { --item-accent: #79a978; --item-glow: rgba(101, 166, 104, 0.2); }
-.is-rarity-rare { --item-accent: #6e99c8; --item-glow: rgba(78, 133, 198, 0.22); }
-.is-rarity-epic { --item-accent: #a679c1; --item-glow: rgba(151, 89, 191, 0.22); }
-.is-rarity-legendary { --item-accent: #d3a247; --item-glow: rgba(211, 151, 45, 0.24); }
-
 .sheet-inventory-drag-proxy {
   position: fixed !important;
   z-index: 9999 !important;
@@ -372,7 +242,10 @@
 /* Reconstrução física do inventário — a mochila é o contraste, não a tela inteira. */
 .sheet-inventory-view {
   grid-column: 1 / -1;
+  grid-row: 2 / 7;
   min-width: 0;
+  min-height: 0;
+  padding-bottom: 1px;
   color: #382d28;
 }
 
@@ -758,7 +631,9 @@ button.sheet-inventory-cell { cursor: crosshair; }
   --item-accent: #b6aa98;
   position: relative;
   display: grid;
+  flex-direction: column;
   place-items: center;
+  justify-content: flex-end;
   min-width: 0;
   min-height: 0;
   padding: 3px;
@@ -768,6 +643,8 @@ button.sheet-inventory-cell { cursor: crosshair; }
   color: #fff;
   background: radial-gradient(circle, color-mix(in srgb, var(--item-accent) 12%, transparent), transparent 66%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--item-accent) 26%, transparent);
+  font: inherit;
+  text-align: left;
   cursor: grab;
   pointer-events: auto;
   touch-action: none;
@@ -1255,6 +1132,46 @@ body.is-inventory-grabbing * { cursor: grabbing !important; }
 }
 
 .item-card--spatial { transition: width 150ms ease, height 150ms ease, border-radius 150ms ease; }
+.item-card--spatial,
+.item-card--spatial strong,
+.item-card--spatial span {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 100%;
+}
+.item-card--spatial strong {
+  overflow: hidden;
+  font-size: 11px;
+  letter-spacing: .015em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+}
+.item-card--spatial,
+.item-card--spatial span {
+  margin-top: 3px;
+  overflow: hidden;
+  color: rgba(255, 248, 233, .7);
+  font-size: 7px;
+  letter-spacing: .05em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.inventory-shell .sheet-inventory-item > .inventory-item-badge {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  color: rgba(255, 248, 233, .7);
+  font-size: 7px;
+  letter-spacing: .05em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 .item-card--spatial[data-density="small"] .inventory-card__meta,
 .item-card--spatial[data-density="small"] .inventory-card__stat { display: none; }
 .item-card--spatial[data-density="small"] .inventory-card__name {
@@ -1291,11 +1208,11 @@ body.is-inventory-grabbing * { cursor: grabbing !important; }
   text-underline-offset: 2px;
 }
 
-.is-rarity-common { --item-accent: #9d9589; }
-.is-rarity-uncommon { --item-accent: #63875f; }
-.is-rarity-rare { --item-accent: #4e78a5; }
-.is-rarity-epic { --item-accent: #81569b; }
-.is-rarity-legendary { --item-accent: #bd842a; }
+.is-rarity-common { --item-accent: #9d9589; --item-glow: rgba(182, 170, 152, 0.15); }
+.is-rarity-uncommon { --item-accent: #63875f; --item-glow: rgba(101, 166, 104, 0.2); }
+.is-rarity-rare { --item-accent: #4e78a5; --item-glow: rgba(78, 133, 198, 0.22); }
+.is-rarity-epic { --item-accent: #81569b; --item-glow: rgba(151, 89, 191, 0.22); }
+.is-rarity-legendary { --item-accent: #bd842a; --item-glow: rgba(211, 151, 45, 0.24); }
 
 
 @media (max-width: 1120px) {
