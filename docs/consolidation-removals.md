@@ -92,3 +92,12 @@ Foram removidas 12 linhas compactadas e 11 seletores. O teste funcional confirma
 | Morto, removido | `.sheet-inventory-ledger*` da composição anterior | `.inventory-ledger*` atual | produtores antigos ausentes; peso, itens, espaços e moedas preservados |
 
 A auditoria passou a 1.599 seletores; os 29 seletores retirados não tinham autoridade visual após a composição V2/V3.
+
+## Fase 3 — Inventário: responsividade
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Morto, removido | breakpoints de 1180, 980 e 700 px ligados a `.sheet-inventory-premium-shell` e `data-inventory-mobile-panel` | breakpoints de 1120, 760 e 470 px da composição `.inventory-*` atual | atributos e produtores antigos ausentes; desktop, tablet e celular idênticos ao baseline |
+| Morto, removido | reduced motion do shell premium inexistente | `css/motion/inventory.css` | cenário explícito com preferência reduzida aprovado |
+
+Foram retirados 27 seletores responsivos antigos. A navegação do Inventário continua sendo a navegação global da ficha, sem uma segunda navegação móvel interna.

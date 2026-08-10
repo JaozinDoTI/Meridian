@@ -1,49 +1,5 @@
 .sheet-inventory-grid.is-dragging-item .sheet-inventory-item:not(.is-drag-origin) { filter: saturate(.7) brightness(.72); }
 
-@media (max-width: 1180px) {
-  .sheet-inventory-premium-shell .sheet-inventory-workspace { grid-template-columns: minmax(145px, .52fr) minmax(390px, 1.7fr) minmax(185px, .64fr); }
-  .sheet-inventory-premium-shell .sheet-inventory-grid-scroll { --inventory-cell-size: clamp(52px, 4.8vw, 66px); padding: 21px; }
-  .sheet-inventory-commandbar__title p { display: none; }
-}
-
-@media (max-width: 980px) {
-  .sheet-inventory-premium-shell { height: auto; min-height: 720px; overflow: visible; }
-  .sheet-inventory-premium-shell .sheet-inventory-workspace { grid-template-columns: minmax(150px, .55fr) minmax(390px, 1.45fr); grid-template-rows: minmax(430px, auto) auto; overflow: visible; }
-  .sheet-inventory-sidecar { grid-column: 1 / -1; grid-template-columns: minmax(230px, .7fr) minmax(300px, 1fr); grid-template-rows: auto; }
-  .sheet-inventory-premium-shell .sheet-inventory-grid-scroll { --inventory-cell-size: 58px; }
-}
-
-@media (max-width: 700px) {
-  .sheet-inventory-commandbar { align-items: flex-start; padding: 12px; }
-  .sheet-inventory-premium-shell .sheet-inventory-toolbar__actions { align-items: flex-end; flex-direction: column-reverse; gap: 5px; }
-  .sheet-inventory-mobile-nav { display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 8px; background: #160d0b; box-shadow: inset 0 -1px rgba(202,155,87,.12); }
-  .sheet-inventory-mobile-nav button { min-height: 38px; padding: 0 5px; border: 0; color: #766654; background: transparent; font: inherit; font-size: 7px; letter-spacing: .08em; text-transform: uppercase; }
-  .sheet-inventory-mobile-nav button.is-active { color: #e0c394; background: radial-gradient(ellipse at 50% 100%, rgba(196,139,70,.16), transparent 64%); box-shadow: inset 0 -1px #ba8445; }
-  .sheet-inventory-premium-shell .sheet-inventory-workspace { display: block; min-height: 500px; }
-  .sheet-inventory-premium-shell [data-inventory-mobile-panel] { display: none; min-height: 500px; }
-  .sheet-inventory-view:not([data-mobile-view]) [data-inventory-mobile-panel="backpack"],
-  .sheet-inventory-view[data-mobile-view="backpack"] [data-inventory-mobile-panel="backpack"],
-  .sheet-inventory-view[data-mobile-view="received"] [data-inventory-mobile-panel="received"],
-  .sheet-inventory-view[data-mobile-view="loadout"] [data-inventory-mobile-panel="loadout"],
-  .sheet-inventory-view[data-mobile-view="inspect"] [data-inventory-mobile-panel="inspect"] { display: flex; }
-  .sheet-inventory-backpack-stage[data-inventory-mobile-panel] { display: none; }
-  .sheet-inventory-view:not([data-mobile-view]) .sheet-inventory-backpack-stage,
-  .sheet-inventory-view[data-mobile-view="backpack"] .sheet-inventory-backpack-stage { display: grid; }
-  .sheet-inventory-sidecar { display: contents; }
-  .sheet-inventory-loadout { flex-direction: column; }
-  .sheet-inventory-premium-shell .sheet-inventory-details-panel { flex-direction: column; }
-  .sheet-inventory-premium-shell .sheet-inventory-grid-shell { place-items: start; padding-inline: 0; overflow-x: auto; }
-  .sheet-inventory-premium-shell .sheet-inventory-grid-scroll { --inventory-cell-size: 54px; width: max-content; max-width: none; margin-inline: 10px; }
-  .sheet-inventory-ledger { grid-template-columns: 1.4fr repeat(2, .6fr); gap: 9px; padding-inline: 11px; }
-  .sheet-inventory-ledger__coins { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet-inventory-premium-shell *,
-  .sheet-inventory-premium-shell *::before,
-  .sheet-inventory-premium-shell *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
-}
-
 /* Spatial inventory */
 .sheet-inventory-view {
   grid-row: 2 / 7;
