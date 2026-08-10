@@ -207,3 +207,15 @@ Nenhum seletor de topbar, ação de documento, feedback ou rodapé permanece em 
 | Legado, removido | import e arquivo `style.css` na raiz | import explícito de `features/landing.css` | auditoria dinâmica preservou 1.514 seletores e 69 sobreposições |
 
 Esta etapa é somente uma realocação recuperável: a separação entre Landing, Criação e componentes compartilhados ocorre nos commits seguintes, sem promoção prematura de cascata.
+
+## Fase 5 — Landing e criação: autoridades separadas
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, separado | composição inicial e preview | `css/features/landing.css` | landing, importação inválida e cinco viewports aprovados |
+| Ativo, separado | identidade, espécie, classe, origem, atributos/perícias, revisão e recorte de retrato | `css/features/character-creation.css` | fluxo completo, exportação e abertura da ficha aprovados |
+| Ativo, movido | moldura e cenário compartilhados da aplicação | `css/layouts/app-shell.css` | Resumo, Habilidades e Inventário idênticos nos cinco viewports |
+| Ativo, movido | keyframes de entrada e criação | `css/motion/landing.css` e `css/motion/character-creation.css` | snapshots sem alteração e reduced motion preservado |
+| Ativo, movido | tokens, fundamentos e tilt compartilhado | `css/tokens.css`, `css/foundations.css` e `css/components.css` | cascata validada por contratos, E2E e comparação visual |
+
+A auditoria registra 1.514 seletores e 77 sobreposições entre arquivos. O aumento aparente decorre de oito responsabilidades antes contidas no mesmo arquivo que agora atravessam base e breakpoint ou feature e motion (`:root`, listas interativas, `.attribute-card` e arte de espécie); essas exceções permanecem explícitas até a auditoria final por tipo de propriedade. A primeira divisão foi recusada porque cortou dois blocos CSS; o teste de criação detectou a perda da grade. Depois, o gate visual detectou prioridade incorreta de `min-width`; Landing e Criação foram promovidas para a layer canônica de componentes, sem override adicional. O gate final aprovou 20 testes de navegador, 4 testes de domínio e 15 snapshots.

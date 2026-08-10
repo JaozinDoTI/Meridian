@@ -1,3 +1,100 @@
+.action-grid,
+.species-list,
+.class-list,
+.choice-list {
+  perspective: 900px;
+}
+
+.interactive-card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --card-lift: 0px;
+  --symbol-x: 0px;
+  --symbol-y: 0px;
+  transform:
+    rotateX(var(--tilt-x))
+    rotateY(var(--tilt-y))
+    translateY(var(--card-lift));
+  transform-style: preserve-3d;
+}
+
+.interactive-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  background:
+    radial-gradient(
+      circle at var(--pointer-x) var(--pointer-y),
+      rgba(215, 178, 105, 0.2),
+      transparent 38%
+    );
+  pointer-events: none;
+  transition: opacity var(--motion-normal) var(--ease-soft);
+}
+
+.interactive-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.interactive-card__symbol {
+  transform: translate3d(var(--symbol-x), var(--symbol-y), 18px);
+  transition: transform var(--motion-normal) var(--ease-out);
+}
+
+.interactive-card.is-tilting::before,
+.interactive-card:hover::before,
+.interactive-card[aria-pressed="true"]::before {
+  opacity: 1;
+}
+
+.interactive-card.is-tilting {
+  will-change: transform;
+}
+
+.interactive-card[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  z-index: 0;
+  border: 1px solid rgba(211, 173, 109, 0.42);
+  pointer-events: none;
+}
+
+.is-selecting .interactive-card__symbol,
+.interactive-card.is-selecting .interactive-card__symbol {
+  animation: symbol-select var(--motion-slow) var(--ease-spring);
+}
+
+.is-selecting::before,
+.interactive-card.is-selecting::before {
+  animation: select-glow var(--motion-slow) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+*,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .interactive-card {
+    --tilt-x: 0deg !important;
+    --tilt-y: 0deg !important;
+    --card-lift: 0px !important;
+    --symbol-x: 0px !important;
+    --symbol-y: 0px !important;
+  }
+}
+
+
 .sheet-icon-sprite {
   position: absolute;
   width: 0;

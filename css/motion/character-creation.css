@@ -1,0 +1,98 @@
+@keyframes symbol-select {
+  0%, 100% { transform: translate3d(var(--symbol-x), var(--symbol-y), 18px); }
+  45% { transform: translate3d(var(--symbol-x), calc(var(--symbol-y) - 2px), 22px); }
+}
+@keyframes select-glow {
+  0% { opacity: 0.28; }
+  45% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+@keyframes content-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes content-enter-side {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes stagger-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes page-enter-next {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-enter-prev {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes stage-enter-forward {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes stage-leave-forward {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-8px); }
+}
+
+@keyframes stage-enter-backward {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes stage-leave-backward {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(8px); }
+}
+
+@keyframes field-error {
+  0%, 100% { transform: translateX(0); }
+  35% { transform: translateX(-2px); }
+  70% { transform: translateX(2px); }
+}
+
+@keyframes species-aura {
+  0% { opacity: 0.46; transform: scale(0.98); }
+  48% { opacity: 0.9; transform: scale(1.015); }
+  100% { opacity: 0.62; transform: scale(1); }
+}
+
+@keyframes species-base-line {
+  0% { opacity: 0; transform: scaleX(0.35); }
+  55% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0.58; transform: scaleX(0.84); }
+}
+
+@keyframes species-stars {
+  0%, 100% { opacity: 0.42; }
+  35% { opacity: 1; }
+  68% { opacity: 0.2; }
+}
+
+@keyframes attribute-value-up {
+  0% { color: var(--vinho-escuro); text-shadow: none; transform: translateY(1px); }
+  55% { color: #9a681b; text-shadow: 0 0 10px rgba(184, 134, 59, 0.32); transform: translateY(-1px); }
+  100% { color: var(--vinho-escuro); text-shadow: none; transform: translateY(0); }
+}
+
+@keyframes attribute-value-down {
+  0% { opacity: 0.58; transform: translateY(-1px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.species-character-art {
+    opacity: 1;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
