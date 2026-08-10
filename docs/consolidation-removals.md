@@ -37,3 +37,13 @@ Após a consolidação da navegação, a auditoria caiu de 81 para 79 sobreposi�
 O botão `.sheet-primary-action` continua temporariamente na camada legada porque também é consumido pelo Inventário e a ordem atual da cascata é funcional. A tentativa de promovê-lo isoladamente alterou a altura do Inventário móvel; o gate bloqueou a mudança e ela foi revertida. A migração deve ocorrer junto das regras específicas do Inventário na Fase 3.
 
 Os testes de Habilidades agora também caracterizam normalização bilíngue, limites de Usos/Recarga, precedência de Situação, JSON inválido sem mutação, aviso de duplicidade, seleção de ícone e remoção. A auditoria ficou em 1.669 seletores e 78 sobreposições entre arquivos.
+
+## Fase 3 — Inventário: propriedade estática
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | apresentação premium, regiões, cards, mochila, bancada, equipamentos, inspeção, ledger e breakpoints em `character-sheet.css` | `css/features/inventory.css` | comparação linha a linha exata de 948 linhas e 15 snapshots idênticos |
+| Ativo, movido | implementação física V2 e seus breakpoints em `inventory.css` | `css/features/inventory.css` | comparação linha a linha exata de 928 linhas e 15 snapshots idênticos |
+| Legado, removido do carregamento | import de `inventory.css` na layer `legacy` | import único de `css/features/inventory.css` na layer `components` | Inventário aprovado nos cinco viewports sem diferença visual |
+
+Esta etapa é uma realocação atômica e reversível: preserva a ordem interna das duas fontes sem editar declarações. A consolidação de duplicidades será feita por subdomínio em commits posteriores, com gates próprios; `motion.css` ainda não foi alterado.

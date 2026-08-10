@@ -2,7 +2,6 @@
 
 @import url("../style.css") layer(legacy);
 @import url("../character-sheet.css") layer(legacy);
-@import url("../inventory.css") layer(legacy);
 @import url("../motion.css") layer(legacy);
 
 @import url("./tokens.css") layer(tokens);
@@ -10,6 +9,7 @@
 @import url("./components.css") layer(components);
 @import url("./features/sheet-summary.css") layer(components);
 @import url("./features/abilities.css") layer(components);
+@import url("./features/inventory.css") layer(components);
 @import url("./layouts.css") layer(layouts);
 @import url("./layouts/sheet-shell.css") layer(layouts);
 @import url("./layouts/sheet-navigation.css") layer(layouts);

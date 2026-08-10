@@ -1,21 +1,14 @@
 import { readFile } from "node:fs/promises";
+import { relative, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const cssFiles = [
-  "style.css",
-  "character-sheet.css",
-  "inventory.css",
-  "motion.css",
-  "css/tokens.css",
-  "css/foundations.css",
-  "css/components.css",
-  "css/features/abilities.css",
-  "css/layouts.css",
-  "css/layouts/sheet-navigation.css",
-  "css/themes.css",
-  "css/motion/primitives.css",
-  "css/motion/abilities.css",
-  "css/motion/inventory.css"
-];
+const appCssPath = resolve("css/app.css");
+const appCss = await readFile(appCssPath, "utf8");
+const cssFiles = [...appCss.matchAll(/@import\s+url\("([^"]+)"\)/g)]
+  .map(function resolveImport(match) {
+    const absolutePath = fileURLToPath(new URL(match[1], pathToFileURL(appCssPath)));
+    return relative(process.cwd(), absolutePath).replace(/\\/g, "/");
+  });
 
 const ownership = new Map();
 for (const file of cssFiles) {
