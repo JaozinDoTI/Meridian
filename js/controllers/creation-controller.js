@@ -1,4 +1,6 @@
 const { criarNomeSeguroParaArquivo } = window.GrimorioImportExportDomain;
+const dominioDoPersonagem = window.GrimorioCharacterDomain;
+const { normalizarAtributo, formatarModificador } = dominioDoPersonagem;
 
 function podeUsarTilt() {
   return consultaPonteiroPreciso.matches && !deveReduzirMovimento();
@@ -1474,34 +1476,16 @@ function obterNomeDaClasseParaResumo() {
   return classe ? classe.nome : "Não definida";
 }
 
-function normalizarAtributo(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/ç/g, "c")
-    .replace(/[^a-z]/g, "");
-}
-
 function obterIdDoAtributo(valor) {
-  const normalizado = normalizarAtributo(valor);
-  const atributo = atributosDeMeridian.find(function (item) {
-    return normalizarAtributo(item.nome) === normalizado || normalizarAtributo(item.sigla) === normalizado || item.id === normalizado;
-  });
-
-  return atributo ? atributo.id : null;
+  return dominioDoPersonagem.obterIdDoAtributo(valor, atributosDeMeridian);
 }
 
 function criarModificadoresZerados() {
-  return atributosDeMeridian.reduce(function (modificadores, atributo) {
-    modificadores[atributo.id] = 0;
-    return modificadores;
-  }, {});
+  return dominioDoPersonagem.criarModificadoresZerados(atributosDeMeridian);
 }
 
 function aplicarModificador(modificadores, atributo, valor) {
-  const id = obterIdDoAtributo(atributo);
-  if (id) modificadores[id] += valor;
+  dominioDoPersonagem.aplicarModificador(modificadores, atributo, valor, atributosDeMeridian);
 }
 
 function obterModificadoresDaEspecie() {
@@ -1572,30 +1556,15 @@ function obterAfinidadeDoPersonagem() {
 }
 
 function calcularCustoTotalDoAtributo(valor) {
-  let custo = 0;
-
-  for (let nivel = 1; nivel <= valor; nivel += 1) {
-    custo += CONFIGURACAO_ATRIBUTOS.custosPorNivel[nivel] || 0;
-  }
-
-  return custo;
+  return dominioDoPersonagem.calcularCustoTotalDoAtributo(valor, CONFIGURACAO_ATRIBUTOS.custosPorNivel);
 }
 
 function valorPossuiCustosConfigurados(valor) {
-  for (let nivel = 1; nivel <= valor; nivel += 1) {
-    if (!(nivel in CONFIGURACAO_ATRIBUTOS.custosPorNivel)) return false;
-  }
-
-  return true;
+  return dominioDoPersonagem.valorPossuiCustosConfigurados(valor, CONFIGURACAO_ATRIBUTOS.custosPorNivel);
 }
 
 function obterCustoDoProximoNivel(valorAtual) {
-  const proximoNivel = valorAtual + 1;
-
-  return (
-    CONFIGURACAO_ATRIBUTOS.custosPorNivel[proximoNivel] ??
-    Infinity
-  );
+  return dominioDoPersonagem.obterCustoDoProximoNivel(valorAtual, CONFIGURACAO_ATRIBUTOS.custosPorNivel);
 }
 
 function calcularPontosUtilizados() {
@@ -1755,11 +1724,6 @@ function renderizarAtributos(direcaoAlteracao, atributoAlterado) {
   if (direcaoAlteracao && atributoAlterado) {
     animarValorFinal(atributoAlterado, direcaoAlteracao);
   }
-}
-
-function formatarModificador(valor) {
-  if (valor > 0) return `+${valor}`;
-  return String(valor);
 }
 
 function obterPericiaPorId(id) {

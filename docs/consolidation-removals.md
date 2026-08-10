@@ -261,3 +261,14 @@ O gate final aprovou 20 testes de navegador, 8 testes de domínio e 15 snapshots
 | Contrato, adicionado | exportar → reimportar → exportar | `tests/e2e/creation.spec.js` | igualdade integral de `personagem` confirmada |
 
 O gate final aprovou 21 testes de navegador, 11 testes de domínio e 15 snapshots, sem alteração visual.
+
+## Fase 7 — JavaScript: domínio do personagem
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, extraído | resolução de atributos por nome, sigla ou ID | `js/domain/character.js` | aliases e atributo inexistente cobertos por teste puro |
+| Ativo, extraído | criação e aplicação de modificadores raciais | `js/domain/character.js` | conjunto zerado e modificador negativo preservados |
+| Ativo, extraído | progressão cumulativa, custo do próximo nível e formatação | `js/domain/character.js` | custos de 1 a 5, limite e sinais cobertos |
+| Original, removido | implementações puras em `creation-controller.js` | wrappers que injetam catálogo e configuração | controller mantém apenas coordenação com estado e interface |
+
+O domínio não conhece DOM, estado global nem persistência. O schema do personagem e os valores configurados permanecem nas autoridades de estado existentes.
