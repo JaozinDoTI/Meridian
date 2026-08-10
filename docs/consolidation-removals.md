@@ -198,3 +198,12 @@ A primeira tentativa moveu a base sem suas variáveis de breakpoint e foi recusa
 | Ativo, movido | entrada animada das views | `css/motion/primitives.css` | movimento reduzido e ausência de classes residuais aprovados |
 
 Nenhum seletor de topbar, ação de documento, feedback ou rodapé permanece em `features/sheet-summary.css`.
+
+## Fase 5 — Landing e criação: retirada do CSS raiz
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | conteúdo integral de `style.css` | `css/features/landing.css`, temporariamente ainda na layer `legacy` | 22 contratos de navegador, 3 testes de domínio e 15 snapshots aprovados |
+| Legado, removido | import e arquivo `style.css` na raiz | import explícito de `features/landing.css` | auditoria dinâmica preservou 1.514 seletores e 69 sobreposições |
+
+Esta etapa é somente uma realocação recuperável: a separação entre Landing, Criação e componentes compartilhados ocorre nos commits seguintes, sem promoção prematura de cascata.

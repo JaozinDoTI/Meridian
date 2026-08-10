@@ -1,6 +1,6 @@
 @layer legacy, tokens, foundations, components, layouts, themes, motion, overrides;
 
-@import url("../style.css") layer(legacy);
+@import url("./features/landing.css") layer(legacy);
 @import url("../motion.css") layer(legacy);
 
 @import url("./tokens.css") layer(tokens);
