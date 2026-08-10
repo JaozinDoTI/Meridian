@@ -440,9 +440,6 @@
     padding: 3px 5px;
   }
 
-  .sheet-main {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
-  }
 }
 
 @media (max-width: 420px) {
