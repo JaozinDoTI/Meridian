@@ -718,7 +718,6 @@ const caminhosDosSimbolos = {
 };
 
 const LIMITE_HABILIDADES_RESUMO = 4;
-const TIPOS_HABILIDADE = new Set(["passiva", "tecnica", "reacao", "suprema", "outro"]);
 const CATALOGO_ICONES_HABILIDADE = Object.freeze([
   { id: "habilidade-generica", simbolo: "rune-star", nome: "Runa" },
   { id: "espada", simbolo: "sword", nome: "Espada" },

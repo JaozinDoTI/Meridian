@@ -386,9 +386,7 @@ function alterarRecargaDaHabilidade(habilidadeId, diferenca) {
 }
 
 function definirMenuDeSecoesFuturasAberto(aberto) {
-  const deveAbrir = Boolean(aberto);
-  sheetSidebar.classList.toggle("is-more-open", deveAbrir);
-  sheetSidebarMore.setAttribute("aria-expanded", String(deveAbrir));
+  window.GrimorioSheetNavigationView.setFutureSectionsMenuOpen(sheetSidebar, sheetSidebarMore, aberto);
 }
 
 function ativarSecaoDaFicha(secao, habilidadeId) {
@@ -396,18 +394,11 @@ function ativarSecaoDaFicha(secao, habilidadeId) {
   definirMenuDeSecoesFuturasAberto(false);
   if (habilidadeId && encontrarHabilidade(habilidadeId)) habilidadeSelecionadaId = habilidadeId;
 
-  sheetViews.forEach(function (view) {
-    view.hidden = view.dataset.sheetView !== secao;
-  });
-  sheetSidebar.querySelectorAll("button[data-sheet-section]").forEach(function (button) {
-    const ativa = button.dataset.sheetSection === secao;
-    button.classList.toggle("is-active", ativa);
-    if (ativa) {
-      button.setAttribute("aria-current", "page");
-    } else {
-      button.removeAttribute("aria-current");
-    }
-  });
+  window.GrimorioSheetNavigationView.setActiveSection(
+    sheetViews,
+    sheetSidebar.querySelectorAll("button[data-sheet-section]"),
+    secao
+  );
 
   if (secao === "abilities") {
     renderizarListaDeHabilidades();

@@ -1,146 +1,22 @@
-function obterConfiguracaoVisualDoItem(item) {
-  const definicao = item.item;
-  return {
-    raridade: CONFIGURACAO_DE_RARIDADE[definicao.raridade] || CONFIGURACAO_DE_RARIDADE.comum,
-    tipo: CONFIGURACAO_DE_TIPO_DE_ITEM[definicao.tipo] || CONFIGURACAO_DE_TIPO_DE_ITEM.outro
-  };
-}
-
-function obterSimboloVisualDoItem(item) {
-  return SIMBOLOS_DE_TIPO_DE_ITEM[item.item.tipo] || SIMBOLOS_DE_TIPO_DE_ITEM.outro;
-}
-
-function marcarImagemDoItemComoFalha(endereco) {
-  if (endereco) imagensDeItemComFalha.add(endereco);
-}
-
-function configurarOrientacaoVisualDaArte(moldura, item, rotacao) {
-  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, rotacao);
-  const rotacionado = rotacao === 90;
-  moldura.dataset.itemRotation = String(rotacao);
-  moldura.style.setProperty("--item-art-rotation", `${rotacao}deg`);
-  moldura.style.setProperty(
-    "--item-art-width-scale",
-    String(rotacionado ? dimensoes.altura / dimensoes.largura : 1)
-  );
-  moldura.style.setProperty(
-    "--item-art-height-scale",
-    String(rotacionado ? dimensoes.largura / dimensoes.altura : 1)
-  );
-}
-
-async function preloadImagemDoItem(item) {
-  const endereco = item?.item?.imagem;
-  if (!endereco || imagensDeItemComFalha.has(endereco)) return false;
-
-  const imagem = new Image();
-  imagem.src = endereco;
-  try {
-    if (typeof imagem.decode === "function") {
-      await imagem.decode();
-    } else {
-      await new Promise(function (resolve, reject) {
-        imagem.addEventListener("load", resolve, { once: true });
-        imagem.addEventListener("error", reject, { once: true });
-      });
-    }
-    return true;
-  } catch (_erro) {
-    marcarImagemDoItemComoFalha(endereco);
-    return false;
-  }
-}
-
-function criarArteDoItem(item, classe, opcoes = {}) {
-  const moldura = document.createElement("span");
-  const rotacao = opcoes.rotacao ?? item.rotacao ?? 0;
-  moldura.className = classe || "sheet-inventory-item__art";
-  moldura.classList.add("inventory-item-art");
-  moldura.dataset.itemSymbol = obterSimboloVisualDoItem(item);
-  configurarOrientacaoVisualDaArte(moldura, item, rotacao);
-  if (item.item.imagem && !imagensDeItemComFalha.has(item.item.imagem)) {
-    const imagem = document.createElement("img");
-    imagem.src = item.item.imagem;
-    imagem.alt = "";
-    imagem.loading = opcoes.eager ? "eager" : "lazy";
-    imagem.decoding = "async";
-    moldura.classList.add("is-loading-image");
-    imagem.addEventListener("load", function () {
-      moldura.classList.remove("is-loading-image", "uses-fallback");
-    }, { once: true });
-    imagem.addEventListener("error", function () {
-      marcarImagemDoItemComoFalha(item.item.imagem);
-      imagem.remove();
-      moldura.classList.remove("is-loading-image");
-      moldura.classList.add("uses-fallback", "has-image-error");
-    }, { once: true });
-    moldura.append(imagem);
-  } else {
-    moldura.classList.add("uses-fallback");
-  }
-  return moldura;
-}
-
-function obterFormatoDaCartaDoItem(item, rotacao = item.rotacao) {
-  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, rotacao);
-  const area = dimensoes.largura * dimensoes.altura;
-  return {
-    shape: dimensoes.largura > dimensoes.altura
-      ? "wide"
-      : dimensoes.altura > dimensoes.largura
-        ? "tall"
-        : "square",
-    density: area <= 1 ? "compact" : area <= 3 ? "small" : "full",
-    dimensoes
-  };
-}
-
-function atualizarFormatoDaCarta(elemento, item, rotacao = item.rotacao) {
-  if (!elemento) return;
-  const formato = obterFormatoDaCartaDoItem(item, rotacao);
-  elemento.dataset.shape = formato.shape;
-  elemento.dataset.density = formato.density;
-  elemento.dataset.rotation = String(rotacao);
-}
-
-function criarCartaDoItem(item, opcoes = {}) {
-  const visual = obterConfiguracaoVisualDoItem(item);
-  const rotacao = opcoes.rotacao ?? item.rotacao ?? 0;
-  const formato = obterFormatoDaCartaDoItem(item, rotacao);
-  return window.GrimorioInventoryCards.createItemCard({
-    item,
-    options: opcoes,
-    visual,
-    rotation: rotacao,
-    format: formato,
-    symbol: obterSimboloVisualDoItem(item),
-    createArt: criarArteDoItem,
-    formatWeight: formatarPeso
-  });
-}
-
-function formatarPeso(valor) {
-  return `${Number(valor || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg`;
-}
-
-function criarElementoComTexto(tag, classe, texto) {
-  const elemento = document.createElement(tag);
-  if (classe) elemento.className = classe;
-  elemento.textContent = texto;
-  return elemento;
-}
-
-function criarLinhaDeDetalheDoInventario(rotulo, valor) {
-  const linha = document.createElement("div");
-  const termo = document.createElement("dt");
-  const descricao = document.createElement("dd");
-
-  linha.className = "sheet-inventory-details__row";
-  termo.textContent = rotulo;
-  descricao.textContent = valor;
-  linha.append(termo, descricao);
-  return linha;
-}
+const visaoDoInventario = window.GrimorioInventoryView.createInventoryView({
+  domain: dominioDoInventario,
+  rarityConfig: CONFIGURACAO_DE_RARIDADE,
+  itemTypeConfig: CONFIGURACAO_DE_TIPO_DE_ITEM,
+  itemTypeSymbols: SIMBOLOS_DE_TIPO_DE_ITEM,
+  failedImages: imagensDeItemComFalha,
+  createItemCard: window.GrimorioInventoryCards.createItemCard
+});
+const {
+  getVisualConfig: obterConfiguracaoVisualDoItem,
+  configureArtOrientation: configurarOrientacaoVisualDaArte,
+  preloadItemImage: preloadImagemDoItem,
+  createItemArt: criarArteDoItem,
+  createCard: criarCartaDoItem,
+  updateCardFormat: atualizarFormatoDaCarta,
+  formatWeight: formatarPeso,
+  createTextElement: criarElementoComTexto,
+  createDetailRow: criarLinhaDeDetalheDoInventario
+} = visaoDoInventario;
 
 function obterItemDoInventarioPorId(itemId) {
   return personagem.inventario.find(function (item) {

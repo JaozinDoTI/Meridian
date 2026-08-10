@@ -1,6 +1,11 @@
 const { criarNomeSeguroParaArquivo } = window.GrimorioImportExportDomain;
 const dominioDoPersonagem = window.GrimorioCharacterDomain;
 const { normalizarAtributo, formatarModificador } = dominioDoPersonagem;
+const {
+  fillList: preencherLista,
+  fillInfoBlock: preencherBloco,
+  createChoiceOption: criarOpcao
+} = window.GrimorioCreationView;
 
 function podeUsarTilt() {
   return consultaPonteiroPreciso.matches && !deveReduzirMovimento();
@@ -804,21 +809,6 @@ function selecionarEspecie(id) {
   renderizarOpcoesDaEspecie();
 }
 
-function preencherLista(elemento, itens) {
-  elemento.replaceChildren();
-  itens.forEach(function (item) {
-    const li = document.createElement("li");
-    li.textContent = item;
-    elemento.append(li);
-  });
-}
-
-function preencherBloco(bloco, titulo, texto) {
-  bloco.hidden = !texto;
-  titulo.textContent = texto ? texto.nome : "";
-  titulo.nextElementSibling.textContent = texto ? texto.descricao : "";
-}
-
 function renderizarDetalhesDaEspecie(animarTroca) {
   const especie = obterEspecieSelecionada();
 
@@ -871,40 +861,7 @@ function renderizarDetalhesDaEspecie(animarTroca) {
 }
 
 function criarGrupoDeEscolha(id, titulo, ajuda) {
-  const fieldset = document.createElement("fieldset");
-  const legend = document.createElement("legend");
-  const help = document.createElement("small");
-  const list = document.createElement("div");
-  const error = document.createElement("p");
-
-  fieldset.id = id;
-  fieldset.className = "species-choice-group";
-  legend.textContent = titulo;
-  help.textContent = ajuda;
-  list.className = "choice-list";
-  error.id = `${id}-error`;
-  error.className = "choice-error";
-  error.setAttribute("aria-live", "polite");
-  legend.append(help);
-  fieldset.append(legend, list, error);
-  speciesOptions.append(fieldset);
-  return list;
-}
-
-function criarOpcao(lista, tipo, nome, valor, rotulo, marcada, desabilitada) {
-  const label = document.createElement("label");
-  const input = document.createElement("input");
-  const text = document.createElement("span");
-
-  label.className = "choice-option";
-  input.type = tipo;
-  input.name = nome;
-  input.value = valor;
-  input.checked = marcada;
-  input.disabled = desabilitada;
-  text.textContent = rotulo;
-  label.append(input, text);
-  lista.append(label);
+  return window.GrimorioCreationView.createChoiceGroup(speciesOptions, id, titulo, ajuda);
 }
 
 function renderizarOpcoesDaEspecie() {
@@ -1108,33 +1065,7 @@ function selecionarCategoriaDeClasse(categoria) {
 }
 
 function criarSimboloDaClasse(id, classeCss) {
-  const namespace = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(namespace, "svg");
-  const path = document.createElementNS(namespace, "path");
-  const circle = document.createElementNS(namespace, "circle");
-  const possuiSimboloProprio = Object.prototype.hasOwnProperty.call(caminhosDosSimbolos, id);
-  const caminho = possuiSimboloProprio ? caminhosDosSimbolos[id] : "M80 31 95 64l34 4-25 23 7 34-31-17-31 17 7-34-25-23 34-4z";
-
-  svg.setAttribute("viewBox", "0 0 160 160");
-  svg.setAttribute("focusable", "false");
-  svg.setAttribute("aria-hidden", "true");
-  if (classeCss) svg.setAttribute("class", classeCss);
-  circle.setAttribute("cx", "80");
-  circle.setAttribute("cy", "80");
-  circle.setAttribute("r", "58");
-  circle.setAttribute("fill", "none");
-  circle.setAttribute("stroke", "currentColor");
-  circle.setAttribute("stroke-width", "1");
-  circle.setAttribute("stroke-dasharray", "3 8");
-  circle.setAttribute("opacity", "0.34");
-  path.setAttribute("d", caminho);
-  path.setAttribute("fill", "none");
-  path.setAttribute("stroke", "currentColor");
-  path.setAttribute("stroke-width", "5");
-  path.setAttribute("stroke-linecap", "round");
-  path.setAttribute("stroke-linejoin", "round");
-  svg.append(circle, path);
-  return svg;
+  return window.GrimorioCreationView.createClassSymbol(id, classeCss, caminhosDosSimbolos);
 }
 
 function renderizarClasses(tipoDeEntrada) {
@@ -1240,16 +1171,14 @@ function renderizarSimboloDaClasse(animarTroca) {
 }
 
 function preencherPainelDaClasse(titulo, descricao, itens) {
-  classPanelTitle.textContent = titulo;
-  classPanelDescription.textContent = descricao;
-  classPanelList.replaceChildren();
-  classPanelList.hidden = itens.length === 0;
-
-  itens.forEach(function (item) {
-    const li = document.createElement("li");
-    li.textContent = item;
-    classPanelList.append(li);
-  });
+  window.GrimorioCreationView.fillClassPanel(
+    classPanelTitle,
+    classPanelDescription,
+    classPanelList,
+    titulo,
+    descricao,
+    itens
+  );
 }
 
 function selecionarAbaDaClasse(aba, moverFoco) {

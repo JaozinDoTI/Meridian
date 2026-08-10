@@ -6,14 +6,17 @@ const root = new URL("../../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
 test("carrega bootstrap e responsabilidades JavaScript fora da raiz", async function () {
-  const [html, app, characterState, creation, abilities, inventory, summary] = await Promise.all([
+  const [html, app, characterState, creation, abilities, inventory, summary, creationView, navigationView, inventoryView] = await Promise.all([
     read("index.html"),
     read("js/app.js"),
     read("js/state/character-state.js"),
     read("js/controllers/creation-controller.js"),
     read("js/controllers/abilities-controller.js"),
     read("js/controllers/inventory-controller.js"),
-    read("js/ui/sheet-summary-view.js")
+    read("js/ui/sheet-summary-view.js"),
+    read("js/ui/creation-view.js"),
+    read("js/ui/sheet-navigation.js"),
+    read("js/ui/inventory-view.js")
   ]);
 
   assert.doesNotMatch(html, /src="\.\/script\.js"/);
@@ -26,6 +29,9 @@ test("carrega bootstrap e responsabilidades JavaScript fora da raiz", async func
   assert.match(abilities, /function renderizarHabilidadesDaFicha/);
   assert.match(inventory, /function renderizarInventario/);
   assert.match(summary, /function renderizarIdentidadeDaFicha/);
+  assert.match(creationView, /GrimorioCreationView/);
+  assert.match(navigationView, /GrimorioSheetNavigationView/);
+  assert.match(inventoryView, /GrimorioInventoryView/);
 
   await Promise.all([
     "script.js",
