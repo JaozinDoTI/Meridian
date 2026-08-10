@@ -36,3 +36,19 @@ test("remove a folha de movimento da raiz e preserva todos os consumidores", asy
   assert.match(sheetMotion, /@keyframes sheet-resource-feedback/);
   await assert.rejects(access(new URL("../../motion.css", import.meta.url)));
 });
+
+test("mantém app.css como entrada única sem camada ou folhas legadas na raiz", async function () {
+  const entrypoint = await read("css/app.css");
+
+  assert.doesNotMatch(entrypoint, /\blegacy\b/);
+  assert.doesNotMatch(entrypoint, /\.\.\/(?:style|character-sheet|inventory|motion)\.css/);
+
+  await Promise.all([
+    "style.css",
+    "character-sheet.css",
+    "inventory.css",
+    "motion.css"
+  ].map(function assertRootStylesheetWasRemoved(path) {
+    return assert.rejects(access(new URL(`../../${path}`, import.meta.url)));
+  }));
+});

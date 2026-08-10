@@ -5,10 +5,10 @@
 `css/app.css` é o único entrypoint e declara a ordem:
 
 ```text
-legacy -> tokens -> foundations -> components -> layouts -> themes -> motion -> overrides
+tokens -> foundations -> components -> layouts -> themes -> motion -> overrides
 ```
 
-Os layers legados reproduzem a ordem anterior dos links. Componentes novos consomem tokens canônicos; não escolhem cores, sombras ou tempos arbitrários.
+Não existe layer de compatibilidade. Cada folha ativa é importada uma vez pelo entrypoint e pertence a uma autoridade canônica. Componentes consomem tokens compartilhados; não escolhem cores, sombras ou tempos arbitrários.
 
 ## Tokens
 

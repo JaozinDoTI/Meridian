@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const appCssPath = resolve("css/app.css");
 const appCss = await readFile(appCssPath, "utf8");
+const exceptionDefinitions = JSON.parse(await readFile(resolve("tools/css-ownership-exceptions.json"), "utf8"));
 const cssFiles = [...appCss.matchAll(/@import\s+url\("([^"]+)"\)/g)]
   .map(function resolveImport(match) {
     const absolutePath = fileURLToPath(new URL(match[1], pathToFileURL(appCssPath)));
@@ -34,10 +35,45 @@ const overlaps = [...ownership.entries()]
   .map(function toReport(entry) { return { selector: entry[0], files: [...entry[1]] }; })
   .sort(function sortBySelector(a, b) { return a.selector.localeCompare(b.selector); });
 
-const report = { files: cssFiles.length, selectors: ownership.size, overlaps };
+function sameFiles(actual, expected) {
+  return [...actual].sort().join("\n") === [...expected].sort().join("\n");
+}
+
+const matchedExceptions = new Set();
+const documented = [];
+const unexpected = [];
+overlaps.forEach(function classifyOverlap(overlap) {
+  const exceptionIndex = exceptionDefinitions.findIndex(function matchesException(exception) {
+    return sameFiles(overlap.files, exception.files)
+      && new RegExp(exception.selectorPattern).test(overlap.selector);
+  });
+
+  if (exceptionIndex === -1) {
+    unexpected.push(overlap);
+    return;
+  }
+
+  matchedExceptions.add(exceptionIndex);
+  documented.push({
+    ...overlap,
+    reason: exceptionDefinitions[exceptionIndex].reason
+  });
+});
+
+const staleExceptions = exceptionDefinitions.filter(function isStale(_exception, index) {
+  return !matchedExceptions.has(index);
+});
+const report = {
+  files: cssFiles.length,
+  selectors: ownership.size,
+  overlaps: overlaps.length,
+  documented,
+  unexpected,
+  staleExceptions
+};
 if (process.argv.includes("--json")) {
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 } else {
-  process.stdout.write(`CSS ownership baseline: ${report.files} files, ${report.selectors} selectors, ${report.overlaps.length} cross-file overlaps\n`);
+  process.stdout.write(`CSS ownership: ${report.files} files, ${report.selectors} selectors, ${report.documented.length} documented overlaps, ${report.unexpected.length} unexpected\n`);
 }
-if (process.argv.includes("--strict") && overlaps.length) process.exitCode = 1;
+if (process.argv.includes("--strict") && (unexpected.length || staleExceptions.length)) process.exitCode = 1;

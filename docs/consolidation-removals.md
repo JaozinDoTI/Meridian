@@ -272,3 +272,25 @@ O gate final aprovou 21 testes de navegador, 11 testes de domínio e 15 snapshot
 | Original, removido | implementações puras em `creation-controller.js` | wrappers que injetam catálogo e configuração | controller mantém apenas coordenação com estado e interface |
 
 O domínio não conhece DOM, estado global nem persistência. O schema do personagem e os valores configurados permanecem nas autoridades de estado existentes.
+
+## Fase 7 — JavaScript: fronteiras finais de UI
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, extraído | primitivas DOM de escolhas, listas, símbolos e painel de classe | `js/ui/creation-view.js` | criação completa e importação/exportação aprovadas |
+| Ativo, extraído | carta, arte, orientação, imagem, peso e linhas de inspeção | `js/ui/inventory-view.js` | oito cenários dedicados do Inventário aprovados |
+| Ativo, extraído | ativação visual de views e estado responsivo do menu Mais | `js/ui/sheet-navigation.js` | contratos desktop e mobile aprovados |
+| Morto, removido | cinco queries DOM sem consumidor e `TIPOS_HABILIDADE` duplicado | nenhum | busca literal confirmou uma única ocorrência antes da remoção |
+
+A extração do Inventário expôs inicialmente uma referência de `criarArteDoItem` que não havia sido incluída na API da view. O gate E2E bloqueou a fase; a API foi corrigida e os oito cenários do domínio passaram antes da repetição integral dos testes.
+
+## Fase 8 — Remoção final do legado
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Legado, removido | declaração vazia da layer `legacy` | ordem `tokens → foundations → components → layouts → themes → motion → overrides` | teste arquitetural e 15 snapshots sem diferença |
+| Dívida, controlada | sobreposições CSS intencionais entre feature/layout e motion | `tools/css-ownership-exceptions.json` com proprietário, escopo e justificativa | 71 documentadas, 0 inesperadas e 0 exceções obsoletas |
+| Infraestrutura, adicionada | conferência manual de keyframes e funções globais | `audit-keyframes.mjs` e `audit-js-architecture.mjs` | 80 keyframes consumidos, 0 duplicados; 0 função global duplicada |
+| Documentação, atualizada | descrição incremental já superada | `docs/architecture.md` e `docs/design-system.md` | estrutura e cascata agora refletem os arquivos carregados |
+
+O gate da fase aprovou 15 testes de domínio, 21 contratos/fluxos E2E e 15 snapshots distribuídos por cinco viewports. A auditoria DOM encerrou com 327 IDs e 256 consultas (4 dinâmicas), sem query obrigatória órfã. Os arquivos raiz `style.css`, `character-sheet.css`, `inventory.css`, `motion.css`, `script.js`, `inventory-domain.js`, `attribute-motion.js` e `motion-enhancements.js` não existem mais.
