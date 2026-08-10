@@ -1,33 +1,4 @@
-.sheet-inventory-premium-shell .sheet-inventory-item {
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 8px;
-  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--item-accent) 11%, transparent), rgba(13,7,5,.22) 72%);
-  box-shadow: 0 7px 9px rgba(4,2,1,.5), inset 0 0 0 1px color-mix(in srgb, var(--item-accent) 28%, transparent);
-}
-.sheet-inventory-premium-shell .sheet-inventory-item::before { inset: 2px; border: 0; border-radius: 6px; box-shadow: inset 0 1px color-mix(in srgb, var(--item-accent) 50%, transparent), inset 0 0 13px rgba(255,255,255,.025); }
-.sheet-inventory-premium-shell .sheet-inventory-item::after { display: none; }
-.sheet-inventory-item__art { position: absolute !important; z-index: 0 !important; inset: 5px 5px 18px; display: grid !important; place-items: center; margin: 0 !important; }
-.sheet-inventory-item__art::before { color: color-mix(in srgb, var(--item-accent) 65%, #c9a87b); content: attr(data-item-symbol); font-size: clamp(22px, 3.5vw, 48px); opacity: .68; filter: drop-shadow(0 5px 5px #090403); }
-.sheet-inventory-item__art img { position: absolute; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 4px rgba(3,2,1,.58)); }
-.sheet-inventory-item__caption { position: absolute !important; z-index: 2 !important; right: 4px; bottom: 3px; left: 4px; display: block !important; padding: 12px 4px 3px; background: linear-gradient(transparent, rgba(8,4,3,.82)); pointer-events: none; }
-.sheet-inventory-premium-shell .sheet-inventory-item__caption strong { font-size: 9px; font-weight: 500; }
-.sheet-inventory-premium-shell .sheet-inventory-item__caption span { margin-top: 1px; color: color-mix(in srgb, var(--item-accent) 74%, #ddd0b9); font-size: 6px; }
-.sheet-inventory-item[data-item-width="1"][data-item-height="1"] .sheet-inventory-item__caption,
-.sheet-inventory-item[data-item-width="1"][data-item-height="2"] .sheet-inventory-item__caption { opacity: 0; }
-.sheet-inventory-item__quantity { position: absolute; z-index: 4; top: 4px; right: 4px; padding: 2px 4px; border-radius: 8px; color: #fff3dc; background: rgba(18,9,7,.82); font-size: 7px; box-shadow: 0 2px 5px rgba(0,0,0,.45); }
-.sheet-inventory-premium-shell .sheet-inventory-item:hover,
-.sheet-inventory-premium-shell .sheet-inventory-item:focus-visible,
-.sheet-inventory-premium-shell .sheet-inventory-item.is-selected { border: 0; transform: translateY(-5px) scale(1.015); box-shadow: 0 14px 19px rgba(2,1,1,.62), inset 0 0 0 1px color-mix(in srgb, var(--item-accent) 62%, transparent), 0 0 18px color-mix(in srgb, var(--item-accent) 11%, transparent); }
-.sheet-inventory-premium-shell .sheet-inventory-item.is-selected { outline: 1px solid color-mix(in srgb, var(--item-accent) 70%, #fff); outline-offset: 2px; }
 .sheet-inventory-grid.is-dragging-item .sheet-inventory-item:not(.is-drag-origin) { filter: saturate(.7) brightness(.72); }
-.sheet-inventory-premium-shell .sheet-inventory-preview-cell { border-width: 1px; opacity: .16; }
-.sheet-inventory-premium-shell .sheet-inventory-preview-footprint { border-width: 1px; box-shadow: inset 0 0 16px color-mix(in srgb, currentColor 19%, transparent), 0 0 7px color-mix(in srgb, currentColor 16%, transparent); }
-.sheet-inventory-premium-shell .sheet-inventory-drag-proxy { border: 0 !important; box-shadow: 0 25px 34px rgba(2,1,1,.67), 0 8px 14px rgba(2,1,1,.5), inset 0 0 0 1px color-mix(in srgb, var(--item-accent) 55%, transparent) !important; }
-
-.sheet-inventory-premium-shell .sheet-inventory-placement-status { min-height: 27px; padding: 6px 22px 8px; border: 0; color: #8f7d69; background: transparent; font-size: 8px; text-align: center; }
-
 .sheet-inventory-loadout { min-height: 0; overflow: hidden; box-shadow: inset 0 -1px rgba(210,165,93,.12); }
 .sheet-inventory-armor-slot { position: relative; display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 9px; width: calc(100% - 24px); min-height: 82px; margin: 5px 12px 12px; padding: 8px; overflow: hidden; border: 0; border-radius: 8px; color: #bba88f; background: radial-gradient(circle at 24% 46%, rgba(184,132,70,.11), transparent 37%), rgba(10,6,5,.26); box-shadow: inset 0 0 0 1px rgba(205,159,91,.15), inset 0 -14px 28px rgba(3,2,1,.28); font: inherit; text-align: left; cursor: pointer; }
 .sheet-inventory-armor-slot::after { position: absolute; inset: 6px; border: 1px dashed rgba(192,146,81,.19); border-radius: 5px; content: ""; pointer-events: none; }
@@ -1194,6 +1165,7 @@ button.sheet-inventory-cell { cursor: crosshair; }
   color: #fff8e8;
   background: var(--inventory-wine);
   font-size: 7px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.45);
 }
 
 .inventory-shell .sheet-inventory-preview-cell { position: absolute; border: 1px solid currentColor; border-radius: 5px; background: currentColor; opacity: .2; }

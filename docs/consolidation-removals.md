@@ -64,3 +64,13 @@ O fallback global de movimento reduzido da ficha permanece em `motion.css`; some
 | Duplicado, removido | bancada, cabeçalhos regionais e moldura da mochila da composição anterior | `.inventory-bench*`, `.inventory-region-heading*` e `.inventory-backpack*` atuais | comparação visual nos cinco viewports sem diferença |
 
 A etapa removeu 217 linhas e 46 seletores sem tocar nas declarações antigas ainda ativas de cards, drag e inspeção, que permanecem para consolidação nos respectivos commits.
+
+## Fase 3 — Inventário: cards e arte
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Duplicado, removido | carta, hover, seleção, arte e fallback sob `.sheet-inventory-premium-shell` | `.inventory-shell .sheet-inventory-item` e sistema compartilhado `.inventory-item-art` | ausência do shell antigo; estados de seleção, rotação e drag aprovados |
+| Morto, removido | `.sheet-inventory-item__caption` e `.sheet-inventory-drag-proxy` antigos | `.inventory-card*` e `.inventory-drag-object*` atuais | nenhum produtor no HTML/JS; importação e drag válido/inválido aprovados |
+| Ativo, fundido | sombra do contador de quantidade na declaração antiga | `.inventory-shell .sheet-inventory-item__quantity` | 15 snapshots idênticos |
+
+A etapa retirou 29 linhas e 16 seletores; a regra ativa que atenua outros itens durante drag ficou preservada para o commit específico de movimento.
