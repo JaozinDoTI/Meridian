@@ -289,8 +289,9 @@ A extração do Inventário expôs inicialmente uma referência de `criarArteDoI
 | Classificação | Origem | Destino canônico | Prova |
 | --- | --- | --- | --- |
 | Legado, removido | declaração vazia da layer `legacy` | ordem `tokens → foundations → components → layouts → themes → motion → overrides` | teste arquitetural e 15 snapshots sem diferença |
+| Morto, removido | `css/layouts.css` com sete seletores sem consumidor | nenhum; layouts ativos permanecem em `css/layouts/` | busca em HTML/JS e cinco viewports confirmaram ausência de efeito |
 | Dívida, controlada | sobreposições CSS intencionais entre feature/layout e motion | `tools/css-ownership-exceptions.json` com proprietário, escopo e justificativa | 71 documentadas, 0 inesperadas e 0 exceções obsoletas |
 | Infraestrutura, adicionada | conferência manual de keyframes e funções globais | `audit-keyframes.mjs` e `audit-js-architecture.mjs` | 80 keyframes consumidos, 0 duplicados; 0 função global duplicada |
 | Documentação, atualizada | descrição incremental já superada | `docs/architecture.md` e `docs/design-system.md` | estrutura e cascata agora refletem os arquivos carregados |
 
-O gate da fase aprovou 15 testes de domínio, 21 contratos/fluxos E2E e 15 snapshots distribuídos por cinco viewports. A auditoria DOM encerrou com 327 IDs e 256 consultas (4 dinâmicas), sem query obrigatória órfã. Os arquivos raiz `style.css`, `character-sheet.css`, `inventory.css`, `motion.css`, `script.js`, `inventory-domain.js`, `attribute-motion.js` e `motion-enhancements.js` não existem mais.
+O gate da fase aprovou 15 testes de domínio, 21 contratos/fluxos E2E e 15 snapshots distribuídos por cinco viewports. A auditoria CSS encerrou com 19 folhas, 1.507 seletores e nenhuma sobreposição inesperada; a auditoria DOM, com 327 IDs e 256 consultas (4 dinâmicas), sem query obrigatória órfã. Os arquivos raiz `style.css`, `character-sheet.css`, `inventory.css`, `motion.css`, `script.js`, `inventory-domain.js`, `attribute-motion.js` e `motion-enhancements.js` não existem mais.

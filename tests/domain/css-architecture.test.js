@@ -51,7 +51,8 @@ test("mantém app.css como entrada única sem camada ou folhas legadas na raiz",
     "style.css",
     "character-sheet.css",
     "inventory.css",
-    "motion.css"
+    "motion.css",
+    "css/layouts.css"
   ].map(function assertRootStylesheetWasRemoved(path) {
     return assert.rejects(access(new URL(`../../${path}`, import.meta.url)));
   }));

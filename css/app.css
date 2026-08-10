@@ -10,7 +10,6 @@
 @import url("./features/sheet-summary.css") layer(components);
 @import url("./features/abilities.css") layer(components);
 @import url("./features/inventory.css") layer(components);
-@import url("./layouts.css") layer(layouts);
 @import url("./layouts/app-shell.css") layer(layouts);
 @import url("./layouts/sheet-shell.css") layer(layouts);
 @import url("./layouts/sheet-navigation.css") layer(layouts);
