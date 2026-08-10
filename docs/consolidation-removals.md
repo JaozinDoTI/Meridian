@@ -187,3 +187,14 @@ A retirada foi atômica porque promover apenas as regras-base do Resumo fazia es
 | Ativo, movido | `.sheet-primary-action`, consumida por Habilidades e Inventário | `css/components.css` | importação de habilidade, importação/equipamento de item e estados visuais aprovados |
 
 A primeira tentativa moveu a base sem suas variáveis de breakpoint e foi recusada pelo gate visual. As variáveis foram reunidas ao mesmo proprietário de layout antes do commit; o resultado final não altera nenhum snapshot.
+
+## Fase 4 — Resumo: chrome e contrato de views
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | topbar, título, ações de documento, feedback, estado de salvamento e rodapé | `css/components/sheet-chrome.css` | salvar/exportar, feedback, cinco breakpoints e 15 snapshots aprovados |
+| Ativo, movido | `.sheet-primary-action` responsiva | `css/components.css` | Habilidades e Inventário preservados |
+| Ativo, movido | ocultação de `[data-sheet-view]` | `css/layouts/sheet-shell.css` | navegação entre Resumo, Habilidades e Inventário aprovada |
+| Ativo, movido | entrada animada das views | `css/motion/primitives.css` | movimento reduzido e ausência de classes residuais aprovados |
+
+Nenhum seletor de topbar, ação de documento, feedback ou rodapé permanece em `features/sheet-summary.css`.

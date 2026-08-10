@@ -16,6 +16,10 @@
 
 .motion-ambient { animation-duration: var(--duration-slow); animation-timing-function: var(--ease-standard); }
 
+[data-sheet-view]:not([hidden]) {
+  animation: sheet-view-enter var(--sheet-motion-base) var(--sheet-ease-emphasized) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :where(.motion-feedback, .motion-state-transition, .motion-spatial, .motion-ambient) {
     animation: none !important;
