@@ -55,3 +55,12 @@ Esta etapa é uma realocação atômica e reversível: preserva a ordem interna 
 | Ativo, movido | neutralização de animação, transição e transformação do Inventário em `motion.css` | media query de `css/motion/inventory.css` | cenário dedicado com `prefers-reduced-motion: reduce`, 19 testes de navegador e 15 snapshots aprovados |
 
 O fallback global de movimento reduzido da ficha permanece em `motion.css`; somente os cinco seletores pertencentes ao Inventário foram transferidos.
+
+## Fase 3 — Inventário: shell e regiões
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Morto, removido | `.sheet-inventory-premium-shell`, commandbar, workspace e navegação móvel da composição anterior | `.inventory-shell`, `.inventory-header`, `.inventory-workspace` e navegação global atuais | produtores antigos ausentes no HTML/JS; 19 testes e 15 snapshots aprovados |
+| Duplicado, removido | bancada, cabeçalhos regionais e moldura da mochila da composição anterior | `.inventory-bench*`, `.inventory-region-heading*` e `.inventory-backpack*` atuais | comparação visual nos cinco viewports sem diferença |
+
+A etapa removeu 217 linhas e 46 seletores sem tocar nas declarações antigas ainda ativas de cards, drag e inspeção, que permanecem para consolidação nos respectivos commits.
