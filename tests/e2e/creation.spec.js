@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { preparePage } from "../helpers/app.js";
+import { importCompleteCharacter, preparePage } from "../helpers/app.js";
 
 const portraitPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -102,4 +102,31 @@ test("preserva criacao completa, retrato, revisao, exportacao e abertura da fich
   await expect(page.locator("#character-sheet-screen")).toBeVisible();
   await expect(page.locator("#sheet-character-name")).toHaveText("Lyra do Meridiano");
   await expect(page.locator("#sheet-portrait-image")).toBeVisible();
+});
+
+test("preserva personagem em round-trip de exportacao e reimportacao", async function ({ page }) {
+  await importCompleteCharacter(page);
+
+  const firstDownloadPromise = page.waitForEvent("download");
+  await page.locator("#sheet-export-json").click();
+  const firstDownload = await firstDownloadPromise;
+  const firstStream = await firstDownload.createReadStream();
+  let firstJson = "";
+  for await (const chunk of firstStream) firstJson += chunk.toString("utf8");
+  const firstEnvelope = JSON.parse(firstJson);
+
+  await page.setInputFiles("#json-file", {
+    name: "round-trip.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(firstJson)
+  });
+  const secondDownloadPromise = page.waitForEvent("download");
+  await page.locator("#sheet-export-json").click();
+  const secondDownload = await secondDownloadPromise;
+  const secondStream = await secondDownload.createReadStream();
+  let secondJson = "";
+  for await (const chunk of secondStream) secondJson += chunk.toString("utf8");
+  const secondEnvelope = JSON.parse(secondJson);
+
+  expect(secondEnvelope.personagem).toEqual(firstEnvelope.personagem);
 });

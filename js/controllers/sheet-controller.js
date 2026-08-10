@@ -1,3 +1,8 @@
+const {
+  ehObjetoDeDados,
+  obterPersonagemDoArquivo
+} = window.GrimorioImportExportDomain;
+
 function renderizarFicha() {
   renderizarIdentidadeDaFicha();
   renderizarCombateDaFicha();
@@ -226,57 +231,6 @@ function avancarNaCriacao() {
 function abrirSeletorDeArquivo() {
   fileInput.value = "";
   fileInput.click();
-}
-
-function ehObjetoDeDados(valor) {
-  return valor !== null && typeof valor === "object" && !Array.isArray(valor);
-}
-
-function obterPersonagemDoArquivo(dados) {
-  if (!ehObjetoDeDados(dados)) {
-    throw new Error("O arquivo JSON não contém uma ficha válida.");
-  }
-
-  if (Object.prototype.hasOwnProperty.call(dados, "tipo")) {
-    if (dados.tipo !== "grimorio-ficha") {
-      throw new Error("Este JSON não é uma ficha do Grimório RPG.");
-    }
-
-    const versao = dados.versao === undefined || dados.versao === null
-      ? 1
-      : dados.versao;
-    if (typeof versao === "number" && Number.isInteger(versao) && versao > 2) {
-      throw new Error("Esta ficha foi criada em uma versão mais recente do Grimório RPG.");
-    }
-
-    if (typeof versao !== "number" || !Number.isInteger(versao) || (versao !== 1 && versao !== 2)) {
-      throw new Error("A versão desta ficha não é compatível com o Grimório RPG.");
-    }
-
-    if (!ehObjetoDeDados(dados.personagem)) {
-      throw new Error("O arquivo JSON não contém os dados da ficha.");
-    }
-
-    if (!ehObjetoDeDados(dados.personagem.atributos) || !ehObjetoDeDados(dados.personagem.pericias)) {
-      throw new Error("O JSON não possui os dados necessários de uma ficha de personagem.");
-    }
-
-    return {
-      personagem: dados.personagem,
-      versao
-    };
-  }
-
-  const dadosDoPersonagem = dados;
-
-  if (!ehObjetoDeDados(dadosDoPersonagem.atributos) || !ehObjetoDeDados(dadosDoPersonagem.pericias)) {
-    throw new Error("O JSON não possui os dados necessários de uma ficha de personagem.");
-  }
-
-  return {
-    personagem: dadosDoPersonagem,
-    versao: 1
-  };
 }
 
 function aplicarPersonagemImportado(dadosImportados, versaoDaFicha) {

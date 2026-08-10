@@ -1,3 +1,5 @@
+const { criarNomeSeguroParaArquivo } = window.GrimorioImportExportDomain;
+
 function podeUsarTilt() {
   return consultaPonteiroPreciso.matches && !deveReduzirMovimento();
 }
@@ -2229,16 +2231,6 @@ function renderizarRevisaoProvisoria() {
     : `${resumoDasPericias} - Nenhuma Perícia treinada.`;
 }
 
-function criarNomeSeguroParaArquivo(nome) {
-  return nome
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function mostrarMensagemDeSalvamento(mensagem, erro) {
   const destino = characterSheetScreen.hidden ? reviewSaveStatus : sheetSaveStatus;
 
@@ -2257,13 +2249,7 @@ function mostrarMensagemDeSalvamento(mensagem, erro) {
 
 function criarEnvelopeDaFicha() {
   prepararDadosIniciaisDaFicha();
-
-  return {
-    tipo: "grimorio-ficha",
-    versao: 2,
-    salvoEm: new Date().toISOString(),
-    personagem
-  };
+  return window.GrimorioImportExportDomain.criarEnvelopeDaFicha(personagem);
 }
 
 function salvarFichaJson(envelopePronto) {

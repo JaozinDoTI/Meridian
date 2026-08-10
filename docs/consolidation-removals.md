@@ -250,3 +250,14 @@ Este commit é uma divisão mecânica de responsabilidades e preserva o carregam
 | Original, removido | implementações puras dentro de `abilities-controller.js` | ponte de controller que injeta somente o catálogo de ícones | busca, filtros, resumos, mutações e diálogos aprovados |
 
 O gate final aprovou 20 testes de navegador, 8 testes de domínio e 15 snapshots. O domínio não acessa DOM nem estado persistente.
+
+## Fase 7 — JavaScript: domínio de importação e exportação
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, extraído | validação de objeto, envelope, tipo e versões v1/v2 | `js/domain/import-export.js` | casos válidos, legado, tipo incorreto, versão futura e schema incompleto cobertos |
+| Ativo, extraído | envelope v2 e normalização do nome do arquivo | `js/domain/import-export.js` | exportação da criação e ficha aprovada |
+| Original, removido | implementações em `creation-controller.js` e `sheet-controller.js` | wrappers de coordenação e API pura | nenhuma cópia paralela permaneceu |
+| Contrato, adicionado | exportar → reimportar → exportar | `tests/e2e/creation.spec.js` | igualdade integral de `personagem` confirmada |
+
+O gate final aprovou 21 testes de navegador, 11 testes de domínio e 15 snapshots, sem alteração visual.

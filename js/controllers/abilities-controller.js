@@ -427,7 +427,7 @@ function existeHabilidadeComMesmoNome(nome) {
 }
 
 function validarHabilidadeImportada(dados) {
-  if (!ehObjetoDeDados(dados)) {
+  if (!dominioDasHabilidades.ehObjetoDeDados(dados)) {
     throw new Error("O arquivo não contém uma habilidade válida.");
   }
 
@@ -437,7 +437,7 @@ function validarHabilidadeImportada(dados) {
   }
 
   const conteudo = dados.habilidade ?? dados.ability ?? dados;
-  if (!ehObjetoDeDados(conteudo)) {
+  if (!dominioDasHabilidades.ehObjetoDeDados(conteudo)) {
     throw new Error("O campo 'habilidade' precisa ser um objeto.");
   }
   if (!String(conteudo.nome ?? conteudo.name ?? "").trim()) {
