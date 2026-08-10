@@ -38,10 +38,14 @@ test("remove a folha de movimento da raiz e preserva todos os consumidores", asy
 });
 
 test("mantém app.css como entrada única sem camada ou folhas legadas na raiz", async function () {
-  const entrypoint = await read("css/app.css");
+  const [entrypoint, tokens] = await Promise.all([
+    read("css/app.css"),
+    read("css/tokens.css")
+  ]);
 
   assert.doesNotMatch(entrypoint, /\blegacy\b/);
   assert.doesNotMatch(entrypoint, /\.\.\/(?:style|character-sheet|inventory|motion)\.css/);
+  assert.doesNotMatch(tokens, /\.character-sheet-screen/);
 
   await Promise.all([
     "style.css",

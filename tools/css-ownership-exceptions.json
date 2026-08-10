@@ -21,8 +21,8 @@
   },
   {
     "selectorPattern": "^\\.character-sheet-screen$",
-    "files": ["css/tokens.css", "css/layouts/sheet-shell.css", "css/layouts/sheet-navigation.css", "css/motion/primitives.css"],
-    "reason": "Escopo temático, shell, adaptação da navegação e reduced motion usam a raiz da ficha com propriedades distintas."
+    "files": ["css/layouts/sheet-shell.css", "css/layouts/sheet-navigation.css", "css/themes.css", "css/motion/primitives.css"],
+    "reason": "Shell, adaptação da navegação, tema e reduced motion usam a raiz da ficha com propriedades distintas."
   },
   {
     "selectorPattern": "^(?:\\.choice-list|\\.class-list|\\.species-list)$",

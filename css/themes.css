@@ -1,3 +1,19 @@
+.character-sheet-screen {
+  --color-canvas: var(--sheet-paper-deep, #eee1cd);
+  --color-surface: var(--sheet-paper, #fcf9f2);
+  --color-surface-soft: var(--sheet-paper-soft, #f6efe4);
+  --color-text: var(--sheet-ink, #2f241e);
+  --color-text-muted: var(--sheet-muted, #817164);
+  --color-primary: var(--sheet-wine, #6b151b);
+  --color-primary-dark: var(--sheet-wine-dark, #4b0e13);
+  --color-metal: var(--sheet-gold, #ad8b58);
+  --color-metal-highlight: var(--sheet-gold-strong, #94713f);
+  --color-border: var(--sheet-border, rgba(173, 139, 88, .45));
+  --color-danger: var(--sheet-danger, #8f141c);
+  --color-success: var(--sheet-success, #426d45);
+  --color-mana: var(--sheet-mana, #2d6382);
+}
+
 [data-theme="inventory"] {
   --color-canvas: var(--sheet-paper-deep, #eee1cd);
   --color-surface: var(--sheet-paper, #fcf9f2);
