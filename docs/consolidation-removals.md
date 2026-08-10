@@ -177,3 +177,13 @@ Esses seletores representam o card resumido presente na view `summary`; a tela c
 | Legado, removido | import de `character-sheet.css` na layer `legacy` | import canônico de `features/sheet-summary.css` | auditoria registra 1.512 seletores e 70 sobreposições, sem o arquivo raiz |
 
 A retirada foi atômica porque promover apenas as regras-base do Resumo fazia essas regras vencerem os breakpoints ainda legados. A ordem completa foi mantida no destino; os blocos realmente compartilhados serão extraídos dali para `components` e `layouts` em commits separados.
+
+## Fase 4 — Resumo: responsabilidades compartilhadas
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | base visual, dimensões e variáveis responsivas de `.character-sheet-screen` | `css/layouts/sheet-shell.css` | cinco viewports e altura integral preservados |
+| Ativo, movido | sprite, ícone SVG e utilitário de conteúdo somente para leitores de tela | `css/components.css` | contratos DOM, acessibilidade e 15 snapshots aprovados |
+| Ativo, movido | `.sheet-primary-action`, consumida por Habilidades e Inventário | `css/components.css` | importação de habilidade, importação/equipamento de item e estados visuais aprovados |
+
+A primeira tentativa moveu a base sem suas variáveis de breakpoint e foi recusada pelo gate visual. As variáveis foram reunidas ao mesmo proprietário de layout antes do commit; o resultado final não altera nenhum snapshot.
