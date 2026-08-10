@@ -1,88 +1,3 @@
-.sheet-inventory-drag-proxy {
-  position: fixed !important;
-  z-index: 9999 !important;
-  inset: auto !important;
-  margin: 0 !important;
-  pointer-events: none !important;
-  cursor: grabbing;
-  opacity: 0.96;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 249, 231, 0.15),
-    0 18px 32px rgba(13, 7, 5, 0.48),
-    0 5px 12px rgba(13, 7, 5, 0.42),
-    0 0 18px var(--item-glow);
-  transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(var(--drag-tilt)) scale(1.025);
-  transform-origin: center;
-  will-change: transform;
-}
-
-.sheet-inventory-drag-proxy.is-dropping,
-.sheet-inventory-drag-proxy.is-returning {
-  cursor: default;
-}
-
-.sheet-inventory-preview-cell {
-  border: 2px solid currentColor;
-  border-radius: 4px;
-  background: currentColor;
-  opacity: 0.25;
-  box-shadow: inset 0 0 14px currentColor;
-}
-
-.sheet-inventory-preview-footprint {
-  position: relative;
-  border: 2px solid currentColor;
-  border-radius: 6px;
-  background: transparent;
-  box-shadow: inset 0 0 22px color-mix(in srgb, currentColor 27%, transparent), 0 0 10px color-mix(in srgb, currentColor 20%, transparent);
-}
-
-.sheet-inventory-preview-footprint::after {
-  position: absolute;
-  right: 5px;
-  bottom: 5px;
-  padding: 2px 5px;
-  border-radius: 999px;
-  color: #fff;
-  background: color-mix(in srgb, currentColor 78%, #24140f);
-  content: attr(data-label);
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.sheet-inventory-preview-cell.is-valid,
-.sheet-inventory-preview-footprint.is-valid { color: #7bc27c; }
-.sheet-inventory-preview-cell.is-invalid,
-.sheet-inventory-preview-footprint.is-invalid { color: #d25e58; }
-
-.sheet-inventory-grid-empty {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  align-self: center;
-  justify-self: center;
-  margin: 0;
-  color: rgba(255, 246, 222, 0.52);
-  font-size: 10px;
-  font-style: italic;
-  letter-spacing: 0.06em;
-  pointer-events: none;
-}
-
-.sheet-inventory-placement-status {
-  min-height: 32px;
-  margin: 0;
-  padding: 8px 12px;
-  border-top: 1px solid var(--sheet-divider);
-  color: var(--sheet-ink-soft);
-  background: var(--sheet-surface-secondary);
-  font-size: 9px;
-  line-height: 1.45;
-}
-
-.sheet-inventory-grid.has-valid-preview + * { color: inherit; }
-
 .sheet-inventory-details-panel {
   display: flex;
   flex-direction: column;
@@ -764,17 +679,17 @@ button.sheet-inventory-cell { cursor: crosshair; }
   box-shadow: 0 2px 5px rgba(0,0,0,.45);
 }
 
-.inventory-shell .sheet-inventory-preview-cell { position: absolute; border: 1px solid currentColor; border-radius: 5px; background: currentColor; opacity: .2; }
+.inventory-shell .sheet-inventory-preview-cell { position: absolute; border: 1px solid currentColor; border-radius: 5px; background: currentColor; opacity: .2; box-shadow: inset 0 0 14px currentColor; }
 .inventory-shell .sheet-inventory-preview-cell.is-collision { color: #9a2837; opacity: .5; }
 .inventory-shell .sheet-inventory-preview-cell.is-outside { color: #681e2a; opacity: .42; background: repeating-linear-gradient(135deg,currentColor 0 3px,transparent 3px 7px); }
 .inventory-shell .sheet-inventory-preview-cell.is-clear-invalid { opacity: .12; }
 .inventory-shell .sheet-inventory-preview-footprint { position: absolute; border: 1px solid currentColor; border-radius: 7px; box-shadow: inset 0 0 18px color-mix(in srgb, currentColor 20%, transparent), 0 0 8px color-mix(in srgb, currentColor 15%, transparent); }
-.inventory-shell .sheet-inventory-preview-footprint::after { position: absolute; right: 5px; bottom: 5px; padding: 2px 5px; border-radius: 999px; color: #fff; background: color-mix(in srgb, currentColor 78%, #2c1712); content: attr(data-label); font-size: 6px; letter-spacing: .08em; }
+.inventory-shell .sheet-inventory-preview-footprint::after { position: absolute; right: 5px; bottom: 5px; padding: 2px 5px; border-radius: 999px; color: #fff; background: color-mix(in srgb, currentColor 78%, #2c1712); content: attr(data-label); font-size: 6px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .inventory-shell .sheet-inventory-preview-cell.is-valid,
 .inventory-shell .sheet-inventory-preview-footprint.is-valid { color: #b59355; }
 .inventory-shell .sheet-inventory-preview-cell.is-invalid,
 .inventory-shell .sheet-inventory-preview-footprint.is-invalid { color: #842e38; }
-.inventory-shell .sheet-inventory-grid-empty { grid-column: 1/-1; grid-row: 1/-1; place-self: center; color: rgba(250,230,195,.52); font: italic 10px Georgia, serif; pointer-events: none; }
+.inventory-shell .sheet-inventory-grid-empty { grid-column: 1/-1; grid-row: 1/-1; place-self: center; color: rgba(250,230,195,.52); font: italic 10px Georgia, serif; letter-spacing: .06em; pointer-events: none; }
 
 .inventory-shell .sheet-inventory-placement-status {
   min-height: 34px;
@@ -784,6 +699,7 @@ button.sheet-inventory-cell { cursor: crosshair; }
   color: #796658;
   background: transparent;
   font-size: 9px;
+  line-height: 1.45;
   text-align: center;
 }
 

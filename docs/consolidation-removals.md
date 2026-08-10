@@ -129,3 +129,13 @@ O commit substituiu 134 linhas por 50 linhas canônicas, reduzindo a auditoria p
 | Ativo, fundido | cores de raridade e `--item-glow` | cinco regras `.is-rarity-*` da V3.1 | fallback, borda, brilho e arte preservados |
 
 O gate visual inicialmente recusou a extração porque o badge espacial participava da segunda track implícita do grid. A regra computada foi identificada, explicitada no seletor canônico e só então os 15 snapshots voltaram ao baseline. O resultado líquido remove 69 linhas e reduz a auditoria a 1.553 seletores e 66 sobreposições.
+
+## Fase 3 — Inventário: drag e preview
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Morto, removido | `.sheet-inventory-drag-proxy*` | `.inventory-drag-object*` em feature/motion | nenhum produtor antigo; drag válido, inválido e retorno aprovados |
+| Ativo, fundido | sombra das células de preview, tipografia do footprint, empty state e status | regras contextualizadas por `.inventory-shell` | previews, colisão, colocação e mensagens aprovados |
+| Duplicado, removido | base não contextualizada de preview válido/inválido | `.inventory-shell .sheet-inventory-preview-*` | revalidação final e screenshots preservadas |
+
+Foram removidas 88 linhas líquidas; a auditoria caiu para 1.541 seletores e 65 sobreposições.
