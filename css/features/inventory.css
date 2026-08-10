@@ -1,17 +1,4 @@
 .sheet-inventory-grid.is-dragging-item .sheet-inventory-item:not(.is-drag-origin) { filter: saturate(.7) brightness(.72); }
-.sheet-inventory-loadout { min-height: 0; overflow: hidden; box-shadow: inset 0 -1px rgba(210,165,93,.12); }
-.sheet-inventory-armor-slot { position: relative; display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 9px; width: calc(100% - 24px); min-height: 82px; margin: 5px 12px 12px; padding: 8px; overflow: hidden; border: 0; border-radius: 8px; color: #bba88f; background: radial-gradient(circle at 24% 46%, rgba(184,132,70,.11), transparent 37%), rgba(10,6,5,.26); box-shadow: inset 0 0 0 1px rgba(205,159,91,.15), inset 0 -14px 28px rgba(3,2,1,.28); font: inherit; text-align: left; cursor: pointer; }
-.sheet-inventory-armor-slot::after { position: absolute; inset: 6px; border: 1px dashed rgba(192,146,81,.19); border-radius: 5px; content: ""; pointer-events: none; }
-.sheet-inventory-armor-slot__ghost { display: grid; place-items: center; height: 62px; color: #765a3d; font-size: 31px; opacity: .42; filter: drop-shadow(0 6px 5px #080403); }
-.sheet-inventory-armor-slot > span:last-child { position: relative; z-index: 1; min-width: 0; }
-.sheet-inventory-armor-slot small { display: block; color: #796957; font-size: 6px; letter-spacing: .14em; text-transform: uppercase; }
-.sheet-inventory-armor-slot strong { display: block; margin-top: 4px; overflow: hidden; color: #d5c2a4; font-size: 9px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
-.sheet-inventory-armor-slot em { display: block; margin-top: 3px; color: var(--inventory-brass); font-size: 7px; font-style: normal; }
-.sheet-inventory-armor-slot__art { position: relative; z-index: 1; display: grid; place-items: center; height: 62px; }
-.sheet-inventory-armor-slot__art::before { color: #a67f4e; content: attr(data-item-symbol); font-size: 35px; opacity: .65; }
-.sheet-inventory-armor-slot__art img { position: absolute; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 7px 5px #070302); }
-.sheet-inventory-armor-slot.has-item { box-shadow: inset 0 0 0 1px rgba(211,167,96,.31), inset 0 -14px 28px rgba(3,2,1,.28), 0 8px 16px rgba(2,1,1,.2); }
-
 .sheet-inventory-premium-shell .sheet-inventory-details-panel { display: flex; min-height: 0; background: transparent; }
 .sheet-inventory-premium-shell .sheet-inventory-details { padding: 5px 14px 10px; }
 .sheet-inventory-premium-shell .sheet-inventory-details__empty { min-height: 145px; color: #786858; }

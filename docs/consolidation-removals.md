@@ -74,3 +74,11 @@ A etapa removeu 217 linhas e 46 seletores sem tocar nas declarações antigas ai
 | Ativo, fundido | sombra do contador de quantidade na declaração antiga | `.inventory-shell .sheet-inventory-item__quantity` | 15 snapshots idênticos |
 
 A etapa retirou 29 linhas e 16 seletores; a regra ativa que atenua outros itens durante drag ficou preservada para o commit específico de movimento.
+
+## Fase 3 — Inventário: equipamentos
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Morto, removido | `.sheet-inventory-loadout`, `.sheet-inventory-armor-slot*` e arte de armadura da composição anterior | `.inventory-equipment*`, `.inventory-equipment-slot*` e `.inventory-card*` | nenhum produtor das classes antigas; equipar, desequipar, troca de estado e snapshots aprovados |
+
+Foram removidas 12 linhas compactadas e 11 seletores. O teste funcional confirma a ida da Espada Colossal para a mão principal e seu retorno a uma posição válida da mochila.
