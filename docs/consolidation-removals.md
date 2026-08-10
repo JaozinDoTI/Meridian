@@ -219,3 +219,13 @@ Esta etapa é somente uma realocação recuperável: a separação entre Landing
 | Ativo, movido | tokens, fundamentos e tilt compartilhado | `css/tokens.css`, `css/foundations.css` e `css/components.css` | cascata validada por contratos, E2E e comparação visual |
 
 A auditoria registra 1.514 seletores e 77 sobreposições entre arquivos. O aumento aparente decorre de oito responsabilidades antes contidas no mesmo arquivo que agora atravessam base e breakpoint ou feature e motion (`:root`, listas interativas, `.attribute-card` e arte de espécie); essas exceções permanecem explícitas até a auditoria final por tipo de propriedade. A primeira divisão foi recusada porque cortou dois blocos CSS; o teste de criação detectou a perda da grade. Depois, o gate visual detectou prioridade incorreta de `min-width`; Landing e Criação foram promovidas para a layer canônica de componentes, sem override adicional. O gate final aprovou 20 testes de navegador, 4 testes de domínio e 15 snapshots.
+
+## Fase 6 — Movimento: retirada do CSS raiz
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | propriedades registradas, estados e keyframes compartilhados de atributos | `css/motion/primitives.css` | criação, resumo, feedback de recursos e reduced motion aprovados |
+| Ativo, movido | keyframes de entrada, status, recursos, atenção e estado crítico da ficha | `css/motion/sheet.css` | Resumo e chrome preservados nos cinco viewports |
+| Legado, removido | import e arquivo `motion.css` na raiz | imports canônicos em `css/motion/` | busca final sem import raiz e teste arquitetural explícito |
+
+A auditoria caiu para 71 sobreposições entre arquivos. O gate final aprovou 20 testes de navegador, 5 testes de domínio e 15 snapshots, sem atualização de baseline.

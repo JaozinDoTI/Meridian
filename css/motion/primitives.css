@@ -107,3 +107,847 @@
     filter: none !important;
   }
 }
+
+/* Primitivas de movimento da ficha; componentes apenas consomem estes tokens. */
+@property --sheet-attribute-trail-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --sheet-attribute-paper-warmth {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: rgba(173, 139, 88, 0.01);
+}
+
+@property --attribute-seal-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(148, 113, 63, 0.84);
+}
+
+@property --attribute-seal-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(173, 139, 88, 0.38);
+}
+
+.character-sheet-screen {
+  --sheet-motion-instant: 100ms;
+  --sheet-motion-fast: 160ms;
+  --sheet-motion-base: 220ms;
+  --sheet-motion-slow: 320ms;
+  --sheet-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --sheet-ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sheet-interactive-lift: -1px;
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="impact"]::before {
+  animation: attribute-impact-ambient 5.5s cubic-bezier(0.4, 0, 0.2, 1) -1.4s infinite;
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="trail"]::after {
+  animation: attribute-trail-ambient 4s linear -2.1s infinite;
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="inscription"]::after {
+  animation: attribute-inscription-ambient 6s steps(10, end) -3.4s infinite;
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="seal"]::before {
+  animation: attribute-seal-ambient 6.5s cubic-bezier(0.4, 0, 0.2, 1) -0.8s infinite;
+}
+
+.sheet-attribute-card[data-attribute="forca"] h3 .sheet-icon,
+.attribute-card[data-attribute="forca"] .attribute-icon {
+  animation: attribute-icon-ambient-impact 5.5s ease-in-out -2.3s infinite;
+}
+
+.sheet-attribute-card[data-attribute="agilidade"] h3 .sheet-icon,
+.attribute-card[data-attribute="agilidade"] .attribute-icon {
+  animation: attribute-icon-ambient-trail 4s ease-in-out -1.7s infinite;
+}
+
+.sheet-attribute-card[data-attribute="intelecto"] h3 .sheet-icon,
+.attribute-card[data-attribute="intelecto"] .attribute-icon {
+  animation: attribute-icon-ambient-inscription 6s steps(8, end) -3.4s infinite;
+}
+
+.sheet-attribute-card[data-attribute="resistencia"] h3 .sheet-icon,
+.attribute-card[data-attribute="resistencia"] .attribute-icon {
+  animation: attribute-icon-ambient-seal 6.5s ease-in-out -0.9s infinite;
+}
+
+:is(.sheet-attribute-card, .attribute-card).is-attribute-changing {
+  animation: attribute-state-sentinel 820ms linear;
+}
+
+.sheet-attribute-card.is-source-distributed [data-attribute-source="distributed"] dd,
+.attribute-card.is-source-distributed [data-attribute-source="distributed"] dd,
+.sheet-attribute-card.is-source-species [data-attribute-source="species"] dd,
+.attribute-card.is-source-species [data-attribute-source="species"] dd,
+.sheet-attribute-card.is-source-temporary [data-attribute-source="temporary"] dd {
+  animation: attribute-source-response 460ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sheet-attribute-card.is-changing-up .sheet-attribute-final,
+.attribute-card.is-changing-up .attribute-final-value {
+  animation: attribute-total-up 560ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+.sheet-attribute-card.is-changing-down .sheet-attribute-final,
+.attribute-card.is-changing-down .attribute-final-value {
+  animation: attribute-total-down 500ms cubic-bezier(0.2, 0, 0, 1) 60ms both;
+}
+
+.sheet-attribute-card[data-attribute="forca"].is-attribute-changing:is(.is-changing-up, .is-changing-down) .sheet-attribute-final,
+.attribute-card[data-attribute="forca"].is-attribute-changing:is(.is-changing-up, .is-changing-down) .attribute-final-value {
+  animation: attribute-total-force 720ms cubic-bezier(0.2, 0.8, 0.2, 1) 70ms both;
+}
+
+.sheet-attribute-card[data-attribute="agilidade"].is-changing-up .sheet-attribute-final,
+.attribute-card[data-attribute="agilidade"].is-changing-up .attribute-final-value {
+  animation: attribute-total-agility-up 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+}
+
+.sheet-attribute-card[data-attribute="agilidade"].is-changing-down .sheet-attribute-final,
+.attribute-card[data-attribute="agilidade"].is-changing-down .attribute-final-value {
+  animation: attribute-total-agility-down 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+}
+
+.sheet-attribute-card[data-attribute="intelecto"].is-attribute-changing:is(.is-changing-up, .is-changing-down) .sheet-attribute-final,
+.attribute-card[data-attribute="intelecto"].is-attribute-changing:is(.is-changing-up, .is-changing-down) .attribute-final-value {
+  animation: attribute-total-intellect 760ms steps(6, end) 60ms both;
+}
+
+.sheet-attribute-card[data-attribute="resistencia"].is-attribute-changing:is(.is-changing-up, .is-changing-down) .sheet-attribute-final,
+.attribute-card[data-attribute="resistencia"].is-attribute-changing:is(.is-changing-up, .is-changing-down) .attribute-final-value {
+  animation: attribute-total-resistance 720ms cubic-bezier(0.2, 0.8, 0.2, 1) 70ms both;
+}
+
+:is(.sheet-attribute-card, .attribute-card) [data-attribute-source] {
+  position: relative;
+  isolation: isolate;
+}
+
+:is(.sheet-attribute-card, .attribute-card) [data-attribute-source] > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sheet-attribute-card.is-source-distributed [data-attribute-source="distributed"]::after,
+.attribute-card.is-source-distributed [data-attribute-source="distributed"]::after,
+.sheet-attribute-card.is-source-species [data-attribute-source="species"]::after,
+.attribute-card.is-source-species [data-attribute-source="species"]::after,
+.sheet-attribute-card.is-source-temporary [data-attribute-source="temporary"]::after {
+  content: "";
+  position: absolute;
+  inset: 1px -2px;
+  z-index: 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--attribute-seal-glow), transparent);
+  opacity: 0;
+  pointer-events: none;
+  animation: attribute-source-flow 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="impact"].is-attribute-changing::before {
+  animation: attribute-impact 640ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="trail"].is-attribute-changing::after {
+  animation: attribute-trail 720ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="inscription"].is-attribute-changing::after {
+  animation: attribute-inscription 760ms steps(6, end);
+}
+
+:is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="seal"].is-attribute-changing::before {
+  animation: attribute-seal 680ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="impact"]:hover:not(.is-attribute-changing)::before {
+    animation:
+      attribute-impact-hover 1050ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+      attribute-impact-ambient 2.75s cubic-bezier(0.4, 0, 0.2, 1) 1050ms infinite;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="trail"]:hover:not(.is-attribute-changing)::after {
+    animation:
+      attribute-trail-hover 1100ms cubic-bezier(0.2, 0, 0, 1) both,
+      attribute-trail-ambient 2s linear 1100ms infinite;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="inscription"]:hover:not(.is-attribute-changing)::after {
+    animation:
+      attribute-inscription-hover 1050ms steps(7, end) both,
+      attribute-inscription-ambient 3s steps(10, end) 1050ms infinite;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="seal"]:hover:not(.is-attribute-changing)::before {
+    animation:
+      attribute-seal-hover 1000ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+      attribute-seal-ambient 3.25s cubic-bezier(0.4, 0, 0.2, 1) 1000ms infinite;
+  }
+
+  .sheet-attribute-card[data-attribute="forca"]:hover:not(.is-attribute-changing) .sheet-attribute-final,
+  .attribute-card[data-attribute="forca"]:hover:not(.is-attribute-changing) .attribute-final-value {
+    animation: attribute-hover-total-force 1000ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .sheet-attribute-card[data-attribute="agilidade"]:hover:not(.is-attribute-changing) .sheet-attribute-final,
+  .attribute-card[data-attribute="agilidade"]:hover:not(.is-attribute-changing) .attribute-final-value {
+    animation: attribute-hover-total-agility 950ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  .sheet-attribute-card[data-attribute="intelecto"]:hover:not(.is-attribute-changing) .sheet-attribute-final,
+  .attribute-card[data-attribute="intelecto"]:hover:not(.is-attribute-changing) .attribute-final-value {
+    animation: attribute-hover-total-intellect 1100ms steps(7, end) both;
+  }
+
+  .sheet-attribute-card[data-attribute="resistencia"]:hover:not(.is-attribute-changing) .sheet-attribute-final,
+  .attribute-card[data-attribute="resistencia"]:hover:not(.is-attribute-changing) .attribute-final-value {
+    animation: attribute-hover-total-resistance 1000ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .sheet-attribute-card[data-attribute="forca"]:hover:not(.is-attribute-changing) h3 .sheet-icon,
+  .attribute-card[data-attribute="forca"]:hover:not(.is-attribute-changing) .attribute-icon {
+    animation: attribute-icon-impact 1000ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .sheet-attribute-card[data-attribute="agilidade"]:hover:not(.is-attribute-changing) h3 .sheet-icon,
+  .attribute-card[data-attribute="agilidade"]:hover:not(.is-attribute-changing) .attribute-icon {
+    animation: attribute-icon-trail 950ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  .sheet-attribute-card[data-attribute="intelecto"]:hover:not(.is-attribute-changing) h3 .sheet-icon,
+  .attribute-card[data-attribute="intelecto"]:hover:not(.is-attribute-changing) .attribute-icon {
+    animation: attribute-icon-inscription 1100ms steps(6, end) both;
+  }
+
+  .sheet-attribute-card[data-attribute="resistencia"]:hover:not(.is-attribute-changing) h3 .sheet-icon,
+  .attribute-card[data-attribute="resistencia"]:hover:not(.is-attribute-changing) .attribute-icon {
+    animation: attribute-icon-seal 1000ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@keyframes attribute-state-sentinel {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes attribute-impact-ambient {
+  0%,
+  100% {
+    opacity: 0.46;
+    transform: scale(1);
+  }
+
+  42% {
+    opacity: 0.79;
+    transform: scaleX(0.988) scaleY(1.008);
+  }
+
+  58% {
+    opacity: 0.58;
+    transform: scaleX(1.006) scaleY(0.996);
+  }
+}
+
+@keyframes attribute-trail-ambient {
+  0% {
+    --sheet-attribute-trail-angle: 0deg;
+    opacity: 0.42;
+  }
+
+  16%,
+  72% {
+    opacity: 0.78;
+  }
+
+  100% {
+    --sheet-attribute-trail-angle: 360deg;
+    opacity: 0.42;
+  }
+}
+
+@keyframes attribute-inscription-ambient {
+  0% {
+    opacity: 0.42;
+    background-position: 0 0, 100% 100%, 0 0, 7px 100%;
+  }
+
+  48% {
+    opacity: 0.78;
+    background-position: 52% 0, 48% 100%, 0 0, 7px 100%;
+  }
+
+  76% {
+    opacity: 0.58;
+  }
+
+  100% {
+    opacity: 0.42;
+    background-position: 100% 0, 0 100%, 0 0, 7px 100%;
+  }
+}
+
+@keyframes attribute-seal-ambient {
+  0%,
+  100% {
+    opacity: 0.44;
+    transform: scale(0.965);
+  }
+
+  46%,
+  64% {
+    opacity: 0.79;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-icon-ambient-impact {
+  0%,
+  76%,
+  100% {
+    transform: scale(1);
+  }
+
+  84% {
+    transform: scaleX(1.045) scaleY(0.975);
+  }
+}
+
+@keyframes attribute-icon-ambient-trail {
+  0%,
+  72%,
+  100% {
+    transform: translateX(0);
+  }
+
+  82% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes attribute-icon-ambient-inscription {
+  0%,
+  38%,
+  100% {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+  }
+
+  46% {
+    opacity: 0.64;
+    transform: scale(0.97);
+  }
+
+  54% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px var(--attribute-seal-glow));
+    transform: scale(1.035);
+  }
+
+  62% {
+    opacity: 0.9;
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-icon-ambient-seal {
+  0%,
+  72%,
+  100% {
+    transform: scale(1);
+  }
+
+  82% {
+    transform: scale(0.94);
+  }
+
+  89% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes attribute-source-response {
+  0% {
+    opacity: 0.5;
+    transform: translateY(1px);
+  }
+
+  55% {
+    color: var(--attribute-seal-strong);
+    text-shadow: 0 0 8px var(--attribute-seal-glow);
+    transform: translateY(-1px);
+  }
+
+  100% {
+    opacity: 1;
+    text-shadow: none;
+    transform: translateY(0);
+  }
+}
+
+@keyframes attribute-source-flow {
+  0% {
+    opacity: 0;
+    transform: translateX(-72%);
+  }
+
+  30%,
+  68% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(72%);
+  }
+}
+
+@keyframes attribute-total-up {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.94);
+  }
+
+  58% {
+    color: var(--attribute-seal-strong);
+    transform: scale(1.07);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-total-down {
+  0% {
+    opacity: 0.72;
+    transform: scale(1.04);
+  }
+
+  58% {
+    transform: scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-total-force {
+  0% {
+    opacity: 0.64;
+    transform: translateY(-2px) scaleX(1.08) scaleY(0.9);
+  }
+
+  42% {
+    color: var(--attribute-seal-strong);
+    text-shadow: 0 2px 8px var(--attribute-seal-glow);
+    transform: translateY(1px) scaleX(0.98) scaleY(1.06);
+  }
+
+  72% {
+    transform: translateY(0) scale(1.025);
+  }
+
+  100% {
+    opacity: 1;
+    text-shadow: none;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-total-agility-up {
+  0% {
+    opacity: 0;
+    transform: translateX(-9px);
+  }
+
+  48% {
+    color: var(--attribute-seal-strong);
+    transform: translateX(3px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes attribute-total-agility-down {
+  0% {
+    opacity: 0;
+    transform: translateX(9px);
+  }
+
+  48% {
+    transform: translateX(-3px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes attribute-total-intellect {
+  0% {
+    opacity: 0.42;
+    letter-spacing: 0.13em;
+    text-shadow: none;
+  }
+
+  50% {
+    opacity: 1;
+    color: var(--attribute-seal-strong);
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 9px var(--attribute-seal-glow);
+  }
+
+  100% {
+    opacity: 1;
+    letter-spacing: 0;
+    text-shadow: none;
+  }
+}
+
+@keyframes attribute-total-resistance {
+  0% {
+    opacity: 0.66;
+    transform: scale(0.88);
+  }
+
+  46% {
+    color: var(--attribute-seal-strong);
+    transform: scaleX(1.08) scaleY(0.98);
+  }
+
+  72% {
+    transform: scaleX(0.99) scaleY(1.025);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-hover-total-force {
+  0% {
+    color: inherit;
+    transform: scale(1);
+  }
+
+  38% {
+    color: var(--attribute-seal-strong);
+    text-shadow: 0 2px 7px var(--attribute-seal-glow);
+    transform: translateY(1px) scaleX(1.035) scaleY(0.9);
+  }
+
+  70% {
+    transform: scaleX(0.99) scaleY(1.025);
+  }
+
+  100% {
+    color: inherit;
+    text-shadow: none;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-hover-total-agility {
+  0%,
+  100% {
+    color: inherit;
+    text-shadow: none;
+    transform: translateX(0);
+  }
+
+  28% {
+    transform: translateX(-2px);
+  }
+
+  52% {
+    color: var(--attribute-seal-strong);
+    text-shadow: 2px 0 6px var(--attribute-seal-glow);
+    transform: translateX(4px);
+  }
+
+  76% {
+    transform: translateX(-1px);
+  }
+}
+
+@keyframes attribute-hover-total-intellect {
+  0%,
+  100% {
+    color: inherit;
+    letter-spacing: 0;
+    text-shadow: none;
+  }
+
+  28% {
+    color: var(--attribute-seal-strong);
+    letter-spacing: 0.025em;
+    text-shadow: 0 0 5px var(--attribute-seal-glow);
+  }
+
+  48% {
+    text-shadow: none;
+  }
+
+  68% {
+    color: var(--attribute-seal-strong);
+    letter-spacing: 0.012em;
+    text-shadow: 0 0 8px var(--attribute-seal-glow);
+  }
+}
+
+@keyframes attribute-hover-total-resistance {
+  0%,
+  100% {
+    color: inherit;
+    text-shadow: none;
+    transform: scale(1);
+  }
+
+  42% {
+    color: var(--attribute-seal-strong);
+    text-shadow: 0 1px 6px var(--attribute-seal-glow);
+    transform: scaleX(0.92) scaleY(0.965);
+  }
+
+  70% {
+    transform: scaleX(1.025) scaleY(1.01);
+  }
+
+  86% {
+    transform: scale(0.99);
+  }
+}
+
+@keyframes attribute-impact-hover {
+  0% {
+    opacity: 0.56;
+    transform: scale(1);
+  }
+
+  38% {
+    opacity: 1;
+    transform: scaleX(0.978) scaleY(1.014);
+  }
+
+  72% {
+    opacity: 0.96;
+    transform: scale(1.004);
+  }
+
+  100% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-trail-hover {
+  0% {
+    --sheet-attribute-trail-angle: 0deg;
+    opacity: 0.58;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  58%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    --sheet-attribute-trail-angle: 720deg;
+    opacity: 0.94;
+  }
+}
+
+@keyframes attribute-inscription-hover {
+  0% {
+    opacity: 0.56;
+    background-position: 0 0, 100% 100%, 0 0, 7px 100%;
+  }
+
+  62% {
+    opacity: 1;
+    background-position: 62% 0, 38% 100%, 0 0, 7px 100%;
+  }
+
+  100% {
+    opacity: 0.94;
+    background-position: 100% 0, 0 100%, 0 0, 7px 100%;
+  }
+}
+
+@keyframes attribute-seal-hover {
+  0% {
+    opacity: 0.58;
+    transform: scale(0.965);
+  }
+
+  52% {
+    opacity: 1;
+    transform: scale(1.018);
+  }
+
+  100% {
+    opacity: 0.94;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-icon-impact {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  38% {
+    transform: scaleX(1.09) scaleY(0.92);
+  }
+
+  64% {
+    transform: scaleX(0.98) scaleY(1.04);
+  }
+}
+
+@keyframes attribute-icon-trail {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  34% {
+    transform: translateX(-1px);
+  }
+
+  62% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes attribute-icon-inscription {
+  0%,
+  100% {
+    opacity: 1;
+    transform: rotate(0);
+  }
+
+  40% {
+    opacity: 0.58;
+    filter: drop-shadow(0 0 0 var(--attribute-seal-glow));
+    transform: rotate(-4deg) scale(0.96);
+  }
+
+  70% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px var(--attribute-seal-glow));
+    transform: rotate(3deg) scale(1.05);
+  }
+
+  100% {
+    filter: none;
+  }
+}
+
+@keyframes attribute-icon-seal {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(0.9);
+  }
+
+  68% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes attribute-impact {
+  0% {
+    opacity: 0;
+    transform: scaleX(1.08) scaleY(0.96);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scaleX(0.985) scaleY(1.01);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes attribute-trail {
+  0% {
+    --sheet-attribute-trail-angle: 0deg;
+    opacity: 0;
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  100% {
+    --sheet-attribute-trail-angle: 360deg;
+    opacity: 0;
+  }
+}
+
+@keyframes attribute-inscription {
+  0% {
+    opacity: 0;
+    background-position: 0 0, 100% 100%, 0 0, 7px 100%;
+  }
+
+  35%,
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    background-position: 100% 0, 0 100%, 0 0, 7px 100%;
+  }
+}
+
+@keyframes attribute-seal {
+  0% {
+    opacity: 0;
+    transform: scale(0.91);
+  }
+
+  56% {
+    opacity: 1;
+    transform: scale(1.015);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}

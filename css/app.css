@@ -2,7 +2,6 @@
 
 @import url("./features/landing.css") layer(components);
 @import url("./features/character-creation.css") layer(components);
-@import url("../motion.css") layer(legacy);
 
 @import url("./tokens.css") layer(tokens);
 @import url("./foundations.css") layer(foundations);
@@ -19,5 +18,6 @@
 @import url("./motion/primitives.css") layer(motion);
 @import url("./motion/landing.css") layer(motion);
 @import url("./motion/character-creation.css") layer(motion);
+@import url("./motion/sheet.css") layer(motion);
 @import url("./motion/abilities.css") layer(motion);
 @import url("./motion/inventory.css") layer(motion);
