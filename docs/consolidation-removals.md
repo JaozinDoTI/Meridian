@@ -47,3 +47,11 @@ Os testes de Habilidades agora também caracterizam normalização bilíngue, li
 | Legado, removido do carregamento | import de `inventory.css` na layer `legacy` | import único de `css/features/inventory.css` na layer `components` | Inventário aprovado nos cinco viewports sem diferença visual |
 
 Esta etapa é uma realocação atômica e reversível: preserva a ordem interna das duas fontes sem editar declarações. A consolidação de duplicidades será feita por subdomínio em commits posteriores, com gates próprios; `motion.css` ainda não foi alterado.
+
+## Fase 3 — Inventário: movimento reduzido
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | neutralização de animação, transição e transformação do Inventário em `motion.css` | media query de `css/motion/inventory.css` | cenário dedicado com `prefers-reduced-motion: reduce`, 19 testes de navegador e 15 snapshots aprovados |
+
+O fallback global de movimento reduzido da ficha permanece em `motion.css`; somente os cinco seletores pertencentes ao Inventário foram transferidos.

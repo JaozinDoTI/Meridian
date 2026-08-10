@@ -269,6 +269,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sheet-inventory-grid,
+  .sheet-inventory-preview-footprint,
+  .sheet-inventory-item,
+  .sheet-inventory-cell,
+  .sheet-inventory-occupancy span {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
   .inventory-shell .sheet-inventory-preview-cell,
   .inventory-shell .sheet-inventory-preview-footprint,
   .inventory-shell :is(.inventory-equipment-slot, .inventory-bench__surface),

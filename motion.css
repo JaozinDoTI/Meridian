@@ -995,16 +995,6 @@
     transform: none;
   }
 
-  .sheet-inventory-grid,
-  .sheet-inventory-preview-footprint,
-  .sheet-inventory-item,
-  .sheet-inventory-cell,
-  .sheet-inventory-occupancy span {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-  }
-
   :is(.sheet-attribute-card, .attribute-card).is-attribute-changing,
   :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::before,
   :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::after,
