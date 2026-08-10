@@ -12,3 +12,14 @@ Este documento registra apenas migrações comprovadas. Itens desconhecidos perm
 | Duplicado, consolidado | padding inferior mobile de `.sheet-main` em `sheet-navigation.css` | media query mobile de `css/layouts/sheet-shell.css` | Comparação visual mobile sem diferença |
 
 A superfície externa da navegação é composta pelo shell; a aparência e os controles internos continuam pertencendo a `css/layouts/sheet-navigation.css`.
+
+## Fase 1 — Navegação global
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, consolidado | propriedades herdadas da marca, botões e rodapé em `character-sheet.css` | `css/layouts/sheet-navigation.css` | 15 snapshots idênticos e fluxos de navegação aprovados |
+| Duplicado, removido | regras base e breakpoints antigos de `.sheet-sidebar*` | implementação responsiva existente em `css/layouts/sheet-navigation.css` | nenhum seletor de sidebar restante em `character-sheet.css` |
+| Morto, removido | `sheet-nav-activate` e `sheet-nav-marker` em `motion.css` | nenhum; a navegação atual declara `animation: none` | busca global encontrou apenas as definições antes da remoção |
+| Duplicado, removido | valores antigos de `--sheet-sidebar-width` | `css/layouts/sheet-navigation.css` | largura desktop e rail preservadas nos cinco viewports |
+
+Após a consolidação da navegação, a auditoria caiu de 81 para 79 sobreposições entre arquivos e de 1.841 para 1.826 seletores, sem diferença visual.

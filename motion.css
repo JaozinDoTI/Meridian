@@ -854,35 +854,6 @@
   }
 }
 
-@keyframes sheet-nav-activate {
-  from {
-    opacity: 0.78;
-    transform: translateX(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes sheet-nav-marker {
-  0% {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.4);
-  }
-
-  65% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1.65);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-}
-
 @keyframes sheet-selection-enter {
   from {
     opacity: 0.72;
@@ -1030,8 +1001,6 @@
   }
 
   [data-sheet-view]:not([hidden]),
-  .sheet-sidebar__nav button.is-active,
-  .sheet-sidebar__nav button.is-active i,
   .sheet-vulnerability-card__heading .sheet-icon,
   .sheet-resource-card--life.is-critical .sheet-resource-heading .sheet-icon {
     animation: none;

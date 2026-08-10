@@ -37,7 +37,6 @@
     0 1px 2px rgba(55, 40, 29, 0.07),
     inset 0 1px 0 var(--sheet-card-highlight);
   --sheet-shell-padding: 6px;
-  --sheet-sidebar-width: 170px;
   --sheet-gap: 7px;
   --sheet-topbar-height: 50px;
   --sheet-top-row-height: clamp(158px, 20vh, 205px);
@@ -1127,37 +1126,6 @@ button.sheet-inventory-cell:focus-visible {
     inset 0 1px 0 rgba(255, 255, 255, 0.52);
 }
 
-.sheet-sidebar {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 10px;
-  padding: 12px 0 10px;
-  overflow: hidden;
-}
-
-.sheet-sidebar__brand {
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 3px;
-  min-height: 126px;
-  padding: 3px 10px 0;
-  color: var(--sheet-gold-strong);
-}
-
-.sheet-brand-star {
-  width: 28px;
-  height: 28px;
-}
-
-.sheet-sidebar__brand img {
-  width: 112px;
-  height: 78px;
-  object-fit: contain;
-}
-
-.sheet-brand-ornament,
-.sheet-sidebar__footer > span,
 .sheet-title-ornament {
   display: flex;
   align-items: center;
@@ -1167,8 +1135,6 @@ button.sheet-inventory-cell:focus-visible {
   color: var(--sheet-gold-strong);
 }
 
-.sheet-brand-ornament i,
-.sheet-sidebar__footer > span i,
 .sheet-title-ornament span {
   display: block;
   width: 30px;
@@ -1176,108 +1142,9 @@ button.sheet-inventory-cell:focus-visible {
   background: linear-gradient(90deg, transparent, var(--sheet-gold), transparent);
 }
 
-.sheet-brand-ornament .sheet-icon,
 .sheet-title-ornament .sheet-icon {
   width: 10px;
   height: 10px;
-}
-
-.sheet-sidebar__nav {
-  display: grid;
-  align-content: start;
-  gap: 2px;
-}
-
-.sheet-sidebar__nav button {
-  position: relative;
-  display: grid;
-  grid-template-columns: 25px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  width: calc(100% - 8px);
-  min-height: 44px;
-  padding: 0 12px 0 16px;
-  border: 0;
-  border-radius: 0;
-  color: var(--sheet-ink-soft);
-  background: transparent;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    color var(--sheet-motion-fast) var(--sheet-ease-standard),
-    background-color var(--sheet-motion-fast) var(--sheet-ease-standard),
-    transform var(--sheet-motion-base) var(--sheet-ease-emphasized);
-}
-
-.sheet-sidebar__nav button .sheet-icon {
-  width: 21px;
-  height: 21px;
-  color: var(--sheet-gold-strong);
-  transition:
-    color var(--sheet-motion-fast) var(--sheet-ease-standard),
-    transform var(--sheet-motion-base) var(--sheet-ease-emphasized);
-}
-
-.sheet-sidebar__nav button:hover,
-.sheet-sidebar__nav button:focus-visible {
-  color: var(--sheet-wine);
-  background: var(--sheet-gold-faint);
-}
-
-.sheet-sidebar__nav button.is-active {
-  width: 100%;
-  padding-right: 24px;
-  color: var(--sheet-table-head-text);
-  background: linear-gradient(90deg, var(--sheet-wine-dark), var(--sheet-wine));
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
-  animation: sheet-nav-activate var(--sheet-motion-base) var(--sheet-ease-emphasized) both;
-}
-
-.sheet-sidebar__nav button.is-active .sheet-icon {
-  color: #d6b36f;
-  transform: rotate(-5deg) scale(1.06);
-}
-
-.sheet-sidebar__nav button.is-active i {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  z-index: 1;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #d6b36f;
-  animation: sheet-nav-marker var(--sheet-motion-slow) var(--sheet-ease-emphasized) both;
-}
-
-.sheet-sidebar__footer {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  padding: 0 14px 8px;
-  color: var(--sheet-gold-strong);
-}
-
-.sheet-sidebar__footer > span .sheet-icon {
-  width: 28px;
-  height: 28px;
-}
-
-.sheet-sidebar__footer p {
-  max-width: 120px;
-  margin: 0;
-  color: var(--sheet-muted);
-  font-size: 11px;
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: 0;
-  text-align: center;
 }
 
 .sheet-topbar {
@@ -4061,7 +3928,6 @@ button.sheet-inventory-cell:focus-visible {
 
 .sheet-document-action:focus-visible,
 .sheet-footer-link:focus-visible,
-.sheet-sidebar__nav button:focus-visible,
 .sheet-resource-control button:focus-visible,
 .sheet-resource-control input:focus-visible {
   outline: 2px solid var(--sheet-gold);
@@ -4072,7 +3938,6 @@ button.sheet-inventory-cell:focus-visible {
 @media (min-width: 1400px) and (min-height: 900px) {
   .character-sheet-screen {
     --sheet-shell-padding: 7px;
-    --sheet-sidebar-width: 176px;
     --sheet-gap: 8px;
     --sheet-topbar-height: 54px;
     --sheet-top-row-height: clamp(192px, 20vh, 215px);
@@ -4080,20 +3945,6 @@ button.sheet-inventory-cell:focus-visible {
     --sheet-middle-height: 92px;
     --sheet-footer-height: 28px;
     --sheet-progression-height: 36px;
-  }
-
-  .sheet-sidebar__brand {
-    min-height: 142px;
-  }
-
-  .sheet-sidebar__brand img {
-    width: 120px;
-    height: 88px;
-  }
-
-  .sheet-sidebar__nav button {
-    min-height: 48px;
-    font-size: 16px;
   }
 
   .sheet-title-block h1 {
@@ -4147,7 +3998,6 @@ button.sheet-inventory-cell:focus-visible {
 @media (min-width: 1100px) and (max-height: 899px) {
   .character-sheet-screen {
     --sheet-shell-padding: 6px;
-    --sheet-sidebar-width: 150px;
     --sheet-gap: 5px;
     --sheet-topbar-height: 45px;
     --sheet-top-row-height: clamp(148px, 20.5vh, 168px);
@@ -4155,52 +4005,6 @@ button.sheet-inventory-cell:focus-visible {
     --sheet-middle-height: 70px;
     --sheet-footer-height: 24px;
     --sheet-progression-height: 32px;
-  }
-
-  .sheet-sidebar {
-    gap: 6px;
-    padding-top: 8px;
-  }
-
-  .sheet-sidebar__brand {
-    min-height: 96px;
-    gap: 1px;
-    padding-top: 0;
-  }
-
-  .sheet-brand-star {
-    width: 20px;
-    height: 20px;
-  }
-
-  .sheet-sidebar__brand img {
-    width: 86px;
-    height: 59px;
-  }
-
-  .sheet-sidebar__nav button {
-    grid-template-columns: 22px minmax(0, 1fr);
-    min-height: 38px;
-    padding-left: 13px;
-    font-size: 13px;
-  }
-
-  .sheet-sidebar__nav button .sheet-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .sheet-sidebar__footer {
-    padding-bottom: 2px;
-  }
-
-  .sheet-sidebar__footer > span .sheet-icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  .sheet-sidebar__footer p {
-    font-size: 9px;
   }
 
   .sheet-title-block h1 {
@@ -4297,7 +4101,6 @@ button.sheet-inventory-cell:focus-visible {
 
 @media (min-width: 1200px) and (max-height: 800px) {
   .character-sheet-screen {
-    --sheet-sidebar-width: 148px;
     --sheet-gap: 5px;
     --sheet-topbar-height: 44px;
     --sheet-top-row-height: 156px;
@@ -4312,14 +4115,6 @@ button.sheet-inventory-cell:focus-visible {
 
   .sheet-identity-panel {
     padding: 4px;
-  }
-
-  .sheet-sidebar__brand {
-    min-height: 92px;
-  }
-
-  .sheet-sidebar__footer p {
-    display: none;
   }
 
   .sheet-stats-row {
@@ -4390,7 +4185,6 @@ button.sheet-inventory-cell:focus-visible {
 
 @media (min-width: 900px) and (max-width: 1099px) {
   .character-sheet-screen {
-    --sheet-sidebar-width: 142px;
     --sheet-gap: 6px;
   }
 
@@ -4506,81 +4300,11 @@ button.sheet-inventory-cell:focus-visible {
     min-height: 320px;
   }
 
-  .sheet-sidebar__brand img {
-    width: 88px;
-    height: 62px;
-  }
-
-  .sheet-sidebar__nav button {
-    min-height: 40px;
-    font-size: 12px;
-  }
-
 }
 
 @media (max-width: 899px) {
   .character-sheet-screen {
     --sheet-gap: 7px;
-  }
-
-  .sheet-sidebar {
-    grid-template-rows: auto auto;
-    gap: 7px;
-    padding: 7px;
-  }
-
-  .sheet-sidebar__brand {
-    grid-template-columns: auto 1fr;
-    justify-items: start;
-    align-items: center;
-    min-height: 0;
-    padding: 0;
-  }
-
-  .sheet-brand-star,
-  .sheet-brand-ornament {
-    display: none;
-  }
-
-  .sheet-sidebar__brand img {
-    width: 64px;
-    height: 44px;
-  }
-
-  .sheet-sidebar__nav {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--sheet-gold) var(--sheet-paper-deep);
-  }
-
-  .sheet-sidebar__nav button {
-    flex: 0 0 auto;
-    grid-template-columns: 18px auto;
-    width: auto;
-    min-height: 38px;
-    padding: 0 11px;
-    font-size: 12px;
-  }
-
-  .sheet-sidebar__nav button.is-active {
-    width: auto;
-    padding-right: 11px;
-    clip-path: none;
-  }
-
-  .sheet-sidebar__nav button.is-active i {
-    display: none;
-  }
-
-  .sheet-sidebar__nav button .sheet-icon {
-    width: 17px;
-    height: 17px;
-  }
-
-  .sheet-sidebar__footer {
-    display: none;
   }
 
   .sheet-abilities-view {
@@ -4946,11 +4670,6 @@ button.sheet-inventory-cell:focus-visible {
 }
 
 @media (max-width: 560px) {
-  .sheet-sidebar__nav button {
-    min-height: 36px;
-    font-size: 11px;
-  }
-
   .sheet-identity-panel {
     min-height: 520px;
   }
