@@ -854,18 +854,6 @@
   }
 }
 
-@keyframes sheet-selection-enter {
-  from {
-    opacity: 0.72;
-    transform: translateX(-2px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @keyframes sheet-status-change {
   0%,
   100% {

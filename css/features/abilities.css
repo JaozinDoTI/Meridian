@@ -10,9 +10,14 @@
 }
 
 .sheet-abilities-view {
+  grid-row: 2 / 7;
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
   min-width: 0;
   min-height: 0;
+  padding-bottom: 1px;
 }
 
 .abilities-page {
@@ -547,6 +552,14 @@
   .abilities-toolbar { justify-content: flex-start; width: 100%; }
   .abilities-search { flex: 1 1 230px; }
   .abilities-page__workspace { grid-template-columns: minmax(270px, 34fr) minmax(0, 66fr); }
+}
+
+@media (min-width: 1100px) and (max-width: 1399px) {
+  .sheet-abilities-view { grid-row: auto; }
+}
+
+@media (max-width: 899px) {
+  .sheet-abilities-view { grid-row: auto; min-height: 0; }
 }
 
 @media (max-width: 880px) {

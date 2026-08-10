@@ -1,0 +1,179 @@
+.sheet-abilities-panel {
+  display: grid;
+  grid-template-rows: 23px minmax(0, 1fr);
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border-color: var(--sheet-card-border);
+  background: var(--sheet-surface-primary);
+  box-shadow: var(--sheet-shadow);
+  transition:
+    color var(--sheet-motion-fast) var(--sheet-ease-standard),
+    border-color var(--sheet-motion-fast) var(--sheet-ease-standard),
+    background-color var(--sheet-motion-fast) var(--sheet-ease-standard),
+    box-shadow var(--sheet-motion-base) var(--sheet-ease-standard),
+    transform var(--sheet-motion-fast) var(--sheet-ease-emphasized);
+}
+
+.sheet-abilities-panel:focus-within {
+  border-color: rgba(148, 113, 63, 0.68);
+  box-shadow:
+    0 3px 10px rgba(55, 40, 29, 0.09),
+    inset 0 1px 0 var(--sheet-card-highlight);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sheet-abilities-panel:hover {
+    border-color: rgba(148, 113, 63, 0.62);
+    box-shadow:
+      0 3px 9px rgba(55, 40, 29, 0.08),
+      inset 0 1px 0 var(--sheet-card-highlight);
+    transform: translateY(var(--sheet-interactive-lift));
+  }
+}
+
+.sheet-abilities-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sheet-ability-summary-item {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 4px 7px;
+  border: 0;
+  border-right: 1px solid var(--sheet-divider);
+  border-bottom: 1px solid var(--sheet-divider);
+  color: var(--sheet-ink);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--sheet-motion-fast) var(--sheet-ease-standard),
+    box-shadow var(--sheet-motion-fast) var(--sheet-ease-standard),
+    opacity var(--sheet-motion-fast) var(--sheet-ease-standard),
+    transform var(--sheet-motion-instant) var(--sheet-ease-emphasized);
+}
+
+.sheet-ability-summary-item:nth-child(even) {
+  border-right: 0;
+}
+
+.sheet-ability-summary-item:hover,
+.sheet-ability-summary-item:focus-visible {
+  background: var(--sheet-gold-faint);
+}
+
+.sheet-ability-summary-item:active {
+  transform: scale(0.995);
+}
+
+.sheet-ability-item-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sheet-gold-soft);
+  border-radius: 50%;
+  color: var(--sheet-gold-strong);
+  background: var(--sheet-surface-secondary);
+  transition:
+    color var(--sheet-motion-fast) var(--sheet-ease-standard),
+    border-color var(--sheet-motion-fast) var(--sheet-ease-standard),
+    transform var(--sheet-motion-base) var(--sheet-ease-emphasized);
+}
+
+.sheet-ability-summary-item:hover .sheet-ability-item-icon,
+.sheet-ability-summary-item:focus-visible .sheet-ability-item-icon {
+  border-color: rgba(148, 113, 63, 0.58);
+  transform: rotate(-4deg) scale(1.04);
+}
+
+.sheet-ability-item-icon .sheet-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.sheet-ability-item-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sheet-ability-item-copy strong,
+.sheet-ability-item-copy small,
+.sheet-ability-item-operation {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheet-ability-item-copy strong {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.sheet-ability-item-copy small,
+.sheet-ability-item-operation {
+  color: var(--sheet-muted);
+  font-size: 8px;
+}
+
+.sheet-ability-item-operation {
+  justify-self: end;
+  max-width: 82px;
+}
+
+.sheet-ability-summary-item.is-esgotada {
+  opacity: 0.58;
+}
+
+.sheet-ability-summary-item.is-recarga .sheet-ability-item-icon {
+  color: var(--sheet-mana-dark);
+}
+
+.sheet-ability-empty--summary {
+  display: grid;
+  grid-column: 1 / -1;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  min-height: 70px;
+  padding: 10px;
+  color: var(--sheet-muted);
+  text-align: center;
+}
+
+.sheet-ability-empty--summary strong {
+  color: var(--sheet-ink-soft);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.sheet-ability-empty--summary span {
+  max-width: 280px;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+@media (min-width: 1100px) and (max-height: 899px) {
+  .sheet-abilities-panel {
+    grid-template-rows: 21px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 899px) {
+  .sheet-abilities-panel {
+    min-height: 260px;
+  }
+}

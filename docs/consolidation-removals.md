@@ -23,3 +23,17 @@ A superfície externa da navegação é composta pelo shell; a aparência e os c
 | Duplicado, removido | valores antigos de `--sheet-sidebar-width` | `css/layouts/sheet-navigation.css` | largura desktop e rail preservadas nos cinco viewports |
 
 Após a consolidação da navegação, a auditoria caiu de 81 para 79 sobreposições entre arquivos e de 1.841 para 1.826 seletores, sem diferença visual.
+
+## Fase 2 — Habilidades
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | grid externo de `.sheet-abilities-view` | `css/features/abilities.css` | tela aprovada nos cinco viewports |
+| Ativo, movido | resumo de habilidades da ficha | `css/features/sheet-summary.css` | Resumo e navegação por seus cards aprovados visualmente |
+| Ativo, compartilhado | diálogos de importação/remoção e seletor de ícones | `css/components.css` | importação, duplicidade, troca de ícone, remoção e descarte do Inventário preservados |
+| Duplicado, removido | duas composições antigas de tabela/lista/detalhe em `character-sheet.css` | `css/features/abilities.css` e `js/ui/abilities-view.js` | busca estática sem classes antigas; lista, detalhe e ledger atuais aprovados |
+| Morto, removido | breakpoints da tabela antiga e `sheet-selection-enter` | nenhum | nenhum produtor ou consumidor encontrado após a migração para cards |
+
+O botão `.sheet-primary-action` continua temporariamente na camada legada porque também é consumido pelo Inventário e a ordem atual da cascata é funcional. A tentativa de promovê-lo isoladamente alterou a altura do Inventário móvel; o gate bloqueou a mudança e ela foi revertida. A migração deve ocorrer junto das regras específicas do Inventário na Fase 3.
+
+Os testes de Habilidades agora também caracterizam normalização bilíngue, limites de Usos/Recarga, precedência de Situação, JSON inválido sem mutação, aviso de duplicidade, seleção de ícone e remoção. A auditoria ficou em 1.669 seletores e 78 sobreposições entre arquivos.
