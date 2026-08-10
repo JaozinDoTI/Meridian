@@ -1,0 +1,283 @@
+/* Linguagem de movimento do inventário: peso, encaixe e resistência. */
+.inventory-shell .sheet-inventory-item,
+.inventory-bench-card__grab,
+.inventory-equipment-slot,
+.inventory-bench__surface {
+  transition:
+    opacity var(--inventory-motion-fast) var(--inventory-ease-lift),
+    filter var(--inventory-motion-fast) var(--inventory-ease-lift),
+    border-color var(--inventory-motion-fast) var(--ease-standard),
+    background-color var(--inventory-motion-fast) var(--ease-standard),
+    box-shadow var(--inventory-motion-fast) var(--ease-standard),
+    transform var(--inventory-motion-fast) var(--inventory-ease-lift);
+}
+
+.sheet-inventory-item::after {
+  animation: inventory-symbol-presence 4.6s ease-in-out infinite;
+}
+
+.sheet-inventory-item:hover::after,
+.sheet-inventory-item:focus-visible::after,
+.sheet-inventory-item.is-selected::after {
+  animation-duration: 1.8s;
+  opacity: .82;
+}
+
+.inventory-shell .sheet-inventory-item.is-drag-origin,
+.inventory-bench-card.is-drag-origin .inventory-bench-card__grab,
+.inventory-equipment-slot.is-drag-origin > .inventory-card,
+.inventory-equipment-slot.is-drag-origin .inventory-equipment-slot__art {
+  opacity: .12;
+  filter: grayscale(.72) saturate(.45);
+}
+
+.inventory-bench-card.is-drag-origin :is(
+  .inventory-card__eyebrow,
+  .inventory-card__name,
+  .inventory-card__stat,
+  .inventory-card__description,
+  .inventory-card__properties,
+  .inventory-card__meta
+) {
+  opacity: 0;
+  transition: opacity 70ms linear;
+}
+
+.inventory-bench-card__grab.is-drop-target,
+.inventory-equipment-slot.is-drop-target,
+.inventory-shell .sheet-inventory-item.is-drop-target {
+  opacity: 0;
+}
+
+.inventory-shell .sheet-inventory-grid {
+  transition: box-shadow var(--inventory-motion-instant) var(--ease-standard), filter var(--inventory-motion-instant) linear;
+}
+
+.inventory-shell .sheet-inventory-grid.has-valid-preview {
+  box-shadow: inset 0 0 34px rgba(181, 147, 85, .12), 0 18px 34px rgba(29, 14, 10, .24);
+  animation: inventory-grid-valid var(--inventory-motion-fast) var(--inventory-ease-settle) 1;
+}
+
+.inventory-shell .sheet-inventory-grid.has-invalid-preview {
+  box-shadow: inset 0 0 26px rgba(132, 46, 56, .09), 0 18px 34px rgba(29, 14, 10, .24);
+  animation: inventory-grid-invalid var(--inventory-motion-fast) var(--inventory-ease-return) 1;
+}
+
+.inventory-shell .sheet-inventory-preview-cell {
+  animation: inventory-preview-cell-enter 92ms var(--inventory-ease-lift) both;
+  animation-delay: calc(var(--preview-index, 0) * 12ms);
+}
+
+.inventory-shell .sheet-inventory-preview-footprint {
+  animation: inventory-preview-outline-enter var(--inventory-motion-fast) var(--inventory-ease-settle) both;
+}
+
+.inventory-shell :is(.sheet-inventory-preview-cell, .sheet-inventory-preview-footprint).is-invalid {
+  animation-name: inventory-invalid-impact;
+  animation-duration: var(--inventory-motion-fast);
+  animation-iteration-count: 1;
+}
+
+.inventory-shell .sheet-inventory-preview-footprint.is-invalid {
+  background: repeating-linear-gradient(135deg, rgba(132, 46, 56, .12) 0 4px, transparent 4px 9px);
+}
+
+.inventory-shell :is(.sheet-inventory-preview-cell, .sheet-inventory-preview-footprint).is-preview-exiting {
+  pointer-events: none;
+}
+
+.inventory-equipment-slot.is-compatible-target,
+.inventory-bench__surface.is-compatible-target {
+  transition-duration: var(--inventory-motion-fast);
+}
+
+.inventory-equipment-slot.is-valid-target,
+.inventory-bench__surface.is-valid-target {
+  animation: inventory-target-valid var(--inventory-motion-fast) var(--inventory-ease-settle) 1 both;
+}
+
+.inventory-equipment-slot.is-invalid-target,
+.inventory-bench__surface.is-invalid-target {
+  animation: inventory-target-invalid var(--inventory-motion-fast) var(--inventory-ease-return) 1 both;
+}
+
+.inventory-drag-object {
+  transform-origin: 0 0;
+  transition: none;
+  contain: layout style;
+  will-change: transform, opacity;
+}
+
+.inventory-drag-object__morph {
+  transform: translateY(-3px) scale(1.025);
+  transform-origin: center;
+  transition: transform var(--inventory-motion-fast) var(--inventory-ease-lift);
+  will-change: transform;
+}
+
+.inventory-drag-object__art {
+  filter: drop-shadow(var(--drag-shadow-x, 0px) 20px 14px rgba(25, 12, 8, .42));
+  transition:
+    filter var(--inventory-motion-instant) linear,
+    transform var(--inventory-motion-fast) var(--inventory-ease-lift);
+  will-change: transform, filter;
+}
+
+.inventory-drag-object.is-over-grid .inventory-drag-object__morph {
+  transform: translateY(-1px) scale(.985);
+}
+
+.inventory-drag-object.is-travelling .inventory-drag-object__morph {
+  transform: translateY(0) scale(1);
+}
+
+.inventory-drag-object.is-invalid .inventory-drag-object__art {
+  filter: drop-shadow(var(--drag-shadow-x, 0px) 18px 13px rgba(86, 20, 29, .48));
+}
+
+.inventory-drag-object.is-rotating .inventory-drag-object__label { opacity: 0; }
+
+.inventory-drag-object__label {
+  transition: opacity var(--inventory-motion-instant) linear;
+}
+
+.inventory-shell :is(.sheet-inventory-item, .inventory-equipment-slot, .inventory-bench-card__grab).is-settling {
+  animation: none;
+}
+
+.inventory-shell :is(.sheet-inventory-item, .inventory-equipment-slot, .inventory-bench-card__grab).is-rejected {
+  animation: none;
+}
+
+.inventory-bench-card__grab.is-settling :is(
+  .inventory-card__eyebrow,
+  .inventory-card__name,
+  .inventory-card__stat,
+  .inventory-card__description,
+  .inventory-card__properties,
+  .inventory-card__meta
+) {
+  animation: inventory-bench-copy-enter var(--inventory-motion-fast) 70ms var(--inventory-ease-lift) both;
+}
+
+.inventory-reveal[data-motion-level="compact"] .inventory-reveal__particles,
+.inventory-reveal[data-motion-level="compact"] .inventory-reveal__art::before {
+  display: none;
+}
+
+.inventory-reveal__flash { animation: inventory-reveal-flash 100ms ease-out both; }
+.inventory-reveal__kicker { animation: inventory-reveal-rise 200ms 60ms both; }
+.inventory-reveal__art { animation: inventory-reveal-art 280ms 20ms var(--inventory-ease-lift) both; }
+.inventory-reveal__art::before { animation: inventory-halo var(--inventory-motion-ceremonial) var(--inventory-ease-lift) both; }
+.inventory-reveal h2 { animation: inventory-reveal-rise 210ms 100ms both; }
+.inventory-reveal__rarity { animation: inventory-reveal-rise 190ms 130ms both; }
+.inventory-reveal__attribute { animation: inventory-reveal-rise 180ms 150ms both; }
+.inventory-reveal__meta { animation: inventory-reveal-rise 170ms 170ms both; }
+.inventory-reveal__actions { animation: inventory-reveal-rise 180ms 190ms both; }
+.inventory-reveal__particles i { animation: inventory-particle var(--inventory-motion-ceremonial) ease-out both; }
+.inventory-reveal__particles i:nth-child(1) { animation-delay: 0ms; }
+.inventory-reveal__particles i:nth-child(2) { animation-delay: 14ms; }
+.inventory-reveal__particles i:nth-child(3) { animation-delay: 28ms; }
+.inventory-reveal__particles i:nth-child(4) { animation-delay: 42ms; }
+.inventory-reveal__particles i:nth-child(5) { animation-delay: 56ms; }
+.inventory-reveal__particles i:nth-child(6) { animation-delay: 70ms; }
+
+.inventory-reveal[data-motion-level="ceremonial"] .inventory-reveal__art { animation-duration: 390ms; }
+.inventory-reveal[data-motion-level="ceremonial"] .inventory-reveal__actions { animation-delay: 300ms; }
+
+@keyframes inventory-preview-cell-enter {
+  from { opacity: 0; transform: scale(.9); }
+  to { opacity: .2; transform: scale(1); }
+}
+
+@keyframes inventory-reveal-flash {
+  0% { opacity: .85; }
+  100% { opacity: 0; }
+}
+
+@keyframes inventory-reveal-art {
+  from { opacity: 0; transform: scale(.82) translateY(10px); filter: blur(5px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes inventory-reveal-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes inventory-halo {
+  from { opacity: 0; transform: scale(.62) rotate(-12deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes inventory-particle {
+  0% { opacity: 0; transform: translate(0, 0) scale(0); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--particle-x), var(--particle-y)) scale(1.15); }
+}
+
+@keyframes inventory-symbol-presence {
+  0%, 100% {
+    opacity: .48;
+    filter: drop-shadow(0 2px 3px rgba(10, 5, 4, .62));
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  50% {
+    opacity: .68;
+    filter: drop-shadow(0 3px 5px var(--item-glow));
+    transform: translateX(-50%) translateY(-2px) scale(1.025);
+  }
+}
+
+@keyframes inventory-preview-outline-enter {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes inventory-invalid-impact {
+  0% { opacity: .08; transform: translateX(0) scale(.985); }
+  42% { opacity: .58; transform: translateX(-2px) scale(1); }
+  70% { transform: translateX(1px); }
+  100% { opacity: .42; transform: translateX(0); }
+}
+
+@keyframes inventory-target-valid {
+  0% { filter: brightness(1); }
+  52% { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes inventory-target-invalid {
+  0% { filter: none; transform: translateX(0); }
+  45% { filter: saturate(1.12); transform: translateX(-2px); }
+  100% { filter: none; transform: translateX(0); }
+}
+
+@keyframes inventory-grid-valid {
+  0%, 100% { filter: brightness(1); }
+  54% { filter: brightness(1.035); }
+}
+
+@keyframes inventory-grid-invalid {
+  0%, 100% { filter: none; }
+  48% { filter: saturate(1.08); }
+}
+
+@keyframes inventory-bench-copy-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-shell .sheet-inventory-preview-cell,
+  .inventory-shell .sheet-inventory-preview-footprint,
+  .inventory-shell :is(.inventory-equipment-slot, .inventory-bench__surface),
+  .inventory-bench-card__grab.is-settling * {
+    animation: none !important;
+  }
+
+  .inventory-drag-object__morph,
+  .inventory-drag-object__art {
+    transform: none !important;
+  }
+}

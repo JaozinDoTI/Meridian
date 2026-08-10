@@ -1,0 +1,24 @@
+.motion-feedback {
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.motion-state-transition {
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-emphasized);
+}
+
+.motion-spatial {
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-settle);
+  will-change: transform, opacity;
+}
+
+.motion-ambient { animation-duration: var(--duration-slow); animation-timing-function: var(--ease-standard); }
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.motion-feedback, .motion-state-transition, .motion-spatial, .motion-ambient) {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}

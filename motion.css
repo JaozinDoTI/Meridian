@@ -1001,100 +1001,6 @@
   }
 }
 
-@keyframes inventory-preview-breathe {
-  0%,
-  100% {
-    opacity: 0.74;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes inventory-symbol-presence {
-  0%,
-  100% {
-    opacity: 0.48;
-    filter: drop-shadow(0 2px 3px rgba(10, 5, 4, 0.62));
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-
-  50% {
-    opacity: 0.68;
-    filter: drop-shadow(0 3px 5px var(--item-glow));
-    transform: translateX(-50%) translateY(-2px) scale(1.025);
-  }
-}
-
-@keyframes inventory-item-settle {
-  0% { transform: translateY(-3px) scale(1.025); }
-  62% { transform: translateY(1px) scale(0.975); }
-  100% { transform: translateY(0) scale(1); }
-}
-
-@keyframes inventory-item-return-feedback {
-  0%, 100% { transform: translateX(0); }
-  35% { transform: translateX(-3px) rotate(-0.35deg); }
-  68% { transform: translateX(2px) rotate(0.25deg); }
-}
-
-@keyframes inventory-proxy-drop {
-  0% {
-    transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(var(--drag-tilt)) scale(1.025);
-  }
-  72% {
-    transform: translate3d(var(--drag-target-x), var(--drag-target-y), 0) rotate(0deg) scale(0.975);
-  }
-  100% {
-    transform: translate3d(var(--drag-target-x), var(--drag-target-y), 0) rotate(0deg) scale(1);
-  }
-}
-
-@keyframes inventory-proxy-return {
-  0% {
-    transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(var(--drag-tilt)) scale(1.025);
-  }
-  18% {
-    transform: translate3d(calc(var(--drag-x) + var(--drag-recoil-x)), var(--drag-y), 0) rotate(0deg) scale(1.018);
-  }
-  100% {
-    transform: translate3d(var(--drag-target-x), var(--drag-target-y), 0) rotate(0deg) scale(1);
-  }
-}
-
-.sheet-inventory-grid.is-positioning .sheet-inventory-preview-footprint {
-  animation: inventory-preview-breathe 1.15s ease-in-out infinite;
-}
-
-.sheet-inventory-item::after {
-  animation: inventory-symbol-presence 4.6s ease-in-out infinite;
-}
-
-.sheet-inventory-item:hover::after,
-.sheet-inventory-item:focus-visible::after,
-.sheet-inventory-item.is-selected::after {
-  animation-duration: 1.8s;
-  opacity: 0.82;
-}
-
-.sheet-inventory-item.is-settling {
-  animation: inventory-item-settle 210ms cubic-bezier(0.2, 0.86, 0.28, 1);
-}
-
-.sheet-inventory-item.is-invalid-return,
-.sheet-inventory-preview-footprint.is-invalid-return {
-  animation: inventory-item-return-feedback 240ms ease-out;
-}
-
-.sheet-inventory-drag-proxy.is-dropping {
-  animation: inventory-proxy-drop 210ms cubic-bezier(0.2, 0.84, 0.24, 1) forwards;
-}
-
-.sheet-inventory-drag-proxy.is-returning {
-  animation: inventory-proxy-return 240ms cubic-bezier(0.24, 0.76, 0.3, 1) forwards;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .character-sheet-screen *,
   .character-sheet-screen *::before,
@@ -1140,16 +1046,6 @@
     animation: none !important;
     transition: none !important;
     transform: none !important;
-  }
-
-  .sheet-inventory-drag-proxy {
-    animation: none !important;
-    transition: none !important;
-    transform: translate3d(
-      var(--drag-target-x, var(--drag-x)),
-      var(--drag-target-y, var(--drag-y)),
-      0
-    ) !important;
   }
 
   :is(.sheet-attribute-card, .attribute-card).is-attribute-changing,

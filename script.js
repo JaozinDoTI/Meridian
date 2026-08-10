@@ -76,9 +76,14 @@ const personagem = {
   armas: [],
   habilidades: [],
   inventario: [],
+  inventarioStaging: null,
   economia: { ouro: 0, prata: 0 },
   capacidadeInventario: { pesoMaximo: null },
-  equipamentos: { armadura: null }
+  equipamentos: {
+    armadura: null,
+    maoPrincipal: null,
+    maoSecundaria: null
+  }
 };
 
 const MODELO_PERSONAGEM = JSON.parse(JSON.stringify(personagem));
@@ -750,16 +755,10 @@ let buscaHabilidade = "";
 let habilidadePendente = null;
 let iconeHabilidadePendente = "habilidade-generica";
 let modoDialogHabilidade = "importar";
-const inventoryUIState = {
-  pendingPlacement: null,
-  reorganizingForPending: false,
-  movingItemId: null,
-  selectedItemId: null,
-  hoveredCell: null,
-  candidatePosition: null,
-  pointerSession: null,
-  discardingItemId: null
-};
+const inventoryUIState = window.GrimorioUIState.createInventoryUIState();
+const inventoryDrag = window.GrimorioUIState.createInventoryDragState();
+
+const imagensDeItemComFalha = new Set();
 
 const SIMBOLOS_DE_TIPO_DE_ITEM = Object.freeze({
   consumivel: "\u2697",
@@ -770,9 +769,8 @@ const SIMBOLOS_DE_TIPO_DE_ITEM = Object.freeze({
   material: "\u25c8",
   outro: "\u2726"
 });
-const LIMIAR_DE_ARRASTE_DO_INVENTARIO = 4;
-const DURACAO_DE_ENCAIXE_DO_INVENTARIO = 210;
-const DURACAO_DE_RETORNO_DO_INVENTARIO = 240;
+const LIMIAR_DE_ARRASTE_DO_INVENTARIO = window.GrimorioInventoryMotion.config.dragThreshold;
+let inventoryClickSuppressedUntil = 0;
 
 const CONFIGURACAO_RETRATO = Object.freeze({
   larguraFinal: 640,
@@ -928,6 +926,7 @@ const sheetSaveSessionButton = document.querySelector("#sheet-save-session");
 const sheetExportJsonButton = document.querySelector("#sheet-export-json");
 const sheetBackReviewButton = document.querySelector("#sheet-back-review");
 const sheetSidebar = document.querySelector(".sheet-sidebar");
+const sheetSidebarMore = document.querySelector("#sheet-sidebar-more");
 const characterSheetTitle = document.querySelector("#character-sheet-title");
 const sheetSaveState = document.querySelector("#sheet-save-state");
 const sheetPortraitImage = document.querySelector("#sheet-portrait-image");
@@ -1003,6 +1002,8 @@ const sheetAbilityStateFilter = document.querySelector("#sheet-ability-state-fil
 const sheetImportAbility = document.querySelector("#sheet-import-ability");
 const sheetAbilityFile = document.querySelector("#sheet-ability-file");
 const sheetAbilityList = document.querySelector("#sheet-ability-list");
+const sheetAbilityListCount = document.querySelector("#sheet-ability-list-count");
+const sheetAbilityTypeTabs = document.querySelector("#sheet-ability-type-tabs");
 const sheetAbilityDetails = document.querySelector("#sheet-ability-details");
 const sheetAbilityStats = document.querySelector("#sheet-ability-stats");
 const abilityImportDialog = document.querySelector("#ability-import-dialog");
@@ -1037,7 +1038,7 @@ const sheetInventoryDetails = document.querySelector("#sheet-inventory-details")
 const sheetInventoryDetailsEmpty = document.querySelector("#sheet-inventory-details-empty");
 const sheetInventoryItemActions = document.querySelector("#sheet-inventory-item-actions");
 const sheetInventoryReceived = document.querySelector("#sheet-inventory-received");
-const sheetInventoryArmorSlot = document.querySelector("#sheet-inventory-armor-slot");
+const sheetInventoryEquipmentSlots = document.querySelector("#sheet-inventory-equipment-slots");
 const sheetEquipItem = document.querySelector("#sheet-equip-item");
 const sheetRotateItem = document.querySelector("#sheet-rotate-item");
 const sheetInventoryWeight = document.querySelector("#sheet-inventory-weight");
@@ -1046,7 +1047,6 @@ const sheetInventoryItemCount = document.querySelector("#sheet-inventory-item-co
 const sheetInventorySpaceSummary = document.querySelector("#sheet-inventory-space-summary");
 const sheetInventoryGold = document.querySelector("#sheet-inventory-gold");
 const sheetInventorySilver = document.querySelector("#sheet-inventory-silver");
-const sheetInventoryMobileNav = document.querySelector(".sheet-inventory-mobile-nav");
 const sheetMoveItem = document.querySelector("#sheet-move-item");
 const sheetDiscardItem = document.querySelector("#sheet-discard-item");
 const sheetInventoryPendingActions = document.querySelector("#sheet-inventory-pending-actions");
@@ -1060,6 +1060,15 @@ const inventoryDiscardDialog = document.querySelector("#inventory-discard-dialog
 const inventoryDiscardDescription = document.querySelector("#inventory-discard-description");
 const inventoryDiscardCancel = document.querySelector("#inventory-discard-cancel");
 const inventoryDiscardConfirm = document.querySelector("#inventory-discard-confirm");
+const inventoryRevealDialog = document.querySelector("#inventory-reveal-dialog");
+const inventoryRevealArt = document.querySelector("#inventory-reveal-art");
+const inventoryRevealTitle = document.querySelector("#inventory-reveal-title");
+const inventoryRevealRarity = document.querySelector("#inventory-reveal-rarity");
+const inventoryRevealAttribute = document.querySelector("#inventory-reveal-attribute");
+const inventoryRevealMeta = document.querySelector("#inventory-reveal-meta");
+const inventoryRevealEquip = document.querySelector("#inventory-reveal-equip");
+const inventoryRevealConfirm = document.querySelector("#inventory-reveal-confirm");
+const inventoryDragLayer = document.querySelector("#inventory-drag-layer");
 const sheetSaveStatus = document.querySelector("#sheet-save-status");
 const sheetFooterSaveState = document.querySelector("#sheet-footer-save-state");
 const creationSteps = document.querySelectorAll(".creation-step");
@@ -3395,10 +3404,24 @@ function prepararDadosIniciaisDaFicha(personagemAlvo = personagem, versaoDoInven
   personagemAlvo.armas ??= [];
   personagemAlvo.habilidades ??= [];
   personagemAlvo.inventario ??= [];
+  personagemAlvo.inventarioStaging ??= null;
+  personagemAlvo.equipamentos ??= {};
+  personagemAlvo.equipamentos.armadura ??= null;
+  personagemAlvo.equipamentos.maoPrincipal ??= null;
+  personagemAlvo.equipamentos.maoSecundaria ??= null;
   personagemAlvo.habilidades = personagemAlvo.habilidades.map(normalizarHabilidade);
   personagemAlvo.inventario = dominioDoInventario.migrateInventory(
     personagemAlvo.inventario,
     versaoDoInventario
+  );
+  personagemAlvo.equipamentos = normalizarEquipamentosPersistidos(
+    personagemAlvo.equipamentos,
+    personagemAlvo.inventario
+  );
+  personagemAlvo.inventarioStaging = normalizarItemPersistidoNaBancada(
+    personagemAlvo.inventarioStaging,
+    personagemAlvo.inventario,
+    personagemAlvo.equipamentos
   );
 
   personagemAlvo.recursos.vidaMaxima ??= 20;
@@ -3618,66 +3641,24 @@ function obterResumoOperacionalHabilidade(habilidade) {
 }
 
 function criarItemVisualHabilidade(habilidade, modoResumo) {
-  const button = document.createElement("button");
   const estado = obterEstadoHabilidade(habilidade);
-  button.type = "button";
-  button.className = modoResumo ? "sheet-ability-summary-item" : "sheet-ability-list-item";
-  button.dataset.abilityId = habilidade.id;
-  button.classList.toggle("is-selected", !modoResumo && habilidade.id === habilidadeSelecionadaId);
-  button.classList.add(`is-${estado}`);
-  button.setAttribute("aria-label", `${habilidade.nome}: ${obterRotuloEstadoHabilidade(estado)}`);
-
   if (!modoResumo) {
-    button.setAttribute("role", "row");
-    const criarCelula = function (valor, classe) {
-      const cell = document.createElement("span");
-      cell.className = classe || "";
-      const texto = valor || "—";
-      cell.textContent = texto;
-      if (texto !== "—") cell.title = texto;
-      return cell;
-    };
-
-    const marker = document.createElement("span");
-    marker.className = `sheet-ability-table-state sheet-ability-col-state is-${estado}`;
-    marker.title = obterRotuloEstadoHabilidade(estado);
-    marker.setAttribute("aria-label", obterRotuloEstadoHabilidade(estado));
-    marker.append(criarIconeHabilidade(
-      estado === "recarga" ? "tempo" : estado === "esgotada" ? "habilidade-generica" : "estrela"
-    ));
-
-    const nameCell = document.createElement("span");
-    nameCell.className = "sheet-ability-table-name sheet-ability-col-name";
-    nameCell.title = habilidade.nome;
-    const tableIcon = document.createElement("span");
-    tableIcon.className = "sheet-ability-table-icon";
-    tableIcon.append(criarIconeHabilidade(habilidade.iconeId));
-    const tableName = document.createElement("strong");
-    tableName.textContent = habilidade.nome;
-    nameCell.append(tableIcon, tableName);
-
-    const type = criarCelula(obterRotuloTipoHabilidade(habilidade.tipo), "sheet-ability-table-type sheet-ability-col-type");
-    type.classList.add(`is-${habilidade.tipo}`);
-    const status = criarCelula(obterRotuloEstadoHabilidade(estado), `sheet-ability-table-status sheet-ability-col-status is-${estado}`);
-
-    button.append(
-      marker,
-      nameCell,
-      type,
-      criarCelula(habilidade.custos.mana || "—", "sheet-ability-col-mana sheet-ability-table-number"),
-      criarCelula(habilidade.custos.pe || "—", "sheet-ability-col-pe sheet-ability-table-number"),
-      criarCelula(habilidade.acao, "sheet-ability-col-action"),
-      criarCelula(habilidade.atributo ? habilidade.atributo.toUpperCase() : "—", "sheet-ability-table-attribute sheet-ability-col-attribute"),
-      criarCelula(habilidade.alcance, "sheet-ability-col-range"),
-      criarCelula(habilidade.dano, "sheet-ability-col-damage"),
-      criarCelula(habilidade.duracao, "sheet-ability-col-duration"),
-      criarCelula(habilidade.usos ? `${habilidade.usos.atual}/${habilidade.usos.maximo}` : "—", "sheet-ability-col-uses sheet-ability-table-number"),
-      criarCelula(habilidade.recarga ? `${habilidade.recarga.restante}/${habilidade.recarga.valor}` : "—", "sheet-ability-col-cooldown sheet-ability-table-number"),
-      status
-    );
-    return button;
+    return window.GrimorioAbilitiesView.createAbilityListCard({
+      ability: habilidade,
+      state: estado,
+      selected: habilidade.id === habilidadeSelecionadaId,
+      typeLabel: obterRotuloTipoHabilidade(habilidade.tipo),
+      stateLabel: obterRotuloEstadoHabilidade(estado),
+      operation: obterResumoOperacionalHabilidade(habilidade),
+      createIcon: criarIconeHabilidade
+    });
   }
 
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `sheet-ability-summary-item is-${estado}`;
+  button.dataset.abilityId = habilidade.id;
+  button.setAttribute("aria-label", `${habilidade.nome}: ${obterRotuloEstadoHabilidade(estado)}`);
   const icon = document.createElement("span");
   icon.className = "sheet-ability-item-icon";
   icon.append(criarIconeHabilidade(habilidade.iconeId));
@@ -3732,19 +3713,26 @@ function obterHabilidadesFiltradas() {
 function renderizarListaDeHabilidades() {
   sheetAbilityList.replaceChildren();
   const habilidades = obterHabilidadesFiltradas();
+  const total = personagem.habilidades.length;
+  sheetAbilityListCount.textContent = habilidades.length === total
+    ? String(total)
+    : `${habilidades.length} de ${total}`;
+  sheetAbilityTypeFilter.value = filtroTipoHabilidade;
+  sheetAbilityTypeTabs.querySelectorAll("button[data-ability-type-filter]").forEach(function (button) {
+    const ativo = button.dataset.abilityTypeFilter === filtroTipoHabilidade;
+    button.setAttribute("aria-pressed", String(ativo));
+  });
 
   if (habilidades.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "sheet-ability-empty";
-    const title = document.createElement("strong");
-    const description = document.createElement("span");
-    title.textContent = personagem.habilidades.length ? "Nenhum resultado." : "Nenhuma habilidade adicionada.";
-    description.textContent = personagem.habilidades.length
-      ? "Altere a busca ou o filtro de tipo."
-      : "Importe um arquivo JSON para começar.";
-    empty.append(title, description);
-    sheetAbilityList.append(empty);
-    renderizarDetalhesDaHabilidade();
+    sheetAbilityList.append(window.GrimorioAbilitiesView.createEmptyState({
+      title: total ? "Nenhuma habilidade encontrada." : "Nenhuma habilidade cadastrada.",
+      description: total
+        ? "Altere os filtros ou tente buscar outro termo."
+        : "Importe uma habilidade em JSON para começar.",
+      actionLabel: total ? "" : "Importar habilidade",
+      action: total ? "" : "import"
+    }));
+    renderizarDetalhesDaHabilidade(habilidades);
     return;
   }
 
@@ -3755,52 +3743,7 @@ function renderizarListaDeHabilidades() {
   habilidades.forEach(function (habilidade) {
     sheetAbilityList.append(criarItemVisualHabilidade(habilidade, false));
   });
-  renderizarDetalhesDaHabilidade();
-}
-
-function criarDadoDaHabilidade(rotulo, valor, iconeId) {
-  if (valor === "" || valor === null || valor === undefined || valor === 0) return null;
-  const wrapper = document.createElement("div");
-  const term = document.createElement("dt");
-  const description = document.createElement("dd");
-  term.textContent = rotulo;
-  description.textContent = valor;
-  if (iconeId) {
-    const icon = document.createElement("span");
-    icon.className = "sheet-ability-fact-icon";
-    icon.append(criarIconeHabilidade(iconeId));
-    wrapper.append(icon);
-  }
-  wrapper.append(term, description);
-  return wrapper;
-}
-
-function criarSecaoTextualHabilidade(titulo, conteudo) {
-  const itens = Array.isArray(conteudo) ? conteudo : [];
-  if (!itens.length && !String(conteudo ?? "").trim()) return null;
-
-  const section = document.createElement("section");
-  const modificador = normalizarTermoHabilidade(titulo).replace(/\s+/g, "-");
-  section.className = `sheet-ability-text-section sheet-ability-text-section--${modificador}`;
-  const heading = document.createElement("h3");
-  heading.textContent = titulo;
-  section.append(heading);
-
-  if (Array.isArray(conteudo)) {
-    const list = document.createElement("ul");
-    conteudo.forEach(function (item) {
-      const li = document.createElement("li");
-      li.textContent = item;
-      list.append(li);
-    });
-    section.append(list);
-  } else {
-    const paragraph = document.createElement("p");
-    paragraph.textContent = conteudo;
-    section.append(paragraph);
-  }
-
-  return section;
+  renderizarDetalhesDaHabilidade(habilidades);
 }
 
 function criarControleOperacionalHabilidade(habilidade, tipo) {
@@ -3845,110 +3788,112 @@ function criarControleOperacionalHabilidade(habilidade, tipo) {
   plus.disabled = atual >= maximo;
   controls.append(minus, value, plus);
   section.append(heading, controls);
+  if (tipo === "usos" && dados.recuperacao) {
+    const recovery = document.createElement("p");
+    recovery.className = "sheet-ability-counter__recovery";
+    recovery.textContent = `Recuperação: ${dados.recuperacao}`;
+    section.append(recovery);
+  }
   return section;
 }
 
-function renderizarDetalhesDaHabilidade() {
+function renderizarDetalhesDaHabilidade(habilidadesVisiveis = obterHabilidadesFiltradas()) {
   sheetAbilityDetails.replaceChildren();
-  const panelHeading = document.createElement("header");
-  panelHeading.className = "sheet-ability-details__panel-heading";
-  panelHeading.append(criarIconeHabilidade("estrela"));
-  const panelTitle = document.createElement("h2");
-  panelTitle.textContent = "Detalhes da habilidade selecionada";
-  panelHeading.append(panelTitle);
-  sheetAbilityDetails.append(panelHeading);
-
-  const habilidade = encontrarHabilidade(habilidadeSelecionadaId);
+  const habilidade = habilidadesVisiveis.find(function (item) {
+    return item.id === habilidadeSelecionadaId;
+  }) || null;
 
   if (!habilidade) {
-    const empty = document.createElement("div");
-    empty.className = "sheet-ability-empty sheet-ability-empty--details";
-    empty.innerHTML = "<strong>Selecione uma habilidade.</strong><span>Os detalhes e controles aparecerão aqui.</span>";
-    sheetAbilityDetails.append(empty);
+    const total = personagem.habilidades.length;
+    sheetAbilityDetails.append(window.GrimorioAbilitiesView.createEmptyState({
+      title: total ? "Nenhuma habilidade visível." : "Seu grimório está vazio.",
+      description: total
+        ? "Altere os filtros ou a busca para voltar a inspecionar uma habilidade."
+        : "Importe uma habilidade para consultar seus detalhes aqui."
+    }));
     return;
   }
 
-  const header = document.createElement("header");
-  header.className = "sheet-ability-details__header";
-  const identity = document.createElement("div");
-  identity.className = "sheet-ability-details__identity";
-  const icon = document.createElement("span");
-  icon.className = `sheet-ability-details__icon is-${habilidade.tipo}`;
-  icon.append(criarIconeHabilidade(habilidade.iconeId));
-  const copy = document.createElement("div");
-  const overline = document.createElement("span");
-  overline.textContent = `${obterRotuloTipoHabilidade(habilidade.tipo)}${habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : ""}`;
-  const title = document.createElement("h2");
-  title.textContent = habilidade.nome;
-  const state = document.createElement("small");
   const estado = obterEstadoHabilidade(habilidade);
-  state.className = `sheet-ability-state is-${estado}`;
-  state.textContent = obterRotuloEstadoHabilidade(estado);
-  copy.append(overline, title, state);
-  identity.append(icon, copy);
+  const header = window.GrimorioAbilitiesView.createDetailHeader({
+    ability: habilidade,
+    state: estado,
+    typeLabel: obterRotuloTipoHabilidade(habilidade.tipo),
+    stateLabel: obterRotuloEstadoHabilidade(estado),
+    createIcon: criarIconeHabilidade
+  });
 
-  const actions = document.createElement("details");
-  actions.className = "sheet-ability-details__actions";
-  const actionsSummary = document.createElement("summary");
-  actionsSummary.textContent = "⋯";
-  actionsSummary.setAttribute("aria-label", `Mais ações para ${habilidade.nome}`);
-  const actionsMenu = document.createElement("div");
-  actionsMenu.className = "sheet-ability-details__actions-menu";
-  const changeIcon = document.createElement("button");
-  changeIcon.type = "button";
-  changeIcon.dataset.abilityAction = "change-icon";
-  changeIcon.textContent = "Alterar ícone";
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.dataset.abilityAction = "remove";
-  remove.textContent = "Remover";
-  actionsMenu.append(changeIcon, remove);
-  actions.append(actionsSummary, actionsMenu);
-  header.append(identity, actions);
-
-  const facts = document.createElement("dl");
-  facts.className = "sheet-ability-facts";
-  [
-    criarDadoDaHabilidade("Mana", habilidade.custos.mana, "mana"),
-    criarDadoDaHabilidade("Atributo", habilidade.atributo, "mente"),
-    criarDadoDaHabilidade("Alcance", habilidade.alcance, "alvo"),
-    criarDadoDaHabilidade("Ação", habilidade.acao, "tempo"),
-    criarDadoDaHabilidade("Duração", habilidade.duracao, "tempo"),
-    criarDadoDaHabilidade("Dano", habilidade.dano, "espada"),
-    criarDadoDaHabilidade("PE", habilidade.custos.pe, "estrela")
-  ].filter(Boolean).forEach(function (fact) { facts.append(fact); });
+  const mechanics = document.createElement("div");
+  mechanics.className = "ability-mechanics";
+  mechanics.append(
+    window.GrimorioAbilitiesView.createMechanicCell({
+      label: "Custos",
+      iconId: "mana",
+      createIcon: criarIconeHabilidade,
+      lines: [
+        { label: "Mana", value: habilidade.custos.mana || "—" },
+        { label: "PE", value: habilidade.custos.pe || "—" }
+      ]
+    }),
+    window.GrimorioAbilitiesView.createMechanicCell({
+      label: "Alcance",
+      value: habilidade.alcance || "—",
+      iconId: "alvo",
+      createIcon: criarIconeHabilidade
+    }),
+    window.GrimorioAbilitiesView.createMechanicCell({
+      label: "Dano",
+      value: habilidade.dano || "—",
+      iconId: "espada",
+      createIcon: criarIconeHabilidade
+    }),
+    window.GrimorioAbilitiesView.createMechanicCell({
+      label: "Duração",
+      value: habilidade.duracao || "—",
+      iconId: "tempo",
+      createIcon: criarIconeHabilidade
+    })
+  );
 
   const counters = document.createElement("div");
-  counters.className = "sheet-ability-counters";
+  counters.className = "ability-operational";
   [
     criarControleOperacionalHabilidade(habilidade, "usos"),
     criarControleOperacionalHabilidade(habilidade, "recarga")
   ].filter(Boolean).forEach(function (counter) { counters.append(counter); });
 
   const content = document.createElement("div");
-  content.className = "sheet-ability-details__content";
-  const primaryColumn = document.createElement("div");
-  primaryColumn.className = "sheet-ability-text-column sheet-ability-text-column--primary";
+  content.className = "ability-detail__content";
   [
-    criarSecaoTextualHabilidade("Descrição", habilidade.descricao),
-    criarSecaoTextualHabilidade("Condições e efeitos", habilidade.efeitos)
-  ].filter(Boolean).forEach(function (section) { primaryColumn.append(section); });
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Descrição",
+      content: habilidade.descricao,
+      variant: "description"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Condições e efeitos",
+      content: habilidade.efeitos,
+      variant: "effects"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Requisitos",
+      content: habilidade.requisitos,
+      variant: "requirements"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Limitações",
+      content: habilidade.limitacoes,
+      variant: "limitations"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Observações",
+      content: habilidade.observacoes,
+      variant: "observations"
+    })
+  ].filter(Boolean).forEach(function (section) { content.append(section); });
 
-  const textColumns = [
-    primaryColumn.children.length ? primaryColumn : null,
-    criarSecaoTextualHabilidade("Requisitos", habilidade.requisitos),
-    criarSecaoTextualHabilidade("Limitações", habilidade.limitacoes),
-    criarSecaoTextualHabilidade("Observações", habilidade.observacoes)
-  ].filter(Boolean);
-  content.classList.add(`has-${textColumns.length}-columns`);
-  textColumns.forEach(function (section) { content.append(section); });
-
-  const overview = document.createElement("div");
-  overview.className = "sheet-ability-details__overview";
-  overview.append(header);
-  if (facts.children.length) overview.append(facts);
-  if (counters.children.length) overview.append(counters);
-  sheetAbilityDetails.append(overview);
+  sheetAbilityDetails.append(header, mechanics);
+  if (counters.children.length) sheetAbilityDetails.append(counters);
   if (content.children.length) sheetAbilityDetails.append(content);
 }
 
@@ -3962,29 +3907,24 @@ function renderizarEstatisticasDeHabilidades() {
   }, { atual: 0, maximo: 0 });
 
   const estatisticas = [
-    { rotulo: "Total de habilidades", valor: personagem.habilidades.length, icone: "book" },
-    { rotulo: "Passivas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "passiva"; }).length, icone: "wing" },
-    { rotulo: "Técnicas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "tecnica"; }).length, icone: "rune-star" },
-    { rotulo: "Supremas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "suprema"; }).length, icone: "crown" },
-    { rotulo: "Usos restantes", valor: `${totaisDeUsos.atual} / ${totaisDeUsos.maximo}`, icone: "hourglass" }
+    { rotulo: "Total de habilidades", valor: personagem.habilidades.length, subtitulo: "no grimório", icone: "book" },
+    { rotulo: "Passivas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "passiva"; }).length, subtitulo: "sempre ativas", icone: "wing" },
+    { rotulo: "Técnicas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "tecnica"; }).length, subtitulo: "ações treinadas", icone: "rune-star" },
+    { rotulo: "Supremas", valor: personagem.habilidades.filter(function (item) { return item.tipo === "suprema"; }).length, subtitulo: "poder máximo", icone: "crown" },
+    { rotulo: "Usos restantes", valor: `${totaisDeUsos.atual} / ${totaisDeUsos.maximo}`, subtitulo: "cargas disponíveis", icone: "hourglass" }
   ];
 
   estatisticas.forEach(function (estatistica) {
-    const item = document.createElement("div");
-    const icon = document.createElement("span");
-    icon.append(criarIconeHabilidade(
-      CATALOGO_ICONES_HABILIDADE.find(function (definicao) {
-        return definicao.simbolo === estatistica.icone;
-      })?.id || "habilidade-generica"
-    ));
-    const copy = document.createElement("span");
-    const label = document.createElement("small");
-    const value = document.createElement("strong");
-    label.textContent = estatistica.rotulo;
-    value.textContent = estatistica.valor;
-    copy.append(label, value);
-    item.append(icon, copy);
-    sheetAbilityStats.append(item);
+    const iconId = CATALOGO_ICONES_HABILIDADE.find(function (definicao) {
+      return definicao.simbolo === estatistica.icone;
+    })?.id || "habilidade-generica";
+    sheetAbilityStats.append(window.GrimorioAbilitiesView.createLedgerItem({
+      label: estatistica.rotulo,
+      value: estatistica.valor,
+      subtitle: estatistica.subtitulo,
+      iconId,
+      createIcon: criarIconeHabilidade
+    }));
   });
 }
 
@@ -4017,8 +3957,15 @@ function alterarRecargaDaHabilidade(habilidadeId, diferenca) {
   renderizarHabilidadesAposMutacao();
 }
 
+function definirMenuDeSecoesFuturasAberto(aberto) {
+  const deveAbrir = Boolean(aberto);
+  sheetSidebar.classList.toggle("is-more-open", deveAbrir);
+  sheetSidebarMore.setAttribute("aria-expanded", String(deveAbrir));
+}
+
 function ativarSecaoDaFicha(secao, habilidadeId) {
   if (!["summary", "abilities", "inventory"].includes(secao)) return;
+  definirMenuDeSecoesFuturasAberto(false);
   if (habilidadeId && encontrarHabilidade(habilidadeId)) habilidadeSelecionadaId = habilidadeId;
 
   sheetViews.forEach(function (view) {
@@ -4521,24 +4468,113 @@ function obterSimboloVisualDoItem(item) {
   return SIMBOLOS_DE_TIPO_DE_ITEM[item.item.tipo] || SIMBOLOS_DE_TIPO_DE_ITEM.outro;
 }
 
-function criarArteDoItem(item, classe) {
+function marcarImagemDoItemComoFalha(endereco) {
+  if (endereco) imagensDeItemComFalha.add(endereco);
+}
+
+function configurarOrientacaoVisualDaArte(moldura, item, rotacao) {
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, rotacao);
+  const rotacionado = rotacao === 90;
+  moldura.dataset.itemRotation = String(rotacao);
+  moldura.style.setProperty("--item-art-rotation", `${rotacao}deg`);
+  moldura.style.setProperty(
+    "--item-art-width-scale",
+    String(rotacionado ? dimensoes.altura / dimensoes.largura : 1)
+  );
+  moldura.style.setProperty(
+    "--item-art-height-scale",
+    String(rotacionado ? dimensoes.largura / dimensoes.altura : 1)
+  );
+}
+
+async function preloadImagemDoItem(item) {
+  const endereco = item?.item?.imagem;
+  if (!endereco || imagensDeItemComFalha.has(endereco)) return false;
+
+  const imagem = new Image();
+  imagem.src = endereco;
+  try {
+    if (typeof imagem.decode === "function") {
+      await imagem.decode();
+    } else {
+      await new Promise(function (resolve, reject) {
+        imagem.addEventListener("load", resolve, { once: true });
+        imagem.addEventListener("error", reject, { once: true });
+      });
+    }
+    return true;
+  } catch (_erro) {
+    marcarImagemDoItemComoFalha(endereco);
+    return false;
+  }
+}
+
+function criarArteDoItem(item, classe, opcoes = {}) {
   const moldura = document.createElement("span");
+  const rotacao = opcoes.rotacao ?? item.rotacao ?? 0;
   moldura.className = classe || "sheet-inventory-item__art";
+  moldura.classList.add("inventory-item-art");
   moldura.dataset.itemSymbol = obterSimboloVisualDoItem(item);
-  if (item.item.imagem) {
+  configurarOrientacaoVisualDaArte(moldura, item, rotacao);
+  if (item.item.imagem && !imagensDeItemComFalha.has(item.item.imagem)) {
     const imagem = document.createElement("img");
     imagem.src = item.item.imagem;
     imagem.alt = "";
-    imagem.loading = "lazy";
+    imagem.loading = opcoes.eager ? "eager" : "lazy";
+    imagem.decoding = "async";
+    moldura.classList.add("is-loading-image");
+    imagem.addEventListener("load", function () {
+      moldura.classList.remove("is-loading-image", "uses-fallback");
+    }, { once: true });
     imagem.addEventListener("error", function () {
+      marcarImagemDoItemComoFalha(item.item.imagem);
       imagem.remove();
-      moldura.classList.add("uses-fallback");
+      moldura.classList.remove("is-loading-image");
+      moldura.classList.add("uses-fallback", "has-image-error");
     }, { once: true });
     moldura.append(imagem);
   } else {
     moldura.classList.add("uses-fallback");
   }
   return moldura;
+}
+
+function obterFormatoDaCartaDoItem(item, rotacao = item.rotacao) {
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, rotacao);
+  const area = dimensoes.largura * dimensoes.altura;
+  return {
+    shape: dimensoes.largura > dimensoes.altura
+      ? "wide"
+      : dimensoes.altura > dimensoes.largura
+        ? "tall"
+        : "square",
+    density: area <= 1 ? "compact" : area <= 3 ? "small" : "full",
+    dimensoes
+  };
+}
+
+function atualizarFormatoDaCarta(elemento, item, rotacao = item.rotacao) {
+  if (!elemento) return;
+  const formato = obterFormatoDaCartaDoItem(item, rotacao);
+  elemento.dataset.shape = formato.shape;
+  elemento.dataset.density = formato.density;
+  elemento.dataset.rotation = String(rotacao);
+}
+
+function criarCartaDoItem(item, opcoes = {}) {
+  const visual = obterConfiguracaoVisualDoItem(item);
+  const rotacao = opcoes.rotacao ?? item.rotacao ?? 0;
+  const formato = obterFormatoDaCartaDoItem(item, rotacao);
+  return window.GrimorioInventoryCards.createItemCard({
+    item,
+    options: opcoes,
+    visual,
+    rotation: rotacao,
+    format: formato,
+    symbol: obterSimboloVisualDoItem(item),
+    createArt: criarArteDoItem,
+    formatWeight: formatarPeso
+  });
 }
 
 function formatarPeso(valor) {
@@ -4570,19 +4606,75 @@ function obterItemDoInventarioPorId(itemId) {
   }) || null;
 }
 
+function obterIdsReservadosDoInventario() {
+  const ids = new Set(personagem.inventario.map(function (item) { return item.id; }));
+  Object.values(personagem.equipamentos || {}).forEach(function (item) {
+    if (item?.id) ids.add(item.id);
+  });
+  if (personagem.inventarioStaging?.id) ids.add(personagem.inventarioStaging.id);
+  return ids;
+}
+
+function normalizarEquipamentosPersistidos(equipamentos, inventario) {
+  const origem = ehObjetoDeDados(equipamentos) ? equipamentos : {};
+  const idsReservados = new Set((inventario || []).map(function (item) { return item.id; }));
+  const resultado = { armadura: null, maoPrincipal: null, maoSecundaria: null };
+
+  ["armadura", "maoPrincipal", "maoSecundaria"].forEach(function (slot) {
+    const bruto = origem[slot];
+    if (bruto === undefined || bruto === null || bruto === "") return;
+    const ehInstancia = ehObjetoDeDados(bruto) && ehObjetoDeDados(bruto.item);
+    const definicao = dominioDoInventario.normalizeItemDefinition(
+      ehInstancia ? bruto.item : bruto,
+      { allowLegacyString: true, allowDefaultSize: true }
+    );
+    resultado[slot] = dominioDoInventario.normalizeInventoryItem({
+      id: ehInstancia ? bruto.id : undefined,
+      item: definicao,
+      posicao: { x: 0, y: 0 },
+      rotacao: ehInstancia && [0, 90].includes(bruto.rotacao) ? bruto.rotacao : 0
+    }, {
+      usedIds: idsReservados,
+      preserveValidId: true
+    });
+  });
+  return resultado;
+}
+
+function normalizarItemPersistidoNaBancada(itemBruto, inventario, equipamentos) {
+  if (itemBruto === undefined || itemBruto === null || itemBruto === "") return null;
+  const idsReservados = new Set((inventario || []).map(function (item) { return item.id; }));
+  Object.values(equipamentos || {}).forEach(function (item) {
+    if (item?.id) idsReservados.add(item.id);
+  });
+  const ehInstancia = ehObjetoDeDados(itemBruto) && ehObjetoDeDados(itemBruto.item);
+  const definicao = dominioDoInventario.normalizeItemDefinition(
+    ehInstancia ? itemBruto.item : itemBruto,
+    { allowLegacyString: true, allowDefaultSize: true }
+  );
+  return dominioDoInventario.normalizeInventoryItem({
+    id: ehInstancia ? itemBruto.id : undefined,
+    item: definicao,
+    posicao: { x: 0, y: 0 },
+    rotacao: ehInstancia && [0, 90].includes(itemBruto.rotacao) ? itemBruto.rotacao : 0
+  }, {
+    usedIds: idsReservados,
+    preserveValidId: true
+  });
+}
+
 function resetarEstadoTransitorioDoInventario() {
-  inventoryUIState.pendingPlacement = null;
   inventoryUIState.reorganizingForPending = false;
   inventoryUIState.movingItemId = null;
   inventoryUIState.selectedItemId = null;
   inventoryUIState.hoveredCell = null;
   inventoryUIState.candidatePosition = null;
-  inventoryUIState.pointerSession = null;
   inventoryUIState.discardingItemId = null;
+  limparEstadoFisicoDoInventario();
 }
 
 function obterDisponibilidadeDoItemPendente() {
-  const itemPendente = inventoryUIState.pendingPlacement;
+  const itemPendente = personagem.inventarioStaging;
   if (!itemPendente) return null;
 
   return dominioDoInventario.getInventoryPlacementAvailability(
@@ -4593,10 +4685,13 @@ function obterDisponibilidadeDoItemPendente() {
 }
 
 function obterItemEmPosicionamento() {
+  const itemFisico = obterItemDoArrasteFisico();
+  if (itemFisico) return itemFisico;
   if (inventoryUIState.movingItemId) {
     return obterItemDoInventarioPorId(inventoryUIState.movingItemId);
   }
-  return inventoryUIState.pendingPlacement;
+  // Staging persistente não é, por si só, um estado de posicionamento.
+  return inventoryUIState.candidatePosition ? personagem.inventarioStaging : null;
 }
 
 function avaliarPosicionamentoAtual() {
@@ -4606,7 +4701,9 @@ function avaliarPosicionamentoAtual() {
 
   return dominioDoInventario.canPlaceItem(personagem.inventario, item, posicao, {
     rotation: item.rotacao,
-    ignoreItemId: inventoryUIState.movingItemId || undefined
+    ignoreItemId: inventoryDrag.phase !== "idle"
+      ? (inventoryDrag.source?.kind === "inventory" ? item.id : undefined)
+      : inventoryUIState.movingItemId || undefined
   });
 }
 
@@ -4618,42 +4715,99 @@ function descreverResultadoDoPosicionamento(resultado) {
   return "Posição inválida: parte do item ficaria fora da mochila.";
 }
 
+function definirMensagemNeutraDaMochila() {
+  sheetInventoryPlacementStatus.textContent = "Selecione ou arraste uma peça para organizar a mochila.";
+}
+
+function removerPreviewDoInventarioComFade() {
+  const elementos = Array.from(sheetInventoryPreviewLayer.children);
+  if (!elementos.length) return;
+  if (deveReduzirMovimento()) {
+    sheetInventoryPreviewLayer.replaceChildren();
+    return;
+  }
+  elementos.forEach(function (elemento) {
+    if (elemento.classList.contains("is-preview-exiting")) return;
+    elemento.classList.add("is-preview-exiting");
+    window.GrimorioInventoryMotion.animatePreviewExit(elemento, {
+      reduceMotion: false
+    }).finally(function () {
+      elemento.remove();
+    });
+  });
+}
+
+function clearBackpackPreview(opcoes = {}) {
+  inventoryUIState.candidatePosition = null;
+  inventoryUIState.hoveredCell = null;
+  sheetInventoryCellLayer.querySelectorAll(".sheet-inventory-cell").forEach(function (celula) {
+    celula.classList.remove("is-preview-valid", "is-preview-invalid");
+  });
+  removerPreviewDoInventarioComFade();
+  sheetInventoryGrid.classList.remove(
+    "is-positioning",
+    "has-valid-preview",
+    "has-invalid-preview",
+    "is-dragging-item"
+  );
+  if (opcoes.restaurarMensagem !== false) definirMensagemNeutraDaMochila();
+}
+
 function renderizarPreviewDoInventario() {
+  const dragEspacialAtivo = inventoryDrag.phase === "dragging"
+    && inventoryDrag.target === "backpack";
   const item = obterItemEmPosicionamento();
   const posicao = inventoryUIState.candidatePosition;
   const resultado = avaliarPosicionamentoAtual();
 
-  sheetInventoryGrid.classList.toggle("is-positioning", Boolean(item));
+  sheetInventoryGrid.classList.toggle("is-positioning", dragEspacialAtivo);
   sheetInventoryGrid.classList.toggle("has-valid-preview", Boolean(resultado?.valid));
   sheetInventoryGrid.classList.toggle("has-invalid-preview", Boolean(resultado && !resultado.valid));
 
-  if (!item || !posicao || !resultado) {
-    sheetInventoryPreviewLayer.replaceChildren();
+  // Regra V3.1: ghost existe somente durante drag físico sobre a mochila.
+  if (!dragEspacialAtivo || !item || !posicao || !resultado) {
+    sheetInventoryGrid.classList.remove("has-valid-preview", "has-invalid-preview");
+    removerPreviewDoInventarioComFade();
     return;
   }
 
   const fragmento = document.createDocumentFragment();
   const classeDeEstado = resultado.valid ? "is-valid" : "is-invalid";
-  resultado.cells.forEach(function (celula) {
-    if (
-      celula.x < 0
+  const geometria = medirGeometriaDaGradeDoInventario();
+  const itemIdIgnorado = inventoryDrag.source?.kind === "inventory"
+    ? item.id
+    : inventoryUIState.movingItemId;
+  const inventarioParaMatriz = itemIdIgnorado
+    ? personagem.inventario.filter(function (entrada) { return entrada.id !== itemIdIgnorado; })
+    : personagem.inventario;
+  const matriz = dominioDoInventario.createOccupancyMatrix(inventarioParaMatriz);
+  resultado.cells.forEach(function (celula, indice) {
+    const fora = celula.x < 0
       || celula.y < 0
       || celula.x >= CONFIGURACAO_DO_INVENTARIO.columns
-      || celula.y >= CONFIGURACAO_DO_INVENTARIO.rows
-    ) return;
-
+      || celula.y >= CONFIGURACAO_DO_INVENTARIO.rows;
+    const colide = !fora && matriz[celula.y][celula.x] !== null;
     const marcador = document.createElement("span");
     marcador.className = `sheet-inventory-preview-cell ${classeDeEstado}`;
-    marcador.style.gridColumnStart = String(celula.x + 1);
-    marcador.style.gridRowStart = String(celula.y + 1);
+    marcador.classList.toggle("is-outside", fora);
+    marcador.classList.toggle("is-collision", colide);
+    marcador.classList.toggle("is-clear-invalid", !resultado.valid && !fora && !colide);
+    marcador.style.left = `${celula.x * geometria.stepX}px`;
+    marcador.style.top = `${celula.y * geometria.stepY}px`;
+    marcador.style.width = `${geometria.cellWidth}px`;
+    marcador.style.height = `${geometria.cellHeight}px`;
+    marcador.style.setProperty("--preview-index", String(indice));
     fragmento.append(marcador);
   });
 
   const contorno = document.createElement("span");
   contorno.className = `sheet-inventory-preview-footprint ${classeDeEstado}`;
   contorno.classList.toggle("is-moving", Boolean(inventoryUIState.movingItemId));
-  contorno.style.gridColumn = `${posicao.x + 1} / span ${resultado.dimensions.largura}`;
-  contorno.style.gridRow = `${posicao.y + 1} / span ${resultado.dimensions.altura}`;
+  contorno.style.left = `${posicao.x * geometria.stepX}px`;
+  contorno.style.top = `${posicao.y * geometria.stepY}px`;
+  contorno.style.width = `${geometria.cellWidth * resultado.dimensions.largura + geometria.columnGap * (resultado.dimensions.largura - 1)}px`;
+  contorno.style.height = `${geometria.cellHeight * resultado.dimensions.altura + geometria.rowGap * (resultado.dimensions.altura - 1)}px`;
+  contorno.style.animationDelay = `${Math.min(resultado.cells.length * 12, 80)}ms`;
   contorno.dataset.label = resultado.valid ? "✓ Encaixe" : "× Bloqueado";
   fragmento.append(contorno);
   sheetInventoryPreviewLayer.replaceChildren(fragmento);
@@ -4673,7 +4827,13 @@ function atualizarFeedbackVisualDoPosicionamento() {
   renderizarPreviewDoInventario();
 
   if (resultado) {
-    sheetInventoryPlacementStatus.textContent = descreverResultadoDoPosicionamento(resultado);
+    if (inventoryDrag.phase === "dragging" && inventoryDrag.target === "backpack") {
+      sheetInventoryPlacementStatus.textContent = resultado.valid
+        ? `Solte para guardar · ${resultado.dimensions.largura} × ${resultado.dimensions.altura}`
+        : "Não cabe nesta posição.";
+    } else {
+      sheetInventoryPlacementStatus.textContent = descreverResultadoDoPosicionamento(resultado);
+    }
   }
 }
 
@@ -4684,25 +4844,24 @@ function renderizarResumoDoInventario(celulasUsadas) {
   const rotuloOcupadas = celulasUsadas === 1 ? "célula ocupada" : "células ocupadas";
   const rotuloLivres = celulasLivres === 1 ? "célula livre" : "células livres";
 
-  sheetInventoryUsedCells.textContent = `${celulasUsadas} de ${capacidade} ${rotuloOcupadas}`;
-  sheetInventoryFreeCells.textContent = `${celulasLivres} ${rotuloLivres}`;
+  if (sheetInventoryUsedCells) sheetInventoryUsedCells.textContent = `${celulasUsadas} de ${capacidade} ${rotuloOcupadas}`;
+  if (sheetInventoryFreeCells) sheetInventoryFreeCells.textContent = `${celulasLivres} ${rotuloLivres}`;
   sheetInventoryCapacity.textContent = `${celulasUsadas} / ${capacidade} células`;
-  sheetInventoryOccupancy.setAttribute("aria-valuemax", String(capacidade));
-  sheetInventoryOccupancy.setAttribute("aria-valuenow", String(celulasUsadas));
-  sheetInventoryOccupancy.setAttribute(
-    "aria-valuetext",
-    `${celulasUsadas} de ${capacidade} células ocupadas`
-  );
-  sheetInventoryOccupancyBar.style.width = `${percentualOcupado}%`;
+  if (sheetInventoryOccupancy) {
+    sheetInventoryOccupancy.setAttribute("aria-valuemax", String(capacidade));
+    sheetInventoryOccupancy.setAttribute("aria-valuenow", String(celulasUsadas));
+    sheetInventoryOccupancy.setAttribute("aria-valuetext", `${celulasUsadas} de ${capacidade} células ocupadas`);
+  }
+  if (sheetInventoryOccupancyBar) sheetInventoryOccupancyBar.style.width = `${percentualOcupado}%`;
 
   if (celulasUsadas === 0) {
-    sheetInventorySummaryStatus.textContent = "A mochila está vazia e pronta para receber itens.";
+    if (sheetInventorySummaryStatus) sheetInventorySummaryStatus.textContent = "A mochila está vazia e pronta para receber itens.";
   } else if (celulasUsadas === capacidade) {
-    sheetInventorySummaryStatus.textContent = "A mochila está completamente ocupada.";
+    if (sheetInventorySummaryStatus) sheetInventorySummaryStatus.textContent = "A mochila está completamente ocupada.";
   } else {
     const quantidadeDeItens = personagem.inventario.length;
     const rotuloDeItens = quantidadeDeItens === 1 ? "item organizado" : "itens organizados";
-    sheetInventorySummaryStatus.textContent = `${quantidadeDeItens} ${rotuloDeItens} na mochila.`;
+    if (sheetInventorySummaryStatus) sheetInventorySummaryStatus.textContent = `${quantidadeDeItens} ${rotuloDeItens} na mochila.`;
   }
 }
 
@@ -4726,7 +4885,7 @@ function sincronizarConfiguracaoVisualDaMochila(celulasUsadas) {
 
 function renderizarCamadaDeCelulasDoInventario(matrizDeOcupacao) {
   const fragmento = document.createDocumentFragment();
-  const modoInterativo = Boolean(inventoryUIState.pendingPlacement || inventoryUIState.movingItemId);
+  const modoInterativo = Boolean(inventoryUIState.candidatePosition || inventoryUIState.movingItemId);
   const posicaoPreferida = inventoryUIState.candidatePosition || inventoryUIState.hoveredCell;
   const posicaoDoTabStop = posicaoPreferida
     && Number.isInteger(posicaoPreferida.x)
@@ -4769,7 +4928,7 @@ function renderizarCamadaDeCelulasDoInventario(matrizDeOcupacao) {
             ? `Coluna ${x + 1}, linha ${y + 1}: ocupada por ${item.item.nome}.`
             : `Coluna ${x + 1}, linha ${y + 1}: célula livre.`
         );
-        celula.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight Enter Escape");
+        celula.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight Enter Escape R");
       }
 
       fragmento.append(celula);
@@ -4784,10 +4943,8 @@ function criarBotaoDeItemDoInventario(item) {
   const visual = obterConfiguracaoVisualDoItem(item);
   const selecionado = inventoryUIState.selectedItemId === item.id;
   const botao = document.createElement("button");
-  const arte = criarArteDoItem(item);
-  const legenda = document.createElement("span");
-  const nome = document.createElement("strong");
-  const metadados = document.createElement("span");
+  const arte = criarCartaDoItem(item, { contexto: "grid" });
+  const medida = document.createElement("span");
 
   botao.type = "button";
   botao.className = "sheet-inventory-item";
@@ -4808,17 +4965,15 @@ function criarBotaoDeItemDoInventario(item) {
     `${item.item.nome}, ${visual.raridade.label}, ${dimensoes.largura} por ${dimensoes.altura} células, coluna ${item.posicao.x + 1}, linha ${item.posicao.y + 1}.`
   );
 
-  nome.textContent = item.item.nome;
-  metadados.textContent = item.item.atributoPrincipal?.valor || visual.raridade.label;
-  legenda.className = "sheet-inventory-item__caption";
-  legenda.append(nome, metadados);
+  medida.className = "inventory-item-badge";
+  medida.textContent = `${dimensoes.largura} × ${dimensoes.altura}`;
   if (item.item.quantidade > 1) {
     const quantidade = document.createElement("b");
     quantidade.className = "sheet-inventory-item__quantity";
     quantidade.textContent = `×${item.item.quantidade}`;
     botao.append(quantidade);
   }
-  botao.append(arte, legenda);
+  botao.append(arte, medida);
   return botao;
 }
 
@@ -4862,6 +5017,7 @@ function criarDetalhesVisuaisDoItem(item, opcoes = {}) {
   const destaque = document.createElement("div");
   const descricao = document.createElement("p");
   const lista = document.createElement("dl");
+  let propriedadesVisuais = null;
 
   conteudo.className = "sheet-inventory-details__content";
   conteudo.classList.add(visual.raridade.cssClass);
@@ -4888,20 +5044,18 @@ function criarDetalhesVisuaisDoItem(item, opcoes = {}) {
     criarLinhaDeDetalheDoInventario("Tipo", visual.tipo.label),
     criarLinhaDeDetalheDoInventario("Tamanho", `${dimensoes.largura} × ${dimensoes.altura} células`),
     criarLinhaDeDetalheDoInventario("Peso", formatarPeso(item.item.peso)),
+    criarLinhaDeDetalheDoInventario("Quantidade", String(item.item.quantidade || 1)),
     criarLinhaDeDetalheDoInventario("Rotação", `${item.rotacao}°`)
   );
 
   if (item.item.propriedades?.length) {
-    const propriedades = document.createElement("div");
-    propriedades.className = "sheet-inventory-details__properties";
+    propriedadesVisuais = document.createElement("div");
+    propriedadesVisuais.className = "sheet-inventory-details__properties";
     item.item.propriedades.forEach(function (propriedade) {
       const tag = document.createElement("span");
       tag.textContent = propriedade;
-      propriedades.append(tag);
+      propriedadesVisuais.append(tag);
     });
-    lista.after(propriedades);
-    conteudo.append(cabecalho, arte, destaque, descricao, lista, propriedades);
-    return conteudo;
   }
 
   if (opcoes.pendente) {
@@ -4916,20 +5070,12 @@ function criarDetalhesVisuaisDoItem(item, opcoes = {}) {
   }
 
   conteudo.append(cabecalho, arte, destaque, descricao, lista);
+  if (propriedadesVisuais) conteudo.append(propriedadesVisuais);
   return conteudo;
 }
 
 function renderizarDetalhesDoInventario() {
-  const itemPendente = inventoryUIState.pendingPlacement;
   const itemSelecionado = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
-  const deveMostrarItemPendente = itemPendente
-    && (!inventoryUIState.reorganizingForPending || !itemSelecionado);
-
-  if (deveMostrarItemPendente) {
-    sheetInventoryDetails.replaceChildren(criarDetalhesVisuaisDoItem(itemPendente, { pendente: true }));
-    sheetInventoryItemActions.hidden = true;
-    return;
-  }
 
   if (!itemSelecionado) {
     inventoryUIState.selectedItemId = null;
@@ -4941,9 +5087,9 @@ function renderizarDetalhesDoInventario() {
 
   sheetInventoryDetails.replaceChildren(criarDetalhesVisuaisDoItem(itemSelecionado));
   sheetInventoryItemActions.hidden = false;
-  const ehArmadura = itemSelecionado.item.tipo === "armadura" || itemSelecionado.item.equipavelEm === "armadura";
-  sheetEquipItem.hidden = !ehArmadura;
-  sheetEquipItem.textContent = "Equipar armadura";
+  const slotEquipavel = obterSlotEquipavelDoItem(itemSelecionado);
+  sheetEquipItem.hidden = !slotEquipavel;
+  sheetEquipItem.textContent = slotEquipavel ? `Equipar em ${rotuloDoSlotDeEquipamento(slotEquipavel)}` : "Equipar";
   const dimensoes = dominioDoInventario.getEffectiveDimensions(itemSelecionado, itemSelecionado.rotacao);
   sheetRotateItem.hidden = dimensoes.largura === dimensoes.altura;
   sheetMoveItem.textContent = inventoryUIState.movingItemId === itemSelecionado.id
@@ -4955,14 +5101,14 @@ function renderizarDetalhesDoInventario() {
 }
 
 function renderizarItemRecebido() {
-  const item = inventoryUIState.pendingPlacement;
+  const item = personagem.inventarioStaging;
   if (!item) {
     sheetInventoryReceived.classList.remove("has-item");
     sheetInventoryReceived.innerHTML = `
-      <div class="sheet-inventory-received__empty">
-        <span class="sheet-inventory-received__seal" aria-hidden="true">✦</span>
-        <strong>Bancada livre</strong>
-        <p>Itens importados aparecem aqui antes de entrar na mochila.</p>
+      <div class="inventory-bench__empty">
+        <span aria-hidden="true">✦</span>
+        <strong>Espaço livre</strong>
+        <p>Use esta área para retirar temporariamente uma peça.</p>
       </div>`;
     return;
   }
@@ -4970,67 +5116,79 @@ function renderizarItemRecebido() {
   const visual = obterConfiguracaoVisualDoItem(item);
   const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
   const cartao = document.createElement("article");
-  const arte = criarArteDoItem(item, "sheet-inventory-received__art");
-  const proporcao = Math.max(0.45, Math.min(1.45, dimensoes.largura / dimensoes.altura));
-  arte.style.setProperty("--received-ratio", String(proporcao));
-  cartao.className = `sheet-inventory-received__card ${visual.raridade.cssClass}`;
-  cartao.append(arte);
-  const texto = document.createElement("div");
-  texto.append(
-    criarElementoComTexto("span", "sheet-inventory-received__rarity", `${visual.tipo.label} · ${visual.raridade.label}`),
-    criarElementoComTexto("h4", "", item.item.nome),
-    criarElementoComTexto("p", "", item.item.descricao || "Uma nova peça aguarda lugar na mochila.")
-  );
-  const lista = document.createElement("dl");
-  lista.append(
-    criarLinhaDeDetalheDoInventario(
-      item.item.atributoPrincipal?.rotulo || "Peso",
-      item.item.atributoPrincipal?.valor || formatarPeso(item.item.peso)
-    ),
-    criarLinhaDeDetalheDoInventario("Volume", `${dimensoes.largura} × ${dimensoes.altura}`)
-  );
-  texto.append(lista);
-  cartao.append(texto);
+  const zonaDeGrab = document.createElement("button");
+  const arte = criarCartaDoItem(item, { contexto: "bench", eager: true });
+
+  cartao.className = `inventory-bench-card ${visual.raridade.cssClass}`;
+  zonaDeGrab.type = "button";
+  zonaDeGrab.className = "inventory-bench-card__grab";
+  zonaDeGrab.dataset.inventoryDragSource = "bench";
+  zonaDeGrab.setAttribute("aria-label", `Segurar ${item.item.nome}, ${dimensoes.largura} por ${dimensoes.altura} células, para mover`);
+  zonaDeGrab.append(arte);
+  cartao.append(zonaDeGrab);
   sheetInventoryReceived.classList.add("has-item");
   sheetInventoryReceived.replaceChildren(cartao);
 }
 
 function renderizarEquipamentoDoInventario() {
-  const armadura = personagem.equipamentos?.armadura;
-  sheetInventoryArmorSlot.classList.toggle("has-item", Boolean(armadura));
-  if (!armadura) {
-    sheetInventoryArmorSlot.setAttribute("aria-label", "Slot de armadura vazio");
-    sheetInventoryArmorSlot.innerHTML = `<span class="sheet-inventory-armor-slot__ghost" aria-hidden="true">♜</span><span><small>Armadura</small><strong>Nenhuma equipada</strong></span>`;
-    return;
-  }
-  const arte = criarArteDoItem(armadura, "sheet-inventory-armor-slot__art");
-  const texto = document.createElement("span");
-  texto.append(
-    criarElementoComTexto("small", "", "Armadura equipada"),
-    criarElementoComTexto("strong", "", armadura.item.nome),
-    criarElementoComTexto("em", "", armadura.item.atributoPrincipal?.valor || formatarPeso(armadura.item.peso))
-  );
-  sheetInventoryArmorSlot.replaceChildren(arte, texto);
-  sheetInventoryArmorSlot.setAttribute("aria-label", `${armadura.item.nome}, armadura equipada. Ative para desequipar.`);
+  const configuracoes = [
+    { id: "armadura", rotulo: "Armadura", simbolo: "♜" },
+    { id: "maoPrincipal", rotulo: "Mão principal", simbolo: "⚔" },
+    { id: "maoSecundaria", rotulo: "Mão secundária", simbolo: "◈" }
+  ];
+  const fragmento = document.createDocumentFragment();
+
+  configuracoes.forEach(function (configuracao) {
+    const item = personagem.equipamentos?.[configuracao.id] || null;
+    const botao = document.createElement("button");
+    const texto = document.createElement("span");
+    botao.type = "button";
+    botao.className = "inventory-equipment-slot";
+    botao.dataset.equipmentSlot = configuracao.id;
+
+    if (!item) {
+      botao.innerHTML = `<span class="inventory-equipment-slot__ghost" aria-hidden="true">${configuracao.simbolo}</span><span><small>${configuracao.rotulo}</small><strong>Slot vazio</strong></span>`;
+      botao.setAttribute("aria-label", `${configuracao.rotulo}: slot vazio`);
+      fragmento.append(botao);
+      return;
+    }
+
+    const visual = obterConfiguracaoVisualDoItem(item);
+    botao.classList.add(visual.raridade.cssClass, "has-item");
+    texto.append(
+      criarElementoComTexto("small", "", configuracao.rotulo),
+      criarElementoComTexto("strong", "", item.item.nome),
+      criarElementoComTexto("em", "", item.item.atributoPrincipal?.valor || formatarPeso(item.item.peso))
+    );
+    botao.append(criarCartaDoItem(item, { contexto: "equipment", density: "small" }), texto);
+    botao.setAttribute("aria-label", `${item.item.nome}, equipado em ${configuracao.rotulo}. Ative para guardar na mochila.`);
+    fragmento.append(botao);
+  });
+
+  sheetInventoryEquipmentSlots.replaceChildren(fragmento);
 }
 
 function renderizarResumoPremiumDoInventario(celulasUsadas) {
-  const armadura = personagem.equipamentos?.armadura;
+  const itensEquipados = Object.values(personagem.equipamentos || {}).filter(Boolean);
+  const itensNaBancada = personagem.inventarioStaging ? [personagem.inventarioStaging] : [];
   const pesoMochila = personagem.inventario.reduce(function (total, item) {
     return total + Number(item.item.peso || 0) * Number(item.item.quantidade || 1);
   }, 0);
-  const pesoTotal = pesoMochila + (armadura ? Number(armadura.item.peso || 0) * Number(armadura.item.quantidade || 1) : 0);
+  const pesoTotal = pesoMochila + itensEquipados.concat(itensNaBancada).reduce(function (total, item) {
+    return total + Number(item.item.peso || 0) * Number(item.item.quantidade || 1);
+  }, 0);
   const pesoMaximo = Number(personagem.capacidadeInventario?.pesoMaximo || 0);
   sheetInventoryWeight.textContent = pesoMaximo > 0 ? `${formatarPeso(pesoTotal)} / ${formatarPeso(pesoMaximo)}` : formatarPeso(pesoTotal);
   sheetInventoryWeightBar.style.width = `${pesoMaximo > 0 ? Math.min(100, (pesoTotal / pesoMaximo) * 100) : Math.min(100, pesoTotal * 2.5)}%`;
-  sheetInventoryItemCount.textContent = String(personagem.inventario.length + (armadura ? 1 : 0));
+  sheetInventoryItemCount.textContent = String(personagem.inventario.length + itensEquipados.length + itensNaBancada.length);
   sheetInventorySpaceSummary.textContent = `${celulasUsadas} / ${CONFIGURACAO_DO_INVENTARIO.capacity}`;
   sheetInventoryGold.textContent = String(personagem.economia?.ouro || 0);
   sheetInventorySilver.textContent = String(personagem.economia?.prata || 0);
 }
 
 function renderizarEstadoDoItemPendente() {
-  const itemPendente = inventoryUIState.pendingPlacement;
+  const itemPendente = personagem.inventarioStaging;
+  sheetCancelItemImport.hidden = true;
 
   if (!itemPendente) {
     inventoryUIState.reorganizingForPending = false;
@@ -5040,10 +5198,7 @@ function renderizarEstadoDoItemPendente() {
   }
 
   const disponibilidade = obterDisponibilidadeDoItemPendente();
-  const dimensoes = disponibilidade.dimensions;
   sheetRotatePendingItem.hidden = itemPendente.item.tamanho.largura === itemPendente.item.tamanho.altura;
-  const visual = obterConfiguracaoVisualDoItem(itemPendente);
-  const resumo = `${itemPendente.item.nome} · ${dimensoes.largura} × ${dimensoes.altura} · ${visual.raridade.label}`;
 
   sheetInventoryPendingActions.hidden = false;
   sheetReorganizeForItem.hidden = disponibilidade.code !== "no-space-available"
@@ -5051,28 +5206,32 @@ function renderizarEstadoDoItemPendente() {
 
   if (inventoryUIState.reorganizingForPending) {
     sheetInventoryPendingHeading.textContent = "Reorganização manual";
-    sheetInventoryPendingMessage.textContent = `${resumo}. Selecione um item já guardado e use Mover item para liberar espaço. O item importado continuará pendente.`;
-    sheetInventoryPlacementStatus.textContent = "Reorganização manual ativa. Nenhum item foi movido automaticamente.";
+    sheetInventoryPendingMessage.textContent = "Libere espaço movendo uma peça já guardada.";
     return;
   }
 
   if (disponibilidade.code === "item-too-large") {
-    sheetInventoryPendingHeading.textContent = "Item incompatível com a mochila";
-    sheetInventoryPendingMessage.textContent = `${resumo}. As dimensões excedem os limites da mochila; reorganizar os itens não resolverá.`;
-    sheetInventoryPlacementStatus.textContent = "Este item é grande demais para a mochila. Cancele a importação ou descarte o item importado.";
+    sheetInventoryPendingHeading.textContent = "Ajuste de footprint";
+    const rotacaoAlternativa = itemPendente.rotacao === 90 ? 0 : 90;
+    const alternativa = dominioDoInventario.getInventoryPlacementAvailability(
+      personagem.inventario,
+      itemPendente,
+      { rotation: rotacaoAlternativa }
+    );
+    sheetInventoryPendingMessage.textContent = alternativa.code === "item-too-large"
+      ? "Não cabe na mochila em nenhuma orientação."
+      : `Não cabe nesta orientação. Gire para ${alternativa.dimensions.largura} × ${alternativa.dimensions.altura}.`;
     return;
   }
 
   if (disponibilidade.code === "no-space-available") {
-    sheetInventoryPendingHeading.textContent = "Item aguardando espaço";
-    sheetInventoryPendingMessage.textContent = `${resumo}. Não existe uma posição válida na organização atual.`;
-    sheetInventoryPlacementStatus.textContent = "Não há espaço disponível na organização atual. Reorganize manualmente, cancele ou descarte o item importado.";
+    sheetInventoryPendingHeading.textContent = "Sem espaço livre";
+    sheetInventoryPendingMessage.textContent = "Reorganize a mochila ou equipe a peça.";
     return;
   }
 
-  sheetInventoryPendingHeading.textContent = "Item aguardando posicionamento";
-  sheetInventoryPendingMessage.textContent = `${resumo}. Escolha uma posição válida na mochila para confirmar a importação.`;
-  sheetInventoryPlacementStatus.textContent = "Item validado. A posição destacada é apenas uma sugestão; escolha e confirme uma posição para adicioná-lo.";
+  sheetInventoryPendingHeading.textContent = "Peça na bancada";
+  sheetInventoryPendingMessage.textContent = "Segure a carta para mover.";
 }
 
 function renderizarInventario() {
@@ -5089,6 +5248,9 @@ function renderizarInventario() {
   renderizarDetalhesDoInventario();
   renderizarEstadoDoItemPendente();
   atualizarFeedbackVisualDoPosicionamento();
+  if (inventoryDrag.phase === "idle" && !inventoryUIState.candidatePosition && !inventoryUIState.movingItemId) {
+    definirMensagemNeutraDaMochila();
+  }
 }
 
 function executarMutacaoDoInventario(mutacao, opcoes = {}) {
@@ -5103,9 +5265,137 @@ function executarMutacaoDoInventario(mutacao, opcoes = {}) {
   return resultado;
 }
 
+function normalizarSlotDeEquipamento(valor) {
+  const token = String(valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]/g, "");
+  const aliases = {
+    armadura: "armadura",
+    armor: "armadura",
+    maoprincipal: "maoPrincipal",
+    mainhand: "maoPrincipal",
+    mao: "maoPrincipal",
+    maosecundaria: "maoSecundaria",
+    offhand: "maoSecundaria",
+    escudo: "maoSecundaria"
+  };
+  return aliases[token] || null;
+}
+
+function obterSlotEquipavelDoItem(item) {
+  if (!item?.item) return null;
+  return normalizarSlotDeEquipamento(item.item.equipavelEm)
+    || (item.item.tipo === "armadura" ? "armadura" : null)
+    || (item.item.tipo === "arma" ? "maoPrincipal" : null);
+}
+
+function obterSlotsEquipaveisDoItem(item) {
+  if (!item?.item) return [];
+  const slotExplicito = normalizarSlotDeEquipamento(item.item.equipavelEm);
+  if (slotExplicito) return [slotExplicito];
+  if (item.item.tipo === "armadura") return ["armadura"];
+  if (item.item.tipo === "arma") return ["maoPrincipal", "maoSecundaria"];
+  return [];
+}
+
+function itemPodeEquiparNoSlot(item, slot) {
+  return obterSlotsEquipaveisDoItem(item).includes(slot);
+}
+
+function rotuloDoSlotDeEquipamento(slot) {
+  return {
+    armadura: "Armadura",
+    maoPrincipal: "Mão principal",
+    maoSecundaria: "Mão secundária"
+  }[slot] || "Equipamento";
+}
+
+async function abrirRevealDeItemRecebido() {
+  const item = personagem.inventarioStaging;
+  if (!item) return;
+  await preloadImagemDoItem(item);
+  if (personagem.inventarioStaging?.id !== item.id) return;
+  const visual = obterConfiguracaoVisualDoItem(item);
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
+  const arte = criarArteDoItem(item, "sheet-inventory-item__art", { eager: true });
+  const revealCerimonial = ["is-rarity-rare", "is-rarity-epic", "is-rarity-legendary"]
+    .includes(visual.raridade.cssClass);
+  inventoryRevealDialog.className = `inventory-reveal ${visual.raridade.cssClass}`;
+  inventoryRevealDialog.dataset.motionLevel = revealCerimonial ? "ceremonial" : "compact";
+  inventoryRevealDialog.querySelector(".inventory-reveal__stage").className = `inventory-reveal__stage ${visual.raridade.cssClass}`;
+  inventoryRevealArt.replaceChildren(arte);
+  inventoryRevealTitle.textContent = item.item.nome;
+  inventoryRevealRarity.textContent = visual.raridade.label;
+  inventoryRevealAttribute.textContent = item.item.atributoPrincipal
+    ? `${visual.tipo.label} · ${item.item.atributoPrincipal.rotulo}: ${item.item.atributoPrincipal.valor}`
+    : visual.tipo.label;
+  inventoryRevealMeta.textContent = `${formatarPeso(item.item.peso)} · ${dimensoes.largura} × ${dimensoes.altura} células · ${item.rotacao}°`;
+  inventoryRevealEquip.hidden = !obterSlotEquipavelDoItem(item);
+  inventoryRevealDialog.showModal();
+  inventoryRevealConfirm.focus({ preventScroll: true });
+}
+
+async function animarItemDoRevealAteBancada() {
+  const origem = inventoryRevealArt.querySelector(".inventory-item-art");
+  const item = personagem.inventarioStaging;
+  if (!origem || !item) {
+    inventoryRevealDialog.close();
+    return;
+  }
+
+  const origemRect = origem.getBoundingClientRect();
+  const viajante = document.createElement("div");
+  viajante.className = "inventory-drag-object";
+  viajante.style.setProperty("--drag-left", `${origemRect.left}px`);
+  viajante.style.setProperty("--drag-top", `${origemRect.top}px`);
+  viajante.style.setProperty("--drag-width", `${origemRect.width}px`);
+  viajante.style.setProperty("--drag-height", `${origemRect.height}px`);
+  const arte = document.createElement("div");
+  arte.className = "inventory-drag-object__art";
+  arte.append(criarArteDoItem(item, "sheet-inventory-item__art", { eager: true }));
+  viajante.append(arte);
+  inventoryDragLayer.append(viajante);
+  inventoryRevealDialog.close();
+
+  await new Promise(function (resolve) { window.requestAnimationFrame(resolve); });
+  const destino = sheetInventoryReceived.querySelector(".inventory-bench-card__grab .inventory-item-art");
+  const destinoRect = destino?.getBoundingClientRect();
+  if (!destinoRect) {
+    viajante.remove();
+    destino?.closest("button")?.focus({ preventScroll: true });
+    if (destino) definirMensagemNeutraDaMochila();
+    return;
+  }
+
+  destino.closest(".inventory-bench-card").classList.add("is-drag-origin");
+  try {
+    await window.GrimorioInventoryMotion.animateTravel(viajante, {
+      from: origemRect,
+      to: destinoRect,
+      kind: "reveal",
+      reduceMotion: deveReduzirMovimento()
+    });
+  } catch (_erro) {
+    // A viagem visual pode ser interrompida por navegação sem afetar o item pendente.
+  }
+  viajante.remove();
+  destino.closest(".inventory-bench-card")?.classList.remove("is-drag-origin");
+  destino.closest("button")?.classList.add("is-settling");
+  window.GrimorioInventoryMotion.animateSettle(destino.closest("button"), {
+    reduceMotion: deveReduzirMovimento()
+  }).finally(function () {
+    destino.closest("button")?.classList.remove("is-settling");
+  });
+  definirMensagemNeutraDaMochila();
+  destino.closest("button")?.focus({ preventScroll: true });
+}
+
 function abrirSeletorDeItemDoInventario() {
-  if (inventoryUIState.pendingPlacement) {
-    sheetInventoryPlacementStatus.textContent = "Posicione, cancele ou descarte o item pendente antes de importar outro.";
+  if (personagem.inventarioStaging) {
+    sheetInventoryPlacementStatus.textContent = "A bancada já possui um item. Mova-o antes de importar outro.";
     return;
   }
 
@@ -5130,13 +5420,12 @@ function obterDefinicaoDoItemImportado(dados) {
 }
 
 function criarItemPendenteDaImportacao(definicao) {
-  const idsEmUso = new Set(personagem.inventario.map(function (item) {
-    return item.id;
-  }));
+  const idsEmUso = obterIdsReservadosDoInventario();
 
   return {
     id: dominioDoInventario.createInventoryItemId(undefined, idsEmUso),
     item: definicao,
+    posicao: { x: 0, y: 0 },
     rotacao: 0
   };
 }
@@ -5164,23 +5453,15 @@ async function importarArquivoDeItem(event) {
     const dados = JSON.parse(conteudo);
     const definicao = obterDefinicaoDoItemImportado(dados);
     const itemPendente = criarItemPendenteDaImportacao(definicao);
-    const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(
-      personagem.inventario,
-      itemPendente,
-      { rotation: 0 }
-    );
-
     executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
-      estadoDaInterface.pendingPlacement = itemPendente;
+      personagem.inventarioStaging = itemPendente;
       estadoDaInterface.reorganizingForPending = false;
       estadoDaInterface.movingItemId = null;
       estadoDaInterface.selectedItemId = null;
       estadoDaInterface.hoveredCell = null;
-      estadoDaInterface.candidatePosition = disponibilidade.available
-        ? { x: disponibilidade.position.x, y: disponibilidade.position.y }
-        : null;
-      estadoDaInterface.pointerSession = null;
-    }, { persistente: false });
+      estadoDaInterface.candidatePosition = null;
+    });
+    abrirRevealDeItemRecebido();
   } catch (erro) {
     sheetInventoryPlacementStatus.textContent = erro instanceof SyntaxError
       ? "O arquivo não contém um JSON válido."
@@ -5192,22 +5473,24 @@ async function importarArquivoDeItem(event) {
 }
 
 function limparItemPendenteDoInventario(mensagem) {
-  if (!inventoryUIState.pendingPlacement) return;
+  if (!personagem.inventarioStaging) return;
 
   executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
-    estadoDaInterface.pendingPlacement = null;
+    personagem.inventarioStaging = null;
     estadoDaInterface.reorganizingForPending = false;
     estadoDaInterface.movingItemId = null;
     estadoDaInterface.hoveredCell = null;
     estadoDaInterface.candidatePosition = null;
-    estadoDaInterface.pointerSession = null;
-  }, { persistente: false });
+  });
 
   sheetInventoryPlacementStatus.textContent = mensagem;
 }
 
 function cancelarImportacaoDeItem() {
-  limparItemPendenteDoInventario("Importação cancelada. Nenhum item foi adicionado à mochila.");
+  inventoryUIState.reorganizingForPending = false;
+  clearBackpackPreview({ restaurarMensagem: false });
+  renderizarInventario();
+  definirMensagemNeutraDaMochila();
 }
 
 function descartarItemImportado() {
@@ -5215,7 +5498,7 @@ function descartarItemImportado() {
 }
 
 function reorganizarMochilaParaItemPendente() {
-  if (!inventoryUIState.pendingPlacement) return;
+  if (!personagem.inventarioStaging) return;
 
   const disponibilidade = obterDisponibilidadeDoItemPendente();
   if (disponibilidade.code !== "no-space-available") {
@@ -5229,7 +5512,6 @@ function reorganizarMochilaParaItemPendente() {
     estadoDaInterface.movingItemId = null;
     estadoDaInterface.hoveredCell = null;
     estadoDaInterface.candidatePosition = null;
-    estadoDaInterface.pointerSession = null;
   }, { persistente: false });
 }
 
@@ -5258,34 +5540,30 @@ function definirPosicaoCandidata(posicao, opcoes = {}) {
 }
 
 function recalcularItemPendenteAposReorganizacao(inventario, estadoDaInterface) {
-  if (!estadoDaInterface.pendingPlacement) return;
+  if (!personagem.inventarioStaging) return;
   const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(
     inventario,
-    estadoDaInterface.pendingPlacement,
-    { rotation: estadoDaInterface.pendingPlacement.rotacao }
+    personagem.inventarioStaging,
+    { rotation: personagem.inventarioStaging.rotacao }
   );
 
   if (disponibilidade.available) {
     estadoDaInterface.reorganizingForPending = false;
-    estadoDaInterface.candidatePosition = {
-      x: disponibilidade.position.x,
-      y: disponibilidade.position.y
-    };
-  } else {
-    estadoDaInterface.candidatePosition = null;
   }
+  estadoDaInterface.candidatePosition = null;
+  estadoDaInterface.hoveredCell = null;
 }
 
 function aplicarFeedbackDeAssentamento(itemId, opcoes = {}) {
   const botao = sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(itemId)}"]`);
   if (!botao) return null;
 
-  botao.classList.remove("is-settling");
-  void botao.offsetWidth;
   botao.classList.add("is-settling");
-  window.setTimeout(function () {
+  window.GrimorioInventoryMotion.animateSettle(botao, {
+    reduceMotion: deveReduzirMovimento()
+  }).finally(function () {
     botao.classList.remove("is-settling");
-  }, DURACAO_DE_ENCAIXE_DO_INVENTARIO + 80);
+  });
   if (opcoes.focar !== false) botao.focus({ preventScroll: true });
   return botao;
 }
@@ -5297,12 +5575,12 @@ function aplicarFeedbackDePosicaoRecusada() {
     : null;
   const alvo = botao || sheetInventoryPreviewLayer.querySelector(".sheet-inventory-preview-footprint");
   if (!alvo) return;
-  alvo.classList.remove("is-invalid-return");
-  void alvo.offsetWidth;
-  alvo.classList.add("is-invalid-return");
-  window.setTimeout(function () {
-    alvo.classList.remove("is-invalid-return");
-  }, DURACAO_DE_RETORNO_DO_INVENTARIO + 40);
+  alvo.classList.add("is-rejected");
+  window.GrimorioInventoryMotion.animateRejection(alvo, {
+    reduceMotion: deveReduzirMovimento()
+  }).finally(function () {
+    alvo.classList.remove("is-rejected");
+  });
 }
 
 function confirmarPosicionamentoAtual(opcoes = {}) {
@@ -5339,7 +5617,6 @@ function confirmarPosicionamentoAtual(opcoes = {}) {
         posicao: { x: posicao.x, y: posicao.y }
       };
       estadoDaInterface.movingItemId = null;
-      estadoDaInterface.pointerSession = null;
       estadoDaInterface.hoveredCell = null;
       estadoDaInterface.candidatePosition = null;
       recalcularItemPendenteAposReorganizacao(inventario, estadoDaInterface);
@@ -5352,12 +5629,11 @@ function confirmarPosicionamentoAtual(opcoes = {}) {
       posicao: { x: posicao.x, y: posicao.y },
       rotacao: item.rotacao
     });
-    estadoDaInterface.pendingPlacement = null;
+    personagem.inventarioStaging = null;
     estadoDaInterface.reorganizingForPending = false;
     estadoDaInterface.selectedItemId = item.id;
     estadoDaInterface.hoveredCell = null;
     estadoDaInterface.candidatePosition = null;
-    estadoDaInterface.pointerSession = null;
     return true;
   });
 
@@ -5373,7 +5649,6 @@ function cancelarMovimentoDoInventario(opcoes = {}) {
     estadoDaInterface.movingItemId = null;
     estadoDaInterface.hoveredCell = null;
     estadoDaInterface.candidatePosition = null;
-    estadoDaInterface.pointerSession = null;
   }, { persistente: false });
 
   if (opcoes.focarItem !== false) {
@@ -5394,7 +5669,6 @@ function iniciarModoExplicitoDeMovimento() {
     estadoDaInterface.movingItemId = item.id;
     estadoDaInterface.hoveredCell = { x: item.posicao.x, y: item.posicao.y };
     estadoDaInterface.candidatePosition = { x: item.posicao.x, y: item.posicao.y };
-    estadoDaInterface.pointerSession = null;
   }, { persistente: false });
 
   const celulaInicial = sheetInventoryCellLayer.querySelector(
@@ -5404,17 +5678,19 @@ function iniciarModoExplicitoDeMovimento() {
 }
 
 function girarItemAtivoDoInventario() {
+  if (girarArrasteFisicoDoInventario()) return;
   const item = obterItemEmPosicionamento() || obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
   if (!item) return;
   const tamanho = item.item.tamanho;
   if (tamanho.largura === tamanho.altura) return;
   const novaRotacao = item.rotacao === 90 ? 0 : 90;
 
-  if (inventoryUIState.pendingPlacement === item) {
-    item.rotacao = novaRotacao;
-    const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(personagem.inventario, item, { rotation: novaRotacao });
-    inventoryUIState.candidatePosition = disponibilidade.available ? disponibilidade.position : null;
-    renderizarInventario();
+  if (personagem.inventarioStaging === item) {
+    executarMutacaoDoInventario(function () {
+      personagem.inventarioStaging = { ...item, rotacao: novaRotacao };
+      return true;
+    });
+    clearBackpackPreview();
     return;
   }
 
@@ -5434,161 +5710,696 @@ function girarItemAtivoDoInventario() {
   aplicarFeedbackDeAssentamento(item.id);
 }
 
-function equiparArmaduraSelecionada() {
-  const item = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
-  if (!item || (item.item.tipo !== "armadura" && item.item.equipavelEm !== "armadura")) return;
-  if (personagem.equipamentos.armadura) {
-    sheetInventoryPlacementStatus.textContent = "Desequipe a armadura atual antes de vestir outra.";
-    return;
+function equiparItemNoSlot(item, origem) {
+  const slot = obterSlotEquipavelDoItem(item);
+  if (!item || !slot) return false;
+  const source = { kind: origem };
+  const plano = planejarDestinoDeEquipamento(item, slot, source);
+  if (!plano.valid) {
+    sheetInventoryPlacementStatus.textContent = criarDescritorDeSlotDeEquipamento(slot).describe(plano, item);
+    return false;
   }
-  executarMutacaoDoInventario(function (inventario, estadoDaInterface) {
-    const indice = inventario.findIndex(function (entrada) { return entrada.id === item.id; });
-    if (indice < 0) return false;
-    personagem.equipamentos.armadura = inventario.splice(indice, 1)[0];
-    estadoDaInterface.selectedItemId = null;
-    return true;
+  const descriptor = inventoryTargets?.[slot] || criarDescritorDeSlotDeEquipamento(slot);
+  const resultado = aplicarPlanoAtomicoDoTarget(descriptor, {
+    source,
+    itemPersistente: item,
+    item: { ...item },
+    evaluation: {
+      targetId: slot,
+      kind: "equipment",
+      valid: true,
+      code: plano.code,
+      mode: plano.mode,
+      slot,
+      displacedPosition: plano.displacedPosition
+    }
   });
-  sheetInventoryPlacementStatus.textContent = `${item.item.nome} equipada.`;
+  if (resultado.changed) sheetInventoryPlacementStatus.textContent = resultado.message;
+  return resultado.changed;
 }
 
-function desequiparArmadura() {
-  const armadura = personagem.equipamentos?.armadura;
-  if (!armadura) return;
-  const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(personagem.inventario, armadura, { rotation: armadura.rotacao });
+function equiparItemSelecionado() {
+  const item = obterItemDoInventarioPorId(inventoryUIState.selectedItemId);
+  if (item) equiparItemNoSlot(item, "inventory");
+}
+
+function equiparItemPendenteAgora() {
+  const item = personagem.inventarioStaging;
+  if (!item) return;
+  if (equiparItemNoSlot(item, "bench")) {
+    inventoryRevealDialog.close();
+    return;
+  }
+  inventoryRevealAttribute.textContent = "Troca bloqueada: libere espaço na mochila";
+  inventoryRevealEquip.focus({ preventScroll: true });
+}
+
+function desequiparItemDoSlot(slot) {
+  const item = personagem.equipamentos?.[slot];
+  if (!item) return;
+  const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(personagem.inventario, item, { rotation: item.rotacao });
   if (!disponibilidade.available) {
-    sheetInventoryPlacementStatus.textContent = "Não há espaço na mochila para guardar a armadura equipada.";
+    sheetInventoryPlacementStatus.textContent = `Não há espaço na mochila para guardar ${item.item.nome}.`;
     return;
   }
   executarMutacaoDoInventario(function (inventario, estadoDaInterface) {
-    armadura.posicao = disponibilidade.position;
-    inventario.push(armadura);
-    personagem.equipamentos.armadura = null;
-    estadoDaInterface.selectedItemId = armadura.id;
+    item.posicao = { ...disponibilidade.position };
+    inventario.push(item);
+    personagem.equipamentos[slot] = null;
+    estadoDaInterface.selectedItemId = item.id;
     return true;
   });
-  aplicarFeedbackDeAssentamento(armadura.id);
+  aplicarFeedbackDeAssentamento(item.id);
 }
 
 function iniciarArrasteDeItem(event) {
-  if (event.button !== 0 || !event.isPrimary) return;
-  const botao = event.target.closest("button[data-inventory-item-id]");
-  if (!botao) return;
-  const item = obterItemDoInventarioPorId(botao.dataset.inventoryItemId);
-  if (!item) return;
-  if (inventoryUIState.movingItemId && inventoryUIState.movingItemId !== item.id) return;
-
-  const celulaDoPonteiro = obterPosicaoDaCelulaPeloPonteiro(event);
-  if (!celulaDoPonteiro) return;
-  inventoryUIState.selectedItemId = item.id;
-  inventoryUIState.movingItemId = item.id;
-  inventoryUIState.candidatePosition = { x: item.posicao.x, y: item.posicao.y };
-  inventoryUIState.pointerSession = {
-    pointerId: event.pointerId,
-    itemId: item.id,
-    origin: { x: item.posicao.x, y: item.posicao.y },
-    offset: {
-      x: celulaDoPonteiro.x - item.posicao.x,
-      y: celulaDoPonteiro.y - item.posicao.y
-    },
-    pointerOffset: {
-      x: event.clientX - botao.getBoundingClientRect().left,
-      y: event.clientY - botao.getBoundingClientRect().top
-    },
-    originRect: botao.getBoundingClientRect(),
-    startPointer: { x: event.clientX, y: event.clientY },
-    latestPointer: { x: event.clientX, y: event.clientY },
-    renderedPointer: { x: event.clientX, y: event.clientY },
-    tilt: 0,
-    proxy: null,
-    animationFrame: 0,
-    moved: false
-  };
-  botao.setPointerCapture(event.pointerId);
-  atualizarFeedbackVisualDoPosicionamento();
-  event.preventDefault();
+  iniciarArrasteFisicoDoInventario(event, { kind: "inventory" });
 }
 
 function iniciarArrasteDeItemRecebido(event) {
-  if (event.button !== 0 || !event.isPrimary || !inventoryUIState.pendingPlacement) return;
-  const cartao = event.target.closest(".sheet-inventory-received__card");
-  if (!cartao) return;
-  const retangulo = cartao.getBoundingClientRect();
-  const dimensoes = dominioDoInventario.getEffectiveDimensions(inventoryUIState.pendingPlacement, inventoryUIState.pendingPlacement.rotacao);
-  inventoryUIState.candidatePosition = null;
-  inventoryUIState.pointerSession = {
-    pointerId: event.pointerId,
-    itemId: inventoryUIState.pendingPlacement.id,
-    source: "received",
-    origin: null,
-    offset: { x: Math.floor(dimensoes.largura / 2), y: Math.floor(dimensoes.altura / 2) },
-    pointerOffset: { x: Math.min(event.clientX - retangulo.left, retangulo.width / 2), y: Math.min(event.clientY - retangulo.top, retangulo.height / 2) },
-    originRect: retangulo,
-    startPointer: { x: event.clientX, y: event.clientY },
-    latestPointer: { x: event.clientX, y: event.clientY },
-    renderedPointer: { x: event.clientX, y: event.clientY },
-    tilt: 0,
-    proxy: null,
-    animationFrame: 0,
-    moved: false
-  };
-  cartao.setPointerCapture(event.pointerId);
-  event.preventDefault();
+  iniciarArrasteFisicoDoInventario(event, { kind: "bench" });
 }
 
-function criarProxyVisualDoArraste(sessao) {
-  const origem = sessao.source === "received"
-    ? sheetInventoryReceived.querySelector(".sheet-inventory-received__card")
-    : sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(sessao.itemId)}"]`);
+function iniciarArrasteDeEquipamento(event) {
+  const slot = event.target.closest("[data-equipment-slot]")?.dataset.equipmentSlot;
+  if (slot) iniciarArrasteFisicoDoInventario(event, { kind: slot });
+}
+
+function origemFisicaEhEquipamento(origem) {
+  return ["armadura", "maoPrincipal", "maoSecundaria"].includes(origem?.kind);
+}
+
+function obterItemPersistenteDaOrigemFisica(origem = inventoryDrag.source) {
   if (!origem) return null;
+  if (origem.kind === "bench") return personagem.inventarioStaging;
+  if (origem.kind === "inventory") return obterItemDoInventarioPorId(inventoryDrag.itemId);
+  if (origemFisicaEhEquipamento(origem)) return personagem.equipamentos?.[origem.kind] || null;
+  return null;
+}
 
-  let proxy;
-  if (sessao.source === "received") {
-    const item = inventoryUIState.pendingPlacement;
-    const dimensoes = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
-    proxy = criarBotaoDeItemDoInventario({ ...item, posicao: { x: 0, y: 0 } });
-    const gridRect = sheetInventoryGrid.getBoundingClientRect();
-    sessao.originRect = origem.getBoundingClientRect();
-    proxy.style.width = `${(gridRect.width / CONFIGURACAO_DO_INVENTARIO.columns) * dimensoes.largura}px`;
-    proxy.style.height = `${(gridRect.height / CONFIGURACAO_DO_INVENTARIO.rows) * dimensoes.altura}px`;
-  } else {
-    proxy = origem.cloneNode(true);
-    proxy.style.width = `${sessao.originRect.width}px`;
-    proxy.style.height = `${sessao.originRect.height}px`;
+function obterItemDoArrasteFisico() {
+  if (inventoryDrag.phase === "idle") return null;
+  const item = obterItemPersistenteDaOrigemFisica();
+  return item ? { ...item, rotacao: inventoryDrag.rotation } : null;
+}
+
+function medirGeometriaDaGradeDoInventario() {
+  const retangulo = sheetInventoryGrid.getBoundingClientRect();
+  const estilo = window.getComputedStyle(sheetInventoryCellLayer);
+  const columnGap = Number.parseFloat(estilo.columnGap) || 0;
+  const rowGap = Number.parseFloat(estilo.rowGap) || 0;
+  const cellWidth = (retangulo.width - columnGap * (CONFIGURACAO_DO_INVENTARIO.columns - 1))
+    / CONFIGURACAO_DO_INVENTARIO.columns;
+  const cellHeight = (retangulo.height - rowGap * (CONFIGURACAO_DO_INVENTARIO.rows - 1))
+    / CONFIGURACAO_DO_INVENTARIO.rows;
+  return {
+    rect: retangulo,
+    columnGap,
+    rowGap,
+    cellWidth,
+    cellHeight,
+    stepX: cellWidth + columnGap,
+    stepY: cellHeight + rowGap
+  };
+}
+
+function medirPecaNoGrid(item, geometria = medirGeometriaDaGradeDoInventario()) {
+  const dimensions = dominioDoInventario.getEffectiveDimensions(item, item.rotacao);
+  return {
+    dimensions,
+    width: geometria.cellWidth * dimensions.largura + geometria.columnGap * (dimensions.largura - 1),
+    height: geometria.cellHeight * dimensions.altura + geometria.rowGap * (dimensions.altura - 1)
+  };
+}
+
+function pontoEstaNoRetangulo(x, y, retangulo) {
+  return x >= retangulo.left && x <= retangulo.right && y >= retangulo.top && y <= retangulo.bottom;
+}
+
+function planejarDestinoDeEquipamento(item, slot, source) {
+  if (source?.kind === slot) {
+    return { valid: true, code: "same-slot", mode: "noop", displacedPosition: null };
   }
-  proxy.removeAttribute("id");
-  proxy.removeAttribute("aria-controls");
-  proxy.removeAttribute("aria-pressed");
-  proxy.removeAttribute("aria-label");
-  proxy.removeAttribute("tabindex");
-  proxy.setAttribute("aria-hidden", "true");
-  proxy.classList.remove("is-selected", "is-dragging", "is-settling", "is-invalid-return");
-  proxy.classList.add("sheet-inventory-drag-proxy");
-  proxy.style.setProperty("--drag-x", `${sessao.originRect.left}px`);
-  proxy.style.setProperty("--drag-y", `${sessao.originRect.top}px`);
-  proxy.style.setProperty("--drag-tilt", "0deg");
-  document.body.append(proxy);
+  if (!itemPodeEquiparNoSlot(item, slot)) {
+    return { valid: false, code: "incompatible-slot", mode: "blocked", displacedPosition: null };
+  }
 
-  origem.classList.add("is-drag-origin");
-  sheetInventoryGrid.classList.add("is-dragging-item");
+  const inventarioSemCarregado = source?.kind === "inventory"
+    ? personagem.inventario.filter(function (entrada) { return entrada.id !== item.id; })
+    : personagem.inventario.slice();
+  const itemDeslocado = personagem.equipamentos?.[slot] || null;
+  if (!itemDeslocado) return { valid: true, code: "available", mode: "move", displacedPosition: null };
+
+  if (source?.kind === "bench") {
+    return { valid: true, code: "bench-swap", mode: "bench-swap", displacedPosition: null };
+  }
+
+  if (origemFisicaEhEquipamento(source)) {
+    const trocaCompativel = itemPodeEquiparNoSlot(itemDeslocado, source.kind);
+    return trocaCompativel
+      ? { valid: true, code: "direct-swap", mode: "direct-swap", displacedPosition: null }
+      : { valid: false, code: "incompatible-swap", mode: "blocked", displacedPosition: null };
+  }
+
+  const disponibilidade = dominioDoInventario.getInventoryPlacementAvailability(
+    inventarioSemCarregado,
+    itemDeslocado,
+    { rotation: itemDeslocado.rotacao }
+  );
+  return disponibilidade.available
+    ? { valid: true, code: "swap-available", mode: "backpack-swap", displacedPosition: disponibilidade.position }
+    : { valid: false, code: "no-space-for-displaced", mode: "blocked", displacedPosition: null };
+}
+
+function clonarItemFisico(item) {
+  return item ? {
+    ...item,
+    item: { ...item.item },
+    posicao: { ...(item.posicao || { x: 0, y: 0 }) }
+  } : null;
+}
+
+function criarRascunhoFisicoDoInventario() {
+  return {
+    inventario: personagem.inventario.map(clonarItemFisico),
+    equipamentos: {
+      armadura: clonarItemFisico(personagem.equipamentos?.armadura),
+      maoPrincipal: clonarItemFisico(personagem.equipamentos?.maoPrincipal),
+      maoSecundaria: clonarItemFisico(personagem.equipamentos?.maoSecundaria)
+    },
+    bancada: clonarItemFisico(personagem.inventarioStaging)
+  };
+}
+
+function extrairItemDoRascunhoFisico(rascunho, source, itemId) {
+  if (source.kind === "inventory") {
+    const indice = rascunho.inventario.findIndex(function (item) { return item.id === itemId; });
+    return indice >= 0 ? rascunho.inventario.splice(indice, 1)[0] : null;
+  }
+  if (source.kind === "bench") {
+    if (rascunho.bancada?.id !== itemId) return null;
+    const item = rascunho.bancada;
+    rascunho.bancada = null;
+    return item;
+  }
+  if (origemFisicaEhEquipamento(source)) {
+    if (rascunho.equipamentos[source.kind]?.id !== itemId) return null;
+    const item = rascunho.equipamentos[source.kind];
+    rascunho.equipamentos[source.kind] = null;
+    return item;
+  }
+  return null;
+}
+
+function rascunhoFisicoPossuiIdsUnicos(rascunho) {
+  const ids = [];
+  rascunho.inventario.forEach(function (item) { if (item?.id) ids.push(item.id); });
+  Object.values(rascunho.equipamentos).forEach(function (item) { if (item?.id) ids.push(item.id); });
+  if (rascunho.bancada?.id) ids.push(rascunho.bancada.id);
+  return new Set(ids).size === ids.length;
+}
+
+function aplicarPlanoAtomicoDoTarget(descriptor, contexto) {
+  const { source, itemPersistente, item, evaluation } = contexto;
+  if (evaluation.code === "same-slot") return { changed: false, noop: true };
+  if (
+    descriptor.id === "backpack"
+    && source.kind === "inventory"
+    && itemPersistente.posicao.x === evaluation.position.x
+    && itemPersistente.posicao.y === evaluation.position.y
+    && itemPersistente.rotacao === item.rotacao
+  ) return { changed: false, noop: true };
+
+  const rascunho = criarRascunhoFisicoDoInventario();
+  const itemMovido = extrairItemDoRascunhoFisico(rascunho, source, item.id);
+  if (!itemMovido) return { changed: false, noop: false };
+  itemMovido.rotacao = item.rotacao;
+
+  if (descriptor.id === "backpack") {
+    itemMovido.posicao = { ...evaluation.position };
+    rascunho.inventario.push(itemMovido);
+  } else if (descriptor.id === "bench") {
+    if (rascunho.bancada) return { changed: false, noop: false };
+    itemMovido.posicao = { x: 0, y: 0 };
+    rascunho.bancada = itemMovido;
+  } else if (descriptor.kind === "equipment") {
+    const slot = evaluation.slot;
+    const itemDeslocado = rascunho.equipamentos[slot];
+    if (itemDeslocado) {
+      if (evaluation.mode === "bench-swap") {
+        itemDeslocado.posicao = { x: 0, y: 0 };
+        rascunho.bancada = itemDeslocado;
+      } else if (evaluation.mode === "direct-swap") {
+        rascunho.equipamentos[source.kind] = itemDeslocado;
+      } else if (evaluation.mode === "backpack-swap" && evaluation.displacedPosition) {
+        itemDeslocado.posicao = { ...evaluation.displacedPosition };
+        rascunho.inventario.push(itemDeslocado);
+      } else return { changed: false, noop: false };
+    }
+    itemMovido.posicao = { x: 0, y: 0 };
+    rascunho.equipamentos[slot] = itemMovido;
+  } else return { changed: false, noop: false };
+
+  if (!rascunhoFisicoPossuiIdsUnicos(rascunho)) {
+    return { changed: false, noop: false, code: "duplicate-item-location" };
+  }
+
+  const changed = executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    personagem.inventario = rascunho.inventario;
+    personagem.equipamentos = rascunho.equipamentos;
+    personagem.inventarioStaging = rascunho.bancada;
+    estadoDaInterface.reorganizingForPending = false;
+    estadoDaInterface.selectedItemId = descriptor.id === "backpack" ? item.id : null;
+    estadoDaInterface.movingItemId = null;
+    estadoDaInterface.hoveredCell = null;
+    estadoDaInterface.candidatePosition = null;
+    return true;
+  });
+
+  const destino = descriptor.id === "backpack"
+    ? "a mochila"
+    : descriptor.id === "bench"
+      ? "a bancada"
+      : rotuloDoSlotDeEquipamento(evaluation.slot);
+  return {
+    changed,
+    noop: false,
+    itemId: item.id,
+    targetId: descriptor.id,
+    targetKind: descriptor.kind,
+    slot: evaluation.slot,
+    message: `${item.item.nome} movido para ${destino}.`
+  };
+}
+
+function criarDescritorDeSlotDeEquipamento(slot) {
+  return {
+    id: slot,
+    kind: "equipment",
+    priority: 300,
+    getElement() {
+      return sheetInventoryEquipmentSlots.querySelector(`[data-equipment-slot="${slot}"]`);
+    },
+    locate(contexto) {
+      const element = this.getElement();
+      if (!element || !pontoEstaNoRetangulo(contexto.clientX, contexto.clientY, element.getBoundingClientRect())) {
+        return null;
+      }
+      return { element, slot };
+    },
+    evaluate(contexto) {
+      const plano = planejarDestinoDeEquipamento(contexto.item, slot, contexto.source);
+      return {
+        targetId: this.id,
+        kind: this.kind,
+        valid: plano.valid,
+        code: plano.code,
+        element: contexto.location.element,
+        slot,
+        position: null,
+        validation: null,
+        dimensions: dominioDoInventario.getEffectiveDimensions(contexto.item, contexto.item.rotacao),
+        displacedPosition: plano.displacedPosition,
+        mode: plano.mode
+      };
+    },
+    preview(contexto) {
+      const element = this.getElement();
+      if (!element) return;
+      const ativa = contexto.evaluation?.targetId === this.id;
+      element.classList.toggle("is-compatible-target", itemPodeEquiparNoSlot(contexto.item, slot));
+      element.classList.toggle("is-valid-target", ativa && contexto.evaluation.valid);
+      element.classList.toggle("is-invalid-target", ativa && !contexto.evaluation.valid);
+    },
+    describe(avaliacao, item) {
+      if (avaliacao.code === "incompatible-slot") {
+        return `${item.item.nome} n\u00e3o pode ser equipado em ${rotuloDoSlotDeEquipamento(slot)}.`;
+      }
+      if (avaliacao.code === "no-space-for-displaced") {
+        return "N\u00e3o h\u00e1 espa\u00e7o na mochila para guardar o item equipado.";
+      }
+      if (avaliacao.code === "incompatible-swap") return "A troca direta entre estes slots n\u00e3o é compatível.";
+      if (avaliacao.code === "direct-swap") return "Solte para trocar os itens entre as mãos.";
+      if (avaliacao.code === "bench-swap") return "Solte para equipar e devolver o item atual à bancada.";
+      if (avaliacao.code === "same-slot") return `${item.item.nome} j\u00e1 ocupa este slot.`;
+      return `Solte para equipar em ${rotuloDoSlotDeEquipamento(slot)}.`;
+    },
+    apply(contexto) {
+      return aplicarPlanoAtomicoDoTarget(this, contexto);
+    }
+  };
+}
+
+const inventoryTargets = {
+  backpack: {
+    id: "backpack",
+    kind: "backpack",
+    priority: 100,
+    getElement() {
+      return sheetInventoryGrid;
+    },
+    locate(contexto) {
+      const element = this.getElement();
+      const geometria = medirGeometriaDaGradeDoInventario();
+      if (!element || !pontoEstaNoRetangulo(contexto.clientX, contexto.clientY, geometria.rect)) return null;
+      const peca = medirPecaNoGrid(contexto.item, geometria);
+      const objetoLeft = contexto.clientX - contexto.grabRatio.x * peca.width;
+      const objetoTop = contexto.clientY - contexto.grabRatio.y * peca.height;
+      return {
+        element,
+        position: {
+          x: Math.round((objetoLeft - geometria.rect.left) / geometria.stepX),
+          y: Math.round((objetoTop - geometria.rect.top) / geometria.stepY)
+        }
+      };
+    },
+    evaluate(contexto) {
+      const validation = dominioDoInventario.canPlaceItem(
+        personagem.inventario,
+        contexto.item,
+        contexto.location.position,
+        {
+          rotation: contexto.item.rotacao,
+          ignoreItemId: contexto.source?.kind === "inventory" ? contexto.item.id : undefined
+        }
+      );
+      return {
+        targetId: this.id,
+        kind: this.kind,
+        valid: validation.valid,
+        code: validation.code,
+        element: contexto.location.element,
+        slot: null,
+        position: contexto.location.position,
+        validation,
+        dimensions: validation.dimensions
+      };
+    },
+    preview(contexto) {
+      const ativa = contexto.evaluation?.targetId === this.id;
+      sheetInventoryGrid.classList.toggle("is-dragging-item", inventoryDrag.phase === "dragging" && ativa);
+      sheetInventoryGrid.classList.toggle("is-positioning", ativa);
+      sheetInventoryGrid.classList.toggle("has-valid-preview", ativa && contexto.evaluation.valid);
+      sheetInventoryGrid.classList.toggle("has-invalid-preview", ativa && !contexto.evaluation.valid);
+    },
+    describe(avaliacao) {
+      return descreverResultadoDoPosicionamento(avaliacao.validation);
+    },
+    apply(contexto) {
+      return aplicarPlanoAtomicoDoTarget(this, contexto);
+    }
+  },
+  bench: {
+    id: "bench",
+    kind: "bench",
+    priority: 200,
+    getElement() {
+      return sheetInventoryReceived;
+    },
+    locate(contexto) {
+      const element = this.getElement();
+      if (!element || !pontoEstaNoRetangulo(contexto.clientX, contexto.clientY, element.getBoundingClientRect())) {
+        return null;
+      }
+      return { element };
+    },
+    evaluate(contexto) {
+      return {
+        targetId: this.id,
+        kind: this.kind,
+        valid: contexto.source?.kind === "bench" || !personagem.inventarioStaging,
+        code: contexto.source?.kind === "bench"
+          ? "same-bench"
+          : personagem.inventarioStaging
+            ? "bench-occupied"
+            : "available",
+        element: contexto.location?.element || this.getElement(),
+        slot: null,
+        position: null,
+        validation: null,
+        dimensions: dominioDoInventario.getEffectiveDimensions(contexto.item, contexto.item.rotacao)
+      };
+    },
+    preview(contexto) {
+      const ativa = contexto.evaluation?.targetId === this.id;
+      sheetInventoryReceived.classList.toggle("is-compatible-target", !personagem.inventarioStaging || contexto.source?.kind === "bench");
+      sheetInventoryReceived.classList.toggle("is-valid-target", ativa && contexto.evaluation.valid);
+      sheetInventoryReceived.classList.toggle("is-invalid-target", ativa && !contexto.evaluation.valid);
+    },
+    describe(avaliacao, item) {
+      if (avaliacao.code === "same-bench") return `${item.item.nome} j\u00e1 est\u00e1 na bancada.`;
+      if (avaliacao.code === "bench-occupied") return "A bancada comporta um item por vez.";
+      return "Solte para deixar o item na bancada.";
+    },
+    apply(contexto) {
+      if (contexto.source.kind === "bench") return { changed: false, noop: true };
+      return aplicarPlanoAtomicoDoTarget(this, contexto);
+    }
+  },
+  maoPrincipal: criarDescritorDeSlotDeEquipamento("maoPrincipal"),
+  maoSecundaria: criarDescritorDeSlotDeEquipamento("maoSecundaria"),
+  armadura: criarDescritorDeSlotDeEquipamento("armadura")
+};
+
+const inventoryTargetsPorPrioridade = Object.values(inventoryTargets).sort(function (alvoA, alvoB) {
+  return alvoB.priority - alvoA.priority;
+});
+
+function criarChaveDaAvaliacaoFisica(avaliacao, rotacao) {
+  const celula = avaliacao.position ? `${avaliacao.position.x}:${avaliacao.position.y}` : "-";
+  return `${avaliacao.targetId || "none"}:${celula}:${rotacao}`;
+}
+
+function criarAvaliacaoForaDosAlvos(item) {
+  return {
+    targetId: "none",
+    kind: "none",
+    valid: false,
+    code: "outside-targets",
+    element: null,
+    slot: null,
+    position: null,
+    validation: null,
+    dimensions: dominioDoInventario.getEffectiveDimensions(item, item.rotacao)
+  };
+}
+
+function avaliarAlvoFisicoDoInventario(clientX, clientY, item, opcoes = {}) {
+  const contextoBase = {
+    clientX,
+    clientY,
+    item,
+    source: inventoryDrag.source,
+    grabRatio: inventoryDrag.grabRatio,
+    location: null
+  };
+  let descriptor = null;
+  for (const alvo of inventoryTargetsPorPrioridade) {
+    const location = alvo.locate(contextoBase);
+    if (!location) continue;
+    contextoBase.location = location;
+    descriptor = alvo;
+    break;
+  }
+  if (!descriptor) return criarAvaliacaoForaDosAlvos(item);
+
+  const chave = criarChaveDaAvaliacaoFisica({
+    targetId: descriptor.id,
+    position: contextoBase.location.position || null
+  }, item.rotacao);
+  if (opcoes.reusarAvaliacao === true && opcoes.revalidar !== true && inventoryDrag.evaluationCache?.has(chave)) {
+    return inventoryDrag.evaluationCache.get(chave);
+  }
+  const avaliacaoSemCache = descriptor.evaluate(contextoBase);
+  if (opcoes.revalidar !== true) inventoryDrag.evaluationCache?.set(chave, avaliacaoSemCache);
+  return avaliacaoSemCache;
+}
+
+function descreverAvaliacaoFisica(avaliacao, item) {
+  const descriptor = inventoryTargets[avaliacao.targetId];
+  return descriptor
+    ? descriptor.describe(avaliacao, item)
+    : `${item.item.nome} est\u00e1 fora de um destino v\u00e1lido.`;
+}
+
+function atualizarFeedbackDosAlvosFisicos(item, avaliacao) {
+  inventoryTargetsPorPrioridade.forEach(function (descriptor) {
+    descriptor.preview({ item, evaluation: avaliacao, source: inventoryDrag.source });
+  });
+  if (avaliacao.kind === "backpack") {
+    sheetInventoryPlacementStatus.textContent = avaliacao.valid
+      ? `Solte para guardar · ${avaliacao.dimensions.largura} × ${avaliacao.dimensions.altura}`
+      : "Não cabe nesta posição.";
+  } else if (avaliacao.targetId && inventoryTargets[avaliacao.targetId]) {
+    sheetInventoryPlacementStatus.textContent = descreverAvaliacaoFisica(avaliacao, item);
+  } else {
+    definirMensagemNeutraDaMochila();
+  }
+}
+
+function criarProxyVisualDoArraste(sessao, item) {
+  const visual = obterConfiguracaoVisualDoItem(item);
+  const proxy = document.createElement("div");
+  const morph = document.createElement("div");
+  const arte = document.createElement("div");
+  const label = document.createElement("span");
+  proxy.className = "inventory-drag-object";
+  proxy.dataset.dragSource = sessao.source?.kind || "unknown";
+  morph.className = "inventory-drag-object__morph";
+  arte.className = `inventory-drag-object__art ${visual.raridade.cssClass}`;
+  arte.append(criarCartaDoItem(item, { contexto: "proxy", eager: true, rotacao: sessao.rotation }));
+  label.className = "inventory-drag-object__label";
+  morph.append(arte);
+  proxy.append(morph, label);
+  proxy.style.setProperty("--drag-left", `${sessao.originRect.left}px`);
+  proxy.style.setProperty("--drag-top", `${sessao.originRect.top}px`);
+  proxy.style.setProperty("--drag-width", `${sessao.originRect.width}px`);
+  proxy.style.setProperty("--drag-height", `${sessao.originRect.height}px`);
+  inventoryDragLayer.append(proxy);
   sessao.proxy = proxy;
+  sessao.morph = morph;
+  sessao.art = arte;
+  if (sessao.source?.kind !== "bench") {
+    sessao.spatialized = true;
+    window.GrimorioInventoryMotion.animateGrab(morph, {
+      reduceMotion: deveReduzirMovimento()
+    });
+  }
   return proxy;
+}
+
+function atualizarRotuloDoProxy(sessao, item) {
+  const dimensoes = dominioDoInventario.getEffectiveDimensions(item, sessao.rotation);
+  const label = sessao.proxy?.querySelector(".inventory-drag-object__label");
+  if (label) label.textContent = `${item.item.nome} · ${dimensoes.largura} × ${dimensoes.altura} · ${sessao.rotation}°`;
+}
+
+function iniciarArrasteFisicoDoInventario(event, source) {
+  if (event.button !== 0 || !event.isPrimary || inventoryDrag.phase !== "idle") return;
+  const arteClicada = event.target.closest(".inventory-item-art");
+  if (!arteClicada) return;
+  const origem = source.kind === "bench"
+    ? arteClicada.closest("[data-inventory-drag-source='bench']")
+    : source.kind === "inventory"
+      ? arteClicada.closest("button[data-inventory-item-id]")
+      : arteClicada.closest("[data-equipment-slot]");
+  const item = source.kind === "bench"
+    ? personagem.inventarioStaging
+    : source.kind === "inventory"
+      ? obterItemDoInventarioPorId(origem?.dataset.inventoryItemId)
+      : personagem.equipamentos?.[source.kind] || null;
+  if (!origem || !item) return;
+  if (source.kind === "inventory" && inventoryUIState.movingItemId && inventoryUIState.movingItemId !== item.id) {
+    sheetInventoryPlacementStatus.textContent = "Conclua ou cancele o movimento por teclado antes de segurar outro item.";
+    return;
+  }
+
+  const retangulo = arteClicada.getBoundingClientRect();
+  if (retangulo.width <= 0 || retangulo.height <= 0) return;
+  const grabRatio = {
+    x: Math.max(0, Math.min(1, (event.clientX - retangulo.left) / retangulo.width)),
+    y: Math.max(0, Math.min(1, (event.clientY - retangulo.top) / retangulo.height))
+  };
+  const elementoDeOrigem = origem.closest(".inventory-bench-card, .sheet-inventory-item, .inventory-equipment-slot") || origem;
+  Object.assign(inventoryDrag, {
+    phase: "grabbed",
+    source,
+    sourceSnapshot: null,
+    target: null,
+    pointerId: event.pointerId,
+    itemId: item.id,
+    rotation: item.rotacao,
+    grabRatio,
+    originRect: retangulo,
+    latestPointer: { x: event.clientX, y: event.clientY },
+    startPointer: { x: event.clientX, y: event.clientY },
+    candidateKey: "",
+    evaluation: null,
+    evaluationCache: new Map(),
+    proxy: null,
+    morph: null,
+    art: null,
+    originElement: elementoDeOrigem,
+    animationFrame: 0,
+    renderedPointer: { x: event.clientX, y: event.clientY },
+    tilt: 0,
+    rotationInProgress: false,
+    spatialized: false,
+    moved: false
+  });
+
+  if (source.kind === "inventory") inventoryUIState.selectedItemId = item.id;
+  clearBackpackPreview();
+  try { origem.setPointerCapture(event.pointerId); } catch (_erro) { /* captura é apenas uma otimização */ }
+  event.preventDefault();
 }
 
 function desenharProxyDoArraste(sessao) {
   sessao.animationFrame = 0;
   if (!sessao.proxy) return;
-
+  const item = obterItemDoArrasteFisico();
+  if (!item) return;
+  const avaliacao = avaliarAlvoFisicoDoInventario(
+    sessao.latestPointer.x,
+    sessao.latestPointer.y,
+    item,
+    { reusarAvaliacao: true }
+  );
+  const geometria = medirGeometriaDaGradeDoInventario();
+  const peca = medirPecaNoGrid(item, geometria);
+  const left = sessao.latestPointer.x - sessao.grabRatio.x * peca.width;
+  const top = sessao.latestPointer.y - sessao.grabRatio.y * peca.height;
   const deltaX = sessao.latestPointer.x - sessao.renderedPointer.x;
-  const inclinacaoAlvo = Math.max(-0.45, Math.min(0.45, deltaX * 0.055));
-  sessao.tilt += (inclinacaoAlvo - sessao.tilt) * 0.46;
+  const configuracaoDeMovimento = window.GrimorioInventoryMotion.config;
+  const inclinacaoAlvo = deveReduzirMovimento()
+    ? 0
+    : Math.max(-configuracaoDeMovimento.maxTilt, Math.min(configuracaoDeMovimento.maxTilt, deltaX * .14));
+  sessao.tilt += (inclinacaoAlvo - sessao.tilt) * configuracaoDeMovimento.tiltDamping;
   sessao.renderedPointer = { ...sessao.latestPointer };
-  sessao.proxy.style.setProperty("--drag-x", `${sessao.latestPointer.x - sessao.pointerOffset.x}px`);
-  sessao.proxy.style.setProperty("--drag-y", `${sessao.latestPointer.y - sessao.pointerOffset.y}px`);
-  sessao.proxy.style.setProperty("--drag-tilt", `${sessao.tilt.toFixed(3)}deg`);
+  sessao.proxy.style.setProperty("--drag-left", `${left}px`);
+  sessao.proxy.style.setProperty("--drag-top", `${top}px`);
+  sessao.proxy.style.setProperty("--drag-width", `${peca.width}px`);
+  sessao.proxy.style.setProperty("--drag-height", `${peca.height}px`);
+  if (sessao.source?.kind === "bench" && !sessao.spatialized) {
+    sessao.spatialized = true;
+    window.GrimorioInventoryMotion.animateSpatialize(
+      sessao.morph,
+      sessao.originRect,
+      { width: peca.width, height: peca.height },
+      { reduceMotion: deveReduzirMovimento() }
+    );
+  }
+  sessao.art.style.setProperty("--drag-tilt", `${sessao.tilt.toFixed(2)}deg`);
+  sessao.art.style.setProperty("--drag-shadow-x", `${Math.max(-6, Math.min(6, deltaX * .3)).toFixed(2)}px`);
+  sessao.proxy.classList.toggle("is-over-grid", avaliacao.kind === "backpack" && !sessao.rotationInProgress);
+
+  if (sessao.rotationInProgress) return;
+
+  const chave = criarChaveDaAvaliacaoFisica(avaliacao, sessao.rotation);
+  if (chave !== sessao.candidateKey) {
+    sessao.candidateKey = chave;
+    const novoTarget = avaliacao.kind === "none" ? null : avaliacao.kind;
+    sessao.target = novoTarget;
+    sessao.evaluation = novoTarget ? avaliacao : null;
+    if (novoTarget === "backpack" && sessao.phase === "dragging") {
+      inventoryUIState.candidatePosition = { ...avaliacao.position };
+      inventoryUIState.hoveredCell = { ...avaliacao.position };
+    } else {
+      clearBackpackPreview({ restaurarMensagem: false });
+    }
+    sessao.proxy.classList.toggle("is-invalid", Boolean(novoTarget && !avaliacao.valid));
+    atualizarFeedbackDosAlvosFisicos(item, avaliacao);
+    atualizarFeedbackVisualDoPosicionamento();
+  }
+  if (sessao.phase === "dragging" && Math.abs(sessao.tilt) > .04 && !sessao.animationFrame) {
+    sessao.animationFrame = window.requestAnimationFrame(function () {
+      desenharProxyDoArraste(sessao);
+    });
+  }
 }
 
-function agendarDesenhoDoProxy(sessao, event) {
-  sessao.latestPointer = { x: event.clientX, y: event.clientY };
+function agendarDesenhoDoProxy(sessao, ponteiro) {
+  sessao.latestPointer = { x: ponteiro.clientX, y: ponteiro.clientY };
   if (sessao.animationFrame) return;
   sessao.animationFrame = window.requestAnimationFrame(function () {
     desenharProxyDoArraste(sessao);
@@ -5596,92 +6407,269 @@ function agendarDesenhoDoProxy(sessao, event) {
 }
 
 function atualizarArrasteDeItem(event) {
-  const sessao = inventoryUIState.pointerSession;
+  const sessao = inventoryDrag;
   if (!sessao || sessao.pointerId !== event.pointerId) return;
-  const distancia = Math.hypot(
-    event.clientX - sessao.startPointer.x,
-    event.clientY - sessao.startPointer.y
-  );
+  const distancia = Math.hypot(event.clientX - sessao.startPointer.x, event.clientY - sessao.startPointer.y);
   if (!sessao.moved && distancia < LIMIAR_DE_ARRASTE_DO_INVENTARIO) return;
   if (!sessao.moved) {
     sessao.moved = true;
-    criarProxyVisualDoArraste(sessao);
+    sessao.phase = "dragging";
+    sessao.originElement.classList.add("is-drag-origin");
+    document.body.classList.add("is-inventory-grabbing");
+    const item = obterItemDoArrasteFisico();
+    if (!item) return;
+    sessao.sourceSnapshot = Object.freeze({
+      kind: sessao.source.kind,
+      itemId: item.id,
+      rotacao: item.rotacao,
+      posicao: Object.freeze({ ...(item.posicao || { x: 0, y: 0 }) })
+    });
+    criarProxyVisualDoArraste(sessao, item);
+    atualizarRotuloDoProxy(sessao, item);
   }
   agendarDesenhoDoProxy(sessao, event);
-  const celula = obterPosicaoDaCelulaPeloPonteiro(event);
-  if (!celula) return;
-  const candidata = {
-    x: celula.x - sessao.offset.x,
-    y: celula.y - sessao.offset.y
-  };
-  definirPosicaoCandidata(candidata);
   event.preventDefault();
+}
+
+function girarArrasteFisicoDoInventario() {
+  if (!["grabbed", "dragging"].includes(inventoryDrag.phase)) return false;
+  const itemPersistente = obterItemPersistenteDaOrigemFisica();
+  if (
+    !itemPersistente
+    || inventoryDrag.rotationInProgress
+    || itemPersistente.item.tamanho.largura === itemPersistente.item.tamanho.altura
+  ) return false;
+  const direcao = inventoryDrag.rotation === 90 ? -1 : 1;
+  inventoryDrag.rotationInProgress = true;
+  inventoryDrag.proxy?.classList.add("is-rotating");
+  inventoryDrag.target = null;
+  inventoryDrag.evaluation = null;
+  limparFeedbackDosAlvosFisicos();
+  clearBackpackPreview({ restaurarMensagem: false });
+  inventoryDrag.rotation = inventoryDrag.rotation === 90 ? 0 : 90;
+  inventoryDrag.candidateKey = "";
+  inventoryDrag.evaluationCache.clear();
+  const arte = inventoryDrag.art?.querySelector(".inventory-item-art");
+  if (arte) {
+    configurarOrientacaoVisualDaArte(arte, itemPersistente, inventoryDrag.rotation);
+  }
+  atualizarFormatoDaCarta(inventoryDrag.art?.querySelector(".inventory-card"), itemPersistente, inventoryDrag.rotation);
+  atualizarRotuloDoProxy(inventoryDrag, itemPersistente);
+  agendarDesenhoDoProxy(inventoryDrag, {
+    clientX: inventoryDrag.latestPointer.x,
+    clientY: inventoryDrag.latestPointer.y
+  });
+  window.GrimorioInventoryMotion.animateRotation(inventoryDrag.morph, {
+    direction: direcao,
+    reduceMotion: deveReduzirMovimento()
+  }).finally(function () {
+    if (!["grabbed", "dragging"].includes(inventoryDrag.phase)) return;
+    inventoryDrag.rotationInProgress = false;
+    inventoryDrag.proxy?.classList.remove("is-rotating");
+    inventoryDrag.candidateKey = "";
+    agendarDesenhoDoProxy(inventoryDrag, {
+      clientX: inventoryDrag.latestPointer.x,
+      clientY: inventoryDrag.latestPointer.y
+    });
+  });
+  return true;
+}
+
+function limparFeedbackDosAlvosFisicos() {
+  sheetInventoryEquipmentSlots.querySelectorAll("[data-equipment-slot]").forEach(function (slot) {
+    slot.classList.remove("is-compatible-target", "is-valid-target", "is-invalid-target", "is-drop-target");
+  });
+  sheetInventoryReceived.classList.remove("is-compatible-target", "is-valid-target", "is-invalid-target", "is-drop-target");
 }
 
 function removerProxyDoInventario(sessao) {
   if (sessao.animationFrame) window.cancelAnimationFrame(sessao.animationFrame);
-  sessao.animationFrame = 0;
   sessao.proxy?.remove();
-  sessao.proxy = null;
-  document.querySelectorAll(".sheet-inventory-item.is-drag-origin, .sheet-inventory-received__card.is-drag-origin").forEach(function (elemento) {
-    elemento.classList.remove("is-drag-origin");
-  });
-  sheetInventoryGrid.classList.remove("is-dragging-item");
+  sessao.originElement?.classList.remove("is-drag-origin");
+  document.querySelectorAll(".is-drop-target").forEach(function (elemento) { elemento.classList.remove("is-drop-target"); });
+  limparFeedbackDosAlvosFisicos();
+  document.body.classList.remove("is-inventory-grabbing");
+  clearBackpackPreview();
+  Object.assign(sessao, window.GrimorioUIState.createInventoryDragState());
 }
 
-function animarProxyAteRetangulo(sessao, retangulo, tipo) {
+function limparEstadoFisicoDoInventario() {
+  removerProxyDoInventario(inventoryDrag);
+}
+
+function confirmarDropFisico(avaliacao) {
+  const sessao = inventoryDrag;
+  const itemPersistente = obterItemPersistenteDaOrigemFisica();
+  const descriptor = inventoryTargets[avaliacao?.targetId];
+  if (!itemPersistente || !avaliacao?.valid || !descriptor) {
+    return { changed: false, noop: false };
+  }
+  const elementoDeslocadoAntes = avaliacao.mode === "direct-swap"
+    ? descriptor.getElement()?.querySelector(".inventory-card")
+    : null;
+  const retanguloDeslocadoAntes = elementoDeslocadoAntes?.getBoundingClientRect() || null;
+  const resultado = descriptor.apply({
+    source: sessao.source,
+    itemPersistente,
+    item: { ...itemPersistente, rotacao: sessao.rotation },
+    evaluation: avaliacao,
+    session: sessao
+  });
+  if (resultado.changed && retanguloDeslocadoAntes && origemFisicaEhEquipamento(sessao.source)) {
+    const elementoDeslocadoDepois = sheetInventoryEquipmentSlots
+      .querySelector(`[data-equipment-slot="${sessao.source.kind}"] .inventory-card`);
+    const retanguloDeslocadoDepois = elementoDeslocadoDepois?.getBoundingClientRect() || null;
+    if (elementoDeslocadoDepois && retanguloDeslocadoDepois) {
+      resultado.displacedFlip = {
+        element: elementoDeslocadoDepois,
+        from: retanguloDeslocadoAntes,
+        to: retanguloDeslocadoDepois
+      };
+    }
+  }
+  return resultado;
+}
+
+function encontrarDestinoVisualDoDrop(resultado) {
+  if (resultado.targetKind === "backpack") {
+    const elemento = sheetInventoryItemLayer.querySelector(`[data-inventory-item-id="${CSS.escape(resultado.itemId)}"]`);
+    return { element: elemento, art: elemento?.querySelector(".inventory-item-art") || elemento };
+  }
+  if (resultado.targetKind === "equipment") {
+    const elemento = sheetInventoryEquipmentSlots.querySelector(`[data-equipment-slot="${resultado.slot}"]`);
+    return { element: elemento, art: elemento?.querySelector(".inventory-item-art") || elemento };
+  }
+  if (resultado.targetKind === "bench") {
+    const elemento = sheetInventoryReceived.querySelector("[data-inventory-drag-source='bench']") || sheetInventoryReceived;
+    return { element: elemento, art: elemento.querySelector?.(".inventory-item-art") || elemento };
+  }
+  return { element: null, art: null };
+}
+
+async function animarProxyAteRetangulo(sessao, retangulo, tipo, destino) {
   const proxy = sessao.proxy;
   if (!proxy || !retangulo) {
     removerProxyDoInventario(sessao);
     return;
   }
-
-  if (sessao.animationFrame) {
-    window.cancelAnimationFrame(sessao.animationFrame);
-    desenharProxyDoArraste(sessao);
+  if (sessao.animationFrame) window.cancelAnimationFrame(sessao.animationFrame);
+  sessao.animationFrame = 0;
+  sessao.phase = tipo === "retorno" ? "returning" : "dropping";
+  window.GrimorioInventoryMotion.cancelAnimations(sessao.morph);
+  proxy.classList.remove("is-over-grid", "is-invalid", "is-rotating");
+  proxy.classList.add("is-travelling");
+  sessao.art?.style.setProperty("--drag-tilt", "0deg");
+  sessao.art?.style.setProperty("--drag-shadow-x", "0px");
+  const atual = proxy.getBoundingClientRect();
+  try {
+    await window.GrimorioInventoryMotion.animateTravel(proxy, {
+      from: atual,
+      to: retangulo,
+      kind: tipo === "retorno" ? "return" : "drop",
+      direction: sessao.latestPointer.x >= sessao.startPointer.x ? 1 : -1,
+      reduceMotion: deveReduzirMovimento()
+    });
+  } catch (_erro) {
+    // A interrupção visual não altera a decisão persistente já tomada.
   }
-  proxy.classList.add(tipo === "retorno" ? "is-returning" : "is-dropping");
-  proxy.style.setProperty("--drag-target-x", `${retangulo.left}px`);
-  proxy.style.setProperty("--drag-target-y", `${retangulo.top}px`);
-  proxy.style.setProperty("--drag-recoil-x", `${sessao.latestPointer.x >= sessao.startPointer.x ? 5 : -5}px`);
-  window.setTimeout(function () {
-    removerProxyDoInventario(sessao);
-  }, tipo === "retorno" ? DURACAO_DE_RETORNO_DO_INVENTARIO + 24 : DURACAO_DE_ENCAIXE_DO_INVENTARIO + 24);
+  removerProxyDoInventario(sessao);
+  if (!destino) return;
+  destino.classList.remove("is-drop-target");
+  if (tipo === "retorno") {
+    const controleDeOrigem = destino.matches("button") ? destino : destino.querySelector("button");
+    const alvoDaRecusa = controleDeOrigem || destino;
+    alvoDaRecusa?.classList.add("is-rejected");
+    window.GrimorioInventoryMotion.animateRejection(alvoDaRecusa, {
+      reduceMotion: deveReduzirMovimento()
+    }).finally(function () {
+      alvoDaRecusa?.classList.remove("is-rejected");
+    });
+    controleDeOrigem?.focus({ preventScroll: true });
+  } else {
+    destino.focus?.({ preventScroll: true });
+    if (destino.dataset.inventoryItemId) aplicarFeedbackDeAssentamento(destino.dataset.inventoryItemId, { focar: false });
+    else {
+      destino.classList.add("is-settling");
+      window.GrimorioInventoryMotion.animateSettle(destino, {
+        reduceMotion: deveReduzirMovimento()
+      }).finally(function () {
+        destino.classList.remove("is-settling");
+      });
+    }
+  }
 }
 
 function encerrarArrasteDeItem(event, cancelado) {
-  const sessao = inventoryUIState.pointerSession;
-  if (!sessao || sessao.pointerId !== event.pointerId) return;
-  const deveConfirmar = !cancelado && sessao.moved && avaliarPosicionamentoAtual()?.valid === true;
-  inventoryUIState.pointerSession = null;
+  const sessao = inventoryDrag;
+  if (
+    !sessao
+    || sessao.pointerId !== event.pointerId
+    || !["grabbed", "dragging"].includes(sessao.phase)
+  ) return;
+  const item = obterItemDoArrasteFisico();
+  const source = sessao.source;
+  const itemId = sessao.itemId;
+  const avaliacaoFinal = !cancelado && item
+    ? avaliarAlvoFisicoDoInventario(event.clientX, event.clientY, item, { revalidar: true })
+    : null;
 
-  if (deveConfirmar) {
-    confirmarPosicionamentoAtual({ focarItem: false });
-    const destino = sheetInventoryItemLayer.querySelector(
-      `[data-inventory-item-id="${CSS.escape(sessao.itemId)}"]`
-    );
-    animarProxyAteRetangulo(sessao, destino?.getBoundingClientRect(), "encaixe");
-    destino?.focus({ preventScroll: true });
-  } else {
-    const houveMovimento = sessao.moved;
-    cancelarMovimentoDoInventario({ focarItem: false });
-    if (houveMovimento && !cancelado) {
-      sheetInventoryPlacementStatus.textContent = "Movimento recusado. O item permaneceu na posição anterior.";
+  if (!sessao.moved) {
+    removerProxyDoInventario(sessao);
+    if (source.kind === "inventory") {
+      inventoryUIState.selectedItemId = itemId;
+      renderizarInventario();
     }
-    if (houveMovimento) {
-      animarProxyAteRetangulo(sessao, sessao.originRect, "retorno");
-      aplicarFeedbackDePosicaoRecusada();
-      window.setTimeout(function () {
-        const origem = sheetInventoryItemLayer.querySelector(
-          `[data-inventory-item-id="${CSS.escape(sessao.itemId)}"]`
+    event.preventDefault();
+    return;
+  }
+
+  inventoryClickSuppressedUntil = Date.now() + 350;
+  if (avaliacaoFinal?.valid) {
+    const resultado = confirmarDropFisico(avaliacaoFinal);
+    if (resultado.changed) {
+      const destino = encontrarDestinoVisualDoDrop(resultado);
+      destino.element?.classList.add("is-drop-target");
+      sheetInventoryPlacementStatus.textContent = resultado.message;
+      if (resultado.displacedFlip) {
+        window.GrimorioInventoryMotion.animateFlip(
+          resultado.displacedFlip.element,
+          resultado.displacedFlip.from,
+          resultado.displacedFlip.to,
+          { reduceMotion: deveReduzirMovimento() }
         );
-        origem?.focus({ preventScroll: true });
-      }, DURACAO_DE_RETORNO_DO_INVENTARIO);
-    } else {
-      removerProxyDoInventario(sessao);
+      }
+      animarProxyAteRetangulo(sessao, destino.art?.getBoundingClientRect(), "encaixe", destino.element);
+      event.preventDefault();
+      return;
+    }
+    if (resultado.noop) {
+      sheetInventoryPlacementStatus.textContent = "O objeto já estava neste destino.";
     }
   }
+
+  clearBackpackPreview({ restaurarMensagem: false });
+  if (!avaliacaoFinal?.valid && avaliacaoFinal && item) {
+    sheetInventoryPlacementStatus.textContent = descreverAvaliacaoFisica(avaliacaoFinal, item);
+  } else if (cancelado) {
+    sheetInventoryPlacementStatus.textContent = "Gesto cancelado. O objeto voltou ao lugar.";
+  }
+  animarProxyAteRetangulo(sessao, sessao.originRect, "retorno", sessao.originElement);
   event.preventDefault();
+}
+
+function cancelarArrasteFisicoAtivo(mensagem) {
+  if (!["grabbed", "dragging"].includes(inventoryDrag.phase)) return;
+  inventoryClickSuppressedUntil = Date.now() + 350;
+  inventoryDrag.target = null;
+  inventoryDrag.evaluation = null;
+  clearBackpackPreview({ restaurarMensagem: false });
+  sheetInventoryPlacementStatus.textContent = mensagem || "Gesto interrompido. O objeto voltou ao lugar.";
+  animarProxyAteRetangulo(
+    inventoryDrag,
+    inventoryDrag.originRect,
+    "retorno",
+    inventoryDrag.originElement
+  );
 }
 
 function abrirConfirmacaoDeDescarte() {
@@ -5712,7 +6700,6 @@ function confirmarDescarteDoInventario() {
     estadoDaInterface.discardingItemId = null;
     estadoDaInterface.selectedItemId = null;
     estadoDaInterface.movingItemId = null;
-    estadoDaInterface.pointerSession = null;
     recalcularItemPendenteAposReorganizacao(inventario, estadoDaInterface);
     return true;
   });
@@ -6099,6 +7086,12 @@ sheetSaveSessionButton.addEventListener("click", function () {
 sheetExportJsonButton.addEventListener("click", exportarFichaJson);
 sheetBackReviewButton.addEventListener("click", voltarParaRevisao);
 sheetSidebar.addEventListener("click", function (event) {
+  const moreButton = event.target.closest("#sheet-sidebar-more");
+  if (moreButton) {
+    definirMenuDeSecoesFuturasAberto(moreButton.getAttribute("aria-expanded") !== "true");
+    return;
+  }
+
   const button = event.target.closest("button[data-sheet-section]");
   if (!button) return;
 
@@ -6107,7 +7100,18 @@ sheetSidebar.addEventListener("click", function (event) {
     return;
   }
 
-  mostrarMensagemDaFicha("Esta seção ainda está em desenvolvimento.");
+  definirMenuDeSecoesFuturasAberto(false);
+  mostrarMensagemDaFicha(`${button.dataset.navLabel || "Esta seção"} ainda está em desenvolvimento.`);
+});
+document.addEventListener("click", function (event) {
+  if (!sheetSidebar.classList.contains("is-more-open") || sheetSidebar.contains(event.target)) return;
+  definirMenuDeSecoesFuturasAberto(false);
+});
+sheetSidebar.addEventListener("keydown", function (event) {
+  if (event.key !== "Escape" || !sheetSidebar.classList.contains("is-more-open")) return;
+  event.preventDefault();
+  definirMenuDeSecoesFuturasAberto(false);
+  sheetSidebarMore.focus({ preventScroll: true });
 });
 sheetOpenAbilities.addEventListener("click", function () {
   ativarSecaoDaFicha("abilities");
@@ -6122,6 +7126,7 @@ sheetRotatePendingItem.addEventListener("click", girarItemAtivoDoInventario);
 sheetDiscardPendingItem.addEventListener("click", descartarItemImportado);
 sheetCancelItemImport.addEventListener("click", cancelarImportacaoDeItem);
 sheetInventoryItemLayer.addEventListener("click", function (event) {
+  if (Date.now() < inventoryClickSuppressedUntil) return;
   const button = event.target.closest("button[data-inventory-item-id]");
   if (!button) return;
   if (inventoryUIState.movingItemId && inventoryUIState.movingItemId !== button.dataset.inventoryItemId) {
@@ -6133,21 +7138,44 @@ sheetInventoryItemLayer.addEventListener("click", function (event) {
     estadoDaInterface.selectedItemId = button.dataset.inventoryItemId;
   }, { persistente: false });
 });
+sheetInventoryReceived.addEventListener("click", function (event) {
+  if (Date.now() < inventoryClickSuppressedUntil) return;
+  // Clique de ponteiro não transforma staging parado em candidato espacial.
+  // A ativação semântica por teclado continua disponível (detail === 0).
+  if (event.detail !== 0) return;
+  const grab = event.target.closest("[data-inventory-drag-source='bench']");
+  const item = personagem.inventarioStaging;
+  if (!grab || !item) return;
+  const disponibilidade = obterDisponibilidadeDoItemPendente();
+  if (!disponibilidade.available) {
+    sheetInventoryPlacementStatus.textContent = disponibilidade.code === "item-too-large"
+      ? "Não cabe nesta orientação. Use Girar 90° para tentar outro footprint."
+      : "Ainda não existe espaço livre para esta peça. Reorganize a mochila primeiro.";
+    return;
+  }
+  definirPosicaoCandidata(disponibilidade.position);
+  const celula = sheetInventoryCellLayer.querySelector(
+    `[data-x="${disponibilidade.position.x}"][data-y="${disponibilidade.position.y}"]`
+  );
+  celula?.focus({ preventScroll: true });
+  sheetInventoryPlacementStatus.textContent = `Posicionando ${item.item.nome} pelo teclado. Use setas, R e Enter.`;
+});
 sheetMoveItem.addEventListener("click", iniciarModoExplicitoDeMovimento);
 sheetRotateItem.addEventListener("click", girarItemAtivoDoInventario);
-sheetEquipItem.addEventListener("click", equiparArmaduraSelecionada);
-sheetInventoryArmorSlot.addEventListener("click", desequiparArmadura);
+sheetEquipItem.addEventListener("click", equiparItemSelecionado);
+sheetInventoryEquipmentSlots.addEventListener("click", function (event) {
+  if (Date.now() < inventoryClickSuppressedUntil) return;
+  const slot = event.target.closest("button[data-equipment-slot]")?.dataset.equipmentSlot;
+  if (!slot) return;
+  if (personagem.equipamentos?.[slot]) desequiparItemDoSlot(slot);
+  else sheetInventoryPlacementStatus.textContent = `${rotuloDoSlotDeEquipamento(slot)} está vazio.`;
+});
 sheetDiscardItem.addEventListener("click", abrirConfirmacaoDeDescarte);
-sheetInventoryMobileNav.addEventListener("click", function (event) {
-  const botao = event.target.closest("button[data-inventory-mobile-view]");
-  if (!botao) return;
-  const alvo = botao.dataset.inventoryMobileView;
-  sheetInventoryView.dataset.mobileView = alvo;
-  sheetInventoryMobileNav.querySelectorAll("button").forEach(function (item) {
-    const ativo = item === botao;
-    item.classList.toggle("is-active", ativo);
-    item.setAttribute("aria-pressed", String(ativo));
-  });
+inventoryRevealConfirm.addEventListener("click", animarItemDoRevealAteBancada);
+inventoryRevealEquip.addEventListener("click", equiparItemPendenteAgora);
+inventoryRevealDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  animarItemDoRevealAteBancada();
 });
 inventoryDiscardCancel.addEventListener("click", cancelarDescarteDoInventario);
 inventoryDiscardConfirm.addEventListener("click", confirmarDescarteDoInventario);
@@ -6156,23 +7184,39 @@ inventoryDiscardDialog.addEventListener("cancel", function (event) {
   cancelarDescarteDoInventario();
 });
 sheetInventoryItemLayer.addEventListener("pointerdown", iniciarArrasteDeItem);
-sheetInventoryItemLayer.addEventListener("pointermove", atualizarArrasteDeItem);
-sheetInventoryItemLayer.addEventListener("pointerup", function (event) {
-  encerrarArrasteDeItem(event, false);
-});
-sheetInventoryItemLayer.addEventListener("pointercancel", function (event) {
-  encerrarArrasteDeItem(event, true);
-});
 sheetInventoryReceived.addEventListener("pointerdown", iniciarArrasteDeItemRecebido);
-sheetInventoryReceived.addEventListener("pointermove", atualizarArrasteDeItem);
-sheetInventoryReceived.addEventListener("pointerup", function (event) {
+sheetInventoryEquipmentSlots.addEventListener("pointerdown", iniciarArrasteDeEquipamento);
+document.addEventListener("pointermove", atualizarArrasteDeItem, { passive: false });
+document.addEventListener("pointerup", function (event) {
   encerrarArrasteDeItem(event, false);
 });
-sheetInventoryReceived.addEventListener("pointercancel", function (event) {
+document.addEventListener("pointercancel", function (event) {
   encerrarArrasteDeItem(event, true);
+});
+document.addEventListener("lostpointercapture", function (event) {
+  if (inventoryDrag.pointerId === event.pointerId && ["grabbed", "dragging"].includes(inventoryDrag.phase)) {
+    cancelarArrasteFisicoAtivo("A captura do gesto foi interrompida. O objeto voltou ao lugar.");
+  }
+});
+window.addEventListener("blur", function () {
+  cancelarArrasteFisicoAtivo("A janela perdeu o foco. O objeto voltou ao lugar.");
+});
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) cancelarArrasteFisicoAtivo("A página foi ocultada. O objeto voltou ao lugar.");
+});
+document.addEventListener("keydown", function (event) {
+  if (!["grabbed", "dragging"].includes(inventoryDrag.phase)) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    cancelarArrasteFisicoAtivo("Gesto cancelado. O objeto voltou ao lugar.");
+    return;
+  }
+  if (event.key.toLowerCase() !== "r") return;
+  event.preventDefault();
+  girarArrasteFisicoDoInventario();
 });
 sheetInventoryGrid.addEventListener("pointermove", function (event) {
-  if (inventoryUIState.pointerSession || !obterItemEmPosicionamento()) return;
+  if (inventoryDrag.phase !== "idle" || !obterItemEmPosicionamento()) return;
   const celula = obterPosicaoDaCelulaPeloPonteiro(event);
   if (celula) definirPosicaoCandidata(celula);
 });
@@ -6223,6 +7267,11 @@ sheetAbilitiesSummary.addEventListener("click", function (event) {
   if (button) ativarSecaoDaFicha("abilities", button.dataset.abilityId);
 });
 sheetAbilityList.addEventListener("click", function (event) {
+  const emptyAction = event.target.closest("button[data-ability-empty-action='import']");
+  if (emptyAction) {
+    sheetImportAbility.click();
+    return;
+  }
   const button = event.target.closest("button[data-ability-id]");
   if (!button) return;
   habilidadeSelecionadaId = button.dataset.abilityId;
@@ -6250,6 +7299,13 @@ sheetAbilitySearch.addEventListener("input", function () {
 });
 sheetAbilityTypeFilter.addEventListener("change", function () {
   filtroTipoHabilidade = sheetAbilityTypeFilter.value;
+  renderizarListaDeHabilidades();
+});
+sheetAbilityTypeTabs.addEventListener("click", function (event) {
+  const button = event.target.closest("button[data-ability-type-filter]");
+  if (!button) return;
+  filtroTipoHabilidade = button.dataset.abilityTypeFilter;
+  sheetAbilityTypeFilter.value = filtroTipoHabilidade;
   renderizarListaDeHabilidades();
 });
 sheetAbilityStateFilter.addEventListener("change", function () {

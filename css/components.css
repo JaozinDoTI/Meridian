@@ -1,0 +1,75 @@
+.ui-surface {
+  color: var(--color-text);
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.ui-surface--soft { background: var(--color-surface-soft); }
+.ui-surface--elevated { box-shadow: var(--elevation-2); }
+
+.ui-panel {
+  min-width: 0;
+  overflow: clip;
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--elevation-1);
+}
+
+.ui-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-subtle);
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target-min);
+  padding-inline: var(--space-4);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--color-surface);
+  background: var(--color-primary);
+  font: 700 var(--text-label)/1 var(--font-interface);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard);
+}
+
+.ui-button:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
+.ui-button--secondary { color: var(--color-primary); background: transparent; }
+.ui-button--danger { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 38%, transparent); background: transparent; }
+
+.ui-chip,
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding-inline: var(--space-2);
+  border: var(--border-subtle);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-surface) 76%, transparent);
+  font: 700 var(--text-caption)/1 var(--font-interface);
+}
+
+.ui-status { min-height: 1.4em; color: var(--color-text-muted); font: 500 var(--text-caption)/1.4 var(--font-interface); }
+.ui-status[data-state="error"] { color: var(--color-danger); }
+.ui-status[data-state="success"] { color: var(--color-success); }
+
+.ui-empty-state {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  min-height: 160px;
+  padding: var(--space-5);
+  color: var(--color-text-muted);
+  text-align: center;
+}

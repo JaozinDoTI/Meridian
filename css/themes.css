@@ -1,0 +1,22 @@
+[data-theme="inventory"] {
+  --color-canvas: var(--sheet-paper-deep, #eee1cd);
+  --color-surface: var(--sheet-paper, #fcf9f2);
+  --color-surface-soft: var(--sheet-paper-soft, #f6efe4);
+  --color-text: var(--sheet-ink, #2f241e);
+  --color-text-muted: var(--sheet-muted, #817164);
+  --color-primary: var(--sheet-wine, #6b151b);
+  --color-primary-dark: var(--sheet-wine-dark, #4b0e13);
+  --color-metal: var(--sheet-gold, #ad8b58);
+  --color-metal-highlight: #c59852;
+}
+
+[data-theme="inventory"][data-theme-tone="dark"] {
+  --color-canvas: #120b09;
+  --color-surface: #1b100e;
+  --color-surface-soft: #291712;
+  --color-text: #f4e8d0;
+  --color-text-muted: #bca88a;
+  --color-primary: #8a2a31;
+  --color-primary-dark: #681e2a;
+  --color-metal: #c59852;
+}

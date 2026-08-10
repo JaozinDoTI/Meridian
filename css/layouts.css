@@ -1,0 +1,16 @@
+.app-shell {
+  width: min(100%, var(--content-max));
+  margin-inline: auto;
+}
+
+.screen { min-width: 0; }
+.screen-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
+.screen-body { min-width: 0; }
+
+.sheet-layout { display: grid; min-width: 0; }
+.inventory-layout { display: grid; min-width: 0; }
+.creation-layout { display: grid; min-width: 0; }
+
+@media (max-width: 760px) {
+  .screen-header { flex-direction: column; }
+}
