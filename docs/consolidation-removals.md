@@ -109,3 +109,13 @@ Foram retirados 27 seletores responsivos antigos. A navegação do Inventário c
 | Morto, removido | `.sheet-inventory-workspace`, grid/details panels, toolbar, capacidade e grid shell da primeira versão espacial | `.inventory-workspace`, `.inventory-header`, `.inventory-capacity`, `.inventory-backpack` e `.inventory-sidecar` | classes antigas sem produtor; contratos e snapshots aprovados |
 
 As 104 linhas removidas eram exclusivamente containers da composição anterior. As bases ainda consumidas de grid, células, itens e preview não participaram deste commit.
+
+## Fase 3 — Inventário: mochila e footprint
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, fundido | propriedades complementares de scroll, runas, foco, grade e células da primeira versão espacial | regras contextualizadas por `.inventory-shell` no bloco da mochila atual | posicionamento por teclado, drag válido/inválido e snapshots aprovados |
+| Duplicado, removido | bases não contextualizadas de grid, layers, células ocupadas e moldura | `.inventory-shell .sheet-inventory-*` | propriedades computadas preservadas nos cinco viewports |
+| Ativo, fundido | feedback de célula válida/inválida | `.inventory-shell .sheet-inventory-cell.is-preview-*` | colisão e preview continuam cobertos pelos testes de domínio e navegador |
+
+O commit substituiu 134 linhas por 50 linhas canônicas, reduzindo a auditoria para 1.557 seletores e 67 sobreposições entre arquivos.
