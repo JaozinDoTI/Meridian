@@ -1,3 +1,113 @@
+.motion-feedback {
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.motion-state-transition {
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-emphasized);
+}
+
+.motion-spatial {
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-settle);
+  will-change: transform, opacity;
+}
+
+.motion-ambient { animation-duration: var(--duration-slow); animation-timing-function: var(--ease-standard); }
+
+[data-sheet-view]:not([hidden]) {
+  animation: sheet-view-enter var(--sheet-motion-base) var(--sheet-ease-emphasized) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.motion-feedback, .motion-state-transition, .motion-spatial, .motion-ambient) {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character-sheet-screen *,
+  .character-sheet-screen *::before,
+  .character-sheet-screen *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .attribute-card,
+  .attribute-card::before,
+  .attribute-card::after,
+  .attribute-card .attribute-icon,
+  .attribute-card .attribute-icon::before,
+  .attribute-card .attribute-icon::after,
+  .attribute-card .attribute-final-value,
+  .attribute-card .attribute-final-value::before,
+  .attribute-card .attribute-final-value::after,
+  .attribute-card [data-attribute-source],
+  .attribute-card [data-attribute-source]::before,
+  .attribute-card [data-attribute-source]::after,
+  .attribute-card [data-attribute-source] dd {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  [data-sheet-view]:not([hidden]),
+  .sheet-vulnerability-card__heading .sheet-icon,
+  .sheet-resource-card--life.is-critical .sheet-resource-heading .sheet-icon {
+    animation: none;
+    transform: none;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing,
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::before,
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::after,
+  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing [data-attribute-source] dd,
+  .sheet-attribute-card.is-attribute-changing .sheet-attribute-final,
+  .attribute-card.is-attribute-changing .attribute-final-value,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]:hover::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]:hover::after,
+  .sheet-attribute-card:hover .sheet-attribute-final,
+  .attribute-card:hover .attribute-final-value,
+  .sheet-attribute-card[data-attribute]:hover h3 .sheet-icon,
+  .attribute-card[data-attribute]:hover .attribute-icon {
+    animation: none !important;
+    text-shadow: none !important;
+    transform: none !important;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::after,
+  :is(.sheet-attribute-card, .attribute-card) [data-attribute-source]::after,
+  .sheet-attribute-card[data-attribute] h3 .sheet-icon,
+  .attribute-card[data-attribute] .attribute-icon {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="impact"]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="seal"]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="trail"]::after,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="inscription"]::after {
+    opacity: 0.56;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card).is-at-limit::before {
+    opacity: 0.72;
+  }
+
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::before,
+  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::after,
+  :is(.sheet-attribute-card, .attribute-card) [data-attribute-source]::after,
+  .sheet-attribute-card[data-attribute] h3 .sheet-icon,
+  .attribute-card[data-attribute] .attribute-icon {
+    filter: none !important;
+  }
+}
+
 /* Primitivas de movimento da ficha; componentes apenas consomem estes tokens. */
 @property --sheet-attribute-trail-angle {
   syntax: "<angle>";
@@ -839,361 +949,5 @@
   100% {
     opacity: 0;
     transform: scale(1);
-  }
-}
-
-@keyframes sheet-view-enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes sheet-nav-activate {
-  from {
-    opacity: 0.78;
-    transform: translateX(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes sheet-nav-marker {
-  0% {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.4);
-  }
-
-  65% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1.65);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-}
-
-@keyframes sheet-selection-enter {
-  from {
-    opacity: 0.72;
-    transform: translateX(-2px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes sheet-status-change {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  45% {
-    opacity: 0.55;
-  }
-}
-
-@keyframes sheet-resource-feedback {
-  0%,
-  100% {
-    opacity: 0;
-  }
-
-  38% {
-    opacity: 1;
-  }
-}
-
-@keyframes sheet-resource-number {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  48% {
-    transform: scale(1.075);
-  }
-}
-
-@keyframes sheet-resource-sweep {
-  from {
-    opacity: 0;
-    transform: translateX(-140%);
-  }
-
-  35% {
-    opacity: 0.9;
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(140%);
-  }
-}
-
-@keyframes sheet-resource-sweep-reverse {
-  from {
-    opacity: 0;
-    transform: translateX(140%);
-  }
-
-  35% {
-    opacity: 0.9;
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(-140%);
-  }
-}
-
-@keyframes sheet-attention-reveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.65) rotate(-12deg);
-  }
-
-  65% {
-    opacity: 1;
-    transform: scale(1.12) rotate(3deg);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
-}
-
-@keyframes sheet-critical-heart {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 0 rgba(143, 20, 28, 0));
-    transform: scale(1);
-  }
-
-  50% {
-    filter: drop-shadow(0 0 3px rgba(143, 20, 28, 0.32));
-    transform: scale(1.06);
-  }
-}
-
-@keyframes sheet-critical-pulse {
-  0%,
-  100% {
-    opacity: 0.82;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes inventory-preview-breathe {
-  0%,
-  100% {
-    opacity: 0.74;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes inventory-symbol-presence {
-  0%,
-  100% {
-    opacity: 0.48;
-    filter: drop-shadow(0 2px 3px rgba(10, 5, 4, 0.62));
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-
-  50% {
-    opacity: 0.68;
-    filter: drop-shadow(0 3px 5px var(--item-glow));
-    transform: translateX(-50%) translateY(-2px) scale(1.025);
-  }
-}
-
-@keyframes inventory-item-settle {
-  0% { transform: translateY(-3px) scale(1.025); }
-  62% { transform: translateY(1px) scale(0.975); }
-  100% { transform: translateY(0) scale(1); }
-}
-
-@keyframes inventory-item-return-feedback {
-  0%, 100% { transform: translateX(0); }
-  35% { transform: translateX(-3px) rotate(-0.35deg); }
-  68% { transform: translateX(2px) rotate(0.25deg); }
-}
-
-@keyframes inventory-proxy-drop {
-  0% {
-    transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(var(--drag-tilt)) scale(1.025);
-  }
-  72% {
-    transform: translate3d(var(--drag-target-x), var(--drag-target-y), 0) rotate(0deg) scale(0.975);
-  }
-  100% {
-    transform: translate3d(var(--drag-target-x), var(--drag-target-y), 0) rotate(0deg) scale(1);
-  }
-}
-
-@keyframes inventory-proxy-return {
-  0% {
-    transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(var(--drag-tilt)) scale(1.025);
-  }
-  18% {
-    transform: translate3d(calc(var(--drag-x) + var(--drag-recoil-x)), var(--drag-y), 0) rotate(0deg) scale(1.018);
-  }
-  100% {
-    transform: translate3d(var(--drag-target-x), var(--drag-target-y), 0) rotate(0deg) scale(1);
-  }
-}
-
-.sheet-inventory-grid.is-positioning .sheet-inventory-preview-footprint {
-  animation: inventory-preview-breathe 1.15s ease-in-out infinite;
-}
-
-.sheet-inventory-item::after {
-  animation: inventory-symbol-presence 4.6s ease-in-out infinite;
-}
-
-.sheet-inventory-item:hover::after,
-.sheet-inventory-item:focus-visible::after,
-.sheet-inventory-item.is-selected::after {
-  animation-duration: 1.8s;
-  opacity: 0.82;
-}
-
-.sheet-inventory-item.is-settling {
-  animation: inventory-item-settle 210ms cubic-bezier(0.2, 0.86, 0.28, 1);
-}
-
-.sheet-inventory-item.is-invalid-return,
-.sheet-inventory-preview-footprint.is-invalid-return {
-  animation: inventory-item-return-feedback 240ms ease-out;
-}
-
-.sheet-inventory-drag-proxy.is-dropping {
-  animation: inventory-proxy-drop 210ms cubic-bezier(0.2, 0.84, 0.24, 1) forwards;
-}
-
-.sheet-inventory-drag-proxy.is-returning {
-  animation: inventory-proxy-return 240ms cubic-bezier(0.24, 0.76, 0.3, 1) forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .character-sheet-screen *,
-  .character-sheet-screen *::before,
-  .character-sheet-screen *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-
-  .attribute-card,
-  .attribute-card::before,
-  .attribute-card::after,
-  .attribute-card .attribute-icon,
-  .attribute-card .attribute-icon::before,
-  .attribute-card .attribute-icon::after,
-  .attribute-card .attribute-final-value,
-  .attribute-card .attribute-final-value::before,
-  .attribute-card .attribute-final-value::after,
-  .attribute-card [data-attribute-source],
-  .attribute-card [data-attribute-source]::before,
-  .attribute-card [data-attribute-source]::after,
-  .attribute-card [data-attribute-source] dd {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-
-  [data-sheet-view]:not([hidden]),
-  .sheet-sidebar__nav button.is-active,
-  .sheet-sidebar__nav button.is-active i,
-  .sheet-vulnerability-card__heading .sheet-icon,
-  .sheet-resource-card--life.is-critical .sheet-resource-heading .sheet-icon {
-    animation: none;
-    transform: none;
-  }
-
-  .sheet-inventory-grid,
-  .sheet-inventory-preview-footprint,
-  .sheet-inventory-item,
-  .sheet-inventory-cell,
-  .sheet-inventory-occupancy span {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-  }
-
-  .sheet-inventory-drag-proxy {
-    animation: none !important;
-    transition: none !important;
-    transform: translate3d(
-      var(--drag-target-x, var(--drag-x)),
-      var(--drag-target-y, var(--drag-y)),
-      0
-    ) !important;
-  }
-
-  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing,
-  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::before,
-  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing::after,
-  :is(.sheet-attribute-card, .attribute-card).is-attribute-changing [data-attribute-source] dd,
-  .sheet-attribute-card.is-attribute-changing .sheet-attribute-final,
-  .attribute-card.is-attribute-changing .attribute-final-value,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]:hover::before,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]:hover::after,
-  .sheet-attribute-card:hover .sheet-attribute-final,
-  .attribute-card:hover .attribute-final-value,
-  .sheet-attribute-card[data-attribute]:hover h3 .sheet-icon,
-  .attribute-card[data-attribute]:hover .attribute-icon {
-    animation: none !important;
-    text-shadow: none !important;
-    transform: none !important;
-  }
-
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::before,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::after,
-  :is(.sheet-attribute-card, .attribute-card) [data-attribute-source]::after,
-  .sheet-attribute-card[data-attribute] h3 .sheet-icon,
-  .attribute-card[data-attribute] .attribute-icon {
-    animation: none !important;
-    transform: none !important;
-  }
-
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="impact"]::before,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="seal"]::before,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="trail"]::after,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion="inscription"]::after {
-    opacity: 0.56;
-  }
-
-  :is(.sheet-attribute-card, .attribute-card).is-at-limit::before {
-    opacity: 0.72;
-  }
-
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::before,
-  :is(.sheet-attribute-card, .attribute-card)[data-attribute-motion]::after,
-  :is(.sheet-attribute-card, .attribute-card) [data-attribute-source]::after,
-  .sheet-attribute-card[data-attribute] h3 .sheet-icon,
-  .attribute-card[data-attribute] .attribute-icon {
-    filter: none !important;
   }
 }

@@ -1,0 +1,303 @@
+.character-sheet-screen {
+  --sheet-paper: #fcf9f2;
+  --sheet-paper-soft: #f6efe4;
+  --sheet-paper-deep: #eee1cd;
+  --sheet-ink: #2f241e;
+  --sheet-ink-soft: #55463c;
+  --sheet-muted: #817164;
+  --sheet-gold: #ad8b58;
+  --sheet-gold-strong: #94713f;
+  --sheet-gold-soft: rgba(173, 139, 88, 0.32);
+  --sheet-gold-faint: rgba(173, 139, 88, 0.16);
+  --sheet-wine: #6b151b;
+  --sheet-wine-dark: #4b0e13;
+  --sheet-wine-soft: #8a2a31;
+  --sheet-mana: #2d6382;
+  --sheet-mana-dark: #204c66;
+  --sheet-table-head: #30261f;
+  --sheet-table-head-text: #faf6ed;
+  --sheet-danger: #8f141c;
+  --sheet-success: #426d45;
+  --sheet-border: rgba(173, 139, 88, 0.45);
+  --sheet-divider: rgba(120, 96, 67, 0.2);
+  --sheet-radius-panel: 4px;
+  --sheet-radius-compact: 3px;
+  --sheet-surface-primary: #fffdf8;
+  --sheet-surface-secondary: #f8f2e8;
+  --sheet-surface-muted: #f2ece3;
+  --sheet-life-surface: rgba(107, 21, 27, 0.045);
+  --sheet-mana-surface: rgba(45, 99, 130, 0.055);
+  --sheet-attribute-surface: rgba(173, 139, 88, 0.055);
+  --sheet-combat-surface: rgba(238, 225, 205, 0.58);
+  --sheet-card-border: rgba(148, 113, 63, 0.46);
+  --sheet-card-highlight: rgba(255, 255, 255, 0.72);
+  --sheet-shadow:
+    0 1px 2px rgba(55, 40, 29, 0.07),
+    inset 0 1px 0 var(--sheet-card-highlight);
+  --sheet-shell-padding: 6px;
+  --sheet-gap: 7px;
+  --sheet-topbar-height: 50px;
+  --sheet-top-row-height: clamp(158px, 20vh, 205px);
+  --sheet-stats-height: clamp(150px, 16vh, 164px);
+  --sheet-middle-height: clamp(70px, 9vh, 92px);
+  --sheet-footer-height: 26px;
+  --sheet-progression-height: 34px;
+
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 100dvh;
+  min-width: 0;
+  color: var(--sheet-ink);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.68), transparent 30%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(80, 60, 42, 0.018) 0 1px,
+      transparent 1px 7px
+    ),
+    var(--sheet-paper);
+  font-family: Georgia, "Times New Roman", serif;
+  overflow: hidden;
+}
+
+.character-sheet-screen[hidden] {
+  display: none !important;
+}
+
+[data-sheet-view][hidden] {
+  display: none !important;
+}
+
+body.sheet-is-open {
+  overflow: hidden;
+}
+
+body.sheet-is-open .grimoire-page {
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.sheet-is-open .grimoire-frame,
+body.sheet-is-open .astral-circle,
+body.sheet-is-open .celestial-spark {
+  display: none;
+}
+
+.sheet-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sheet-sidebar-width) minmax(0, 1fr);
+  gap: var(--sheet-gap);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--sheet-shell-padding);
+}
+
+.sheet-shell::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border: 1px solid var(--sheet-gold-soft);
+  pointer-events: none;
+}
+
+.sheet-navigation,
+.sheet-main {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--sheet-border);
+  background:
+    radial-gradient(circle at 28% 4%, rgba(255, 255, 255, 0.62), transparent 30%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(80, 60, 42, 0.016) 0 1px,
+      transparent 1px 7px
+    ),
+    var(--sheet-paper);
+  box-shadow: var(--sheet-shadow);
+}
+
+.sheet-navigation::before,
+.sheet-main::before,
+.sheet-navigation::after,
+.sheet-main::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.sheet-navigation::before,
+.sheet-main::before {
+  top: 4px;
+  left: 4px;
+  border-top: 1px solid var(--sheet-gold);
+  border-left: 1px solid var(--sheet-gold);
+}
+
+.sheet-navigation::after,
+.sheet-main::after {
+  right: 4px;
+  bottom: 4px;
+  border-right: 1px solid var(--sheet-gold);
+  border-bottom: 1px solid var(--sheet-gold);
+}
+
+.sheet-main {
+  display: grid;
+  grid-template-rows:
+    var(--sheet-topbar-height)
+    var(--sheet-top-row-height)
+    var(--sheet-stats-height)
+    var(--sheet-middle-height)
+    minmax(0, 1fr)
+    var(--sheet-footer-height);
+  gap: var(--sheet-gap);
+  height: 100%;
+  padding: 0 8px;
+  overflow: hidden;
+}
+
+@media (min-width: 1400px) and (min-height: 900px) {
+  .character-sheet-screen {
+    --sheet-shell-padding: 7px;
+    --sheet-gap: 8px;
+    --sheet-topbar-height: 54px;
+    --sheet-top-row-height: clamp(192px, 20vh, 215px);
+    --sheet-stats-height: 164px;
+    --sheet-middle-height: 92px;
+    --sheet-footer-height: 28px;
+    --sheet-progression-height: 36px;
+  }
+
+  .sheet-main {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+
+@media (min-width: 1100px) and (max-height: 899px) {
+  .character-sheet-screen {
+    --sheet-shell-padding: 6px;
+    --sheet-gap: 5px;
+    --sheet-topbar-height: 45px;
+    --sheet-top-row-height: clamp(148px, 20.5vh, 168px);
+    --sheet-stats-height: 150px;
+    --sheet-middle-height: 70px;
+    --sheet-footer-height: 24px;
+    --sheet-progression-height: 32px;
+  }
+
+  .sheet-main {
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+}
+
+@media (min-width: 1200px) and (max-height: 800px) {
+  .character-sheet-screen {
+    --sheet-gap: 5px;
+    --sheet-topbar-height: 44px;
+    --sheet-top-row-height: 156px;
+    --sheet-stats-height: 146px;
+    --sheet-middle-height: 68px;
+    --sheet-footer-height: 23px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1399px) {
+  body.sheet-is-open {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.sheet-is-open .grimoire-page,
+  .character-sheet-screen,
+  .sheet-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .sheet-main {
+    grid-template-rows: auto;
+    height: auto;
+    overflow: visible;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1099px) {
+  body.sheet-is-open {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.sheet-is-open .grimoire-page {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .character-sheet-screen {
+    --sheet-gap: 6px;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .sheet-shell {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .sheet-main {
+    grid-template-rows: auto;
+    height: auto;
+    padding: 0 7px 7px;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 899px) {
+  body.sheet-is-open {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.sheet-is-open .grimoire-page {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .character-sheet-screen {
+    --sheet-gap: 7px;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .sheet-shell {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100dvh;
+    padding: 6px;
+  }
+
+  .sheet-main {
+    display: grid;
+    grid-template-rows: auto;
+    gap: var(--sheet-gap);
+    height: auto;
+    padding: 0 7px calc(80px + env(safe-area-inset-bottom));
+    overflow: visible;
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "tipo": "grimorio-ficha",
+  "versao": 2,
+  "salvoEm": "2026-08-10T12:00:00.000Z",
+  "personagem": {
+    "nome": "Ariadne Vesper",
+    "jogador": "Baseline",
+    "campanha": "Meridian",
+    "mestre": "Codex",
+    "retrato": null,
+    "especie": "humano",
+    "varianteEspecie": null,
+    "atributosEspecie": [],
+    "afinidadeEspecie": "intelecto",
+    "classe": "experimentalista",
+    "classeImportada": false,
+    "origem": {
+      "titulo": "Cartógrafa das Ruínas",
+      "local": "Distrito do Relógio",
+      "historia": "Mapeia estruturas esquecidas sob a cidade de Meridian."
+    },
+    "atributos": {
+      "forca": 1,
+      "agilidade": 2,
+      "intelecto": 4,
+      "resistencia": 2
+    },
+    "pericias": {
+      "acrobacia": false,
+      "adestramento": false,
+      "atuacao": false,
+      "cavalaria": false,
+      "conhecimento": true,
+      "diplomacia": false,
+      "enganacao": false,
+      "fortitude": false,
+      "furtividade": false,
+      "destreza": false,
+      "iniciativa": false,
+      "intimidacao": false,
+      "intuicao": false,
+      "investigacao": true,
+      "luta": false,
+      "misticismo": true,
+      "percepcao": false,
+      "pontaria": false,
+      "reflexos": false,
+      "religiao": false,
+      "sobrevivencia": false,
+      "vontade": false
+    },
+    "nivel": 3,
+    "experiencia": 180,
+    "pontosEvolucao": 2,
+    "pontosGloria": 1,
+    "recursos": {
+      "vidaAtual": 17,
+      "vidaMaxima": 24,
+      "manaAtual": 8,
+      "manaMaxima": 15
+    },
+    "combate": {
+      "defesa": 13,
+      "reducaoDano": 2,
+      "iniciativa": 4,
+      "movimento": 9
+    },
+    "modificadoresTemporarios": {
+      "forca": 0,
+      "agilidade": 0,
+      "intelecto": 0,
+      "resistencia": 0
+    },
+    "armas": [],
+    "habilidades": [
+      {
+        "id": "ability-arcane-strike",
+        "nome": "Golpe Arcano",
+        "tipo": "tecnica",
+        "iconeId": "espada",
+        "descricao": "Concentra energia rúnica em um ataque preciso.",
+        "atributo": "Intelecto",
+        "acao": "Ação completa",
+        "custos": { "mana": 3, "pe": 1 },
+        "alcance": "Corpo a corpo",
+        "dano": "2d8 + INT",
+        "duracao": "Instantânea",
+        "usos": { "atual": 2, "maximo": 3, "recuperacao": "Descanso curto" },
+        "recarga": null,
+        "efeitos": ["Ignora 1 ponto de redução"],
+        "requisitos": ["Arma em mãos"],
+        "limitacoes": [],
+        "observacoes": ""
+      },
+      {
+        "id": "ability-stone-skin",
+        "nome": "Pele de Pedra",
+        "tipo": "passiva",
+        "iconeId": "escudo",
+        "descricao": "A pele endurece contra impactos.",
+        "atributo": "Resistência",
+        "acao": "Permanente",
+        "custos": { "mana": 0, "pe": 0 },
+        "alcance": "Pessoal",
+        "dano": "",
+        "duracao": "Permanente",
+        "usos": null,
+        "recarga": null,
+        "efeitos": ["Reduz dano físico"],
+        "requisitos": [],
+        "limitacoes": [],
+        "observacoes": ""
+      },
+      {
+        "id": "ability-empty",
+        "nome": "Carga Voltaica",
+        "tipo": "reacao",
+        "iconeId": "energia",
+        "descricao": "Libera a última carga armazenada.",
+        "atributo": "Agilidade",
+        "acao": "Reação",
+        "custos": { "mana": 2, "pe": 0 },
+        "alcance": "6 m",
+        "dano": "1d10",
+        "duracao": "Instantânea",
+        "usos": { "atual": 0, "maximo": 2, "recuperacao": "Descanso longo" },
+        "recarga": null,
+        "efeitos": [],
+        "requisitos": [],
+        "limitacoes": [],
+        "observacoes": ""
+      },
+      {
+        "id": "ability-cooldown",
+        "nome": "Ruptura Celeste",
+        "tipo": "suprema",
+        "iconeId": "coroa",
+        "descricao": "Rompe o campo ao redor com energia concentrada.",
+        "atributo": "Intelecto",
+        "acao": "Ação completa",
+        "custos": { "mana": 6, "pe": 2 },
+        "alcance": "Área de 8 m",
+        "dano": "4d10",
+        "duracao": "Instantânea",
+        "usos": null,
+        "recarga": { "valor": 3, "unidade": "rodadas", "restante": 2 },
+        "efeitos": ["Derruba alvos atingidos"],
+        "requisitos": ["Céu visível"],
+        "limitacoes": ["Uma vez por cena"],
+        "observacoes": ""
+      }
+    ],
+    "inventario": [
+      {
+        "id": "item-colossal-sword",
+        "item": {
+          "nome": "Espada Colossal",
+          "tipo": "arma",
+          "raridade": "raro",
+          "descricao": "Uma lâmina colossal criada para golpes devastadores.",
+          "peso": 8,
+          "tamanho": { "largura": 2, "altura": 3 },
+          "quantidade": 1,
+          "imagem": "",
+          "atributoPrincipal": { "rotulo": "Dano", "valor": "2d8 + FOR" },
+          "propriedades": ["Pesada", "Duas mãos"],
+          "equipavelEm": "maoPrincipal",
+          "empilhavel": false,
+          "limiteEmpilhamento": 1
+        },
+        "posicao": { "x": 0, "y": 0 },
+        "rotacao": 0
+      },
+      {
+        "id": "item-tonic",
+        "item": {
+          "nome": "Tônico Restaurador",
+          "tipo": "consumivel",
+          "raridade": "comum",
+          "descricao": "Recupera o fôlego após um confronto.",
+          "peso": 0.5,
+          "tamanho": { "largura": 1, "altura": 1 },
+          "quantidade": 2,
+          "imagem": "",
+          "atributoPrincipal": null,
+          "propriedades": ["Consumível"],
+          "equipavelEm": "",
+          "empilhavel": true,
+          "limiteEmpilhamento": 5
+        },
+        "posicao": { "x": 3, "y": 0 },
+        "rotacao": 0
+      }
+    ],
+    "inventarioStaging": {
+      "id": "item-staging-kit",
+      "item": {
+        "nome": "Kit de Cartografia",
+        "tipo": "ferramenta",
+        "raridade": "incomum",
+        "descricao": "Instrumentos para mapear ruínas e passagens.",
+        "peso": 2,
+        "tamanho": { "largura": 2, "altura": 1 },
+        "quantidade": 1,
+        "imagem": "",
+        "atributoPrincipal": { "rotulo": "Precisão", "valor": "+2" },
+        "propriedades": ["Dobrável"],
+        "equipavelEm": "",
+        "empilhavel": false,
+        "limiteEmpilhamento": 1
+      },
+      "posicao": { "x": 0, "y": 0 },
+      "rotacao": 0
+    },
+    "economia": { "ouro": 12, "prata": 35 },
+    "capacidadeInventario": { "pesoMaximo": 45 },
+    "equipamentos": {
+      "armadura": {
+        "id": "item-equipped-coat",
+        "item": {
+          "nome": "Casaco Blindado",
+          "tipo": "armadura",
+          "raridade": "raro",
+          "descricao": "Casaco reforçado com placas internas.",
+          "peso": 7.5,
+          "tamanho": { "largura": 2, "altura": 3 },
+          "quantidade": 1,
+          "imagem": "",
+          "atributoPrincipal": { "rotulo": "Defesa", "valor": "+3" },
+          "propriedades": ["Blindado"],
+          "equipavelEm": "armadura",
+          "empilhavel": false,
+          "limiteEmpilhamento": 1
+        },
+        "posicao": { "x": 0, "y": 0 },
+        "rotacao": 0
+      },
+      "maoPrincipal": null,
+      "maoSecundaria": null
+    }
+  }
+}

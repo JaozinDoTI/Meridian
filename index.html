@@ -8,9 +8,7 @@
     content="Grimório RPG: crie uma nova ficha de personagem ou prepare a importação de uma ficha existente."
   />
   <title>Grimório RPG</title>
-  <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./character-sheet.css" />
-  <link rel="stylesheet" href="./motion.css" />
+  <link rel="stylesheet" href="./css/app.css" />
 </head>
 <body>
   <main class="grimoire-page" aria-labelledby="page-title">
@@ -786,10 +784,14 @@
       </svg>
 
       <div class="sheet-shell">
-        <aside class="sheet-sidebar" aria-label="Navegação da ficha">
+        <aside class="sheet-sidebar sheet-navigation" aria-label="Navegação da ficha">
           <div class="sheet-sidebar__brand">
             <svg class="sheet-brand-star sheet-icon" aria-hidden="true"><use href="#sheet-icon-compass"></use></svg>
             <img src="./assets/grimorio-book.svg" alt="" aria-hidden="true" />
+            <span class="sheet-sidebar__brand-copy">
+              <strong>Grimório RPG</strong>
+              <small>Ficha Meridian</small>
+            </span>
             <span class="sheet-brand-ornament" aria-hidden="true">
               <i></i>
               <svg class="sheet-icon"><use href="#sheet-icon-star"></use></svg>
@@ -798,46 +800,58 @@
           </div>
 
           <nav class="sheet-sidebar__nav" aria-label="Seções da ficha">
-            <button class="is-active" type="button" data-sheet-section="summary">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-crown"></use></svg>
-              <span>Resumo</span>
-              <i aria-hidden="true"></i>
-            </button>
-            <button type="button" data-sheet-section="future">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-swords"></use></svg>
-              <span>Combate</span>
-              <i aria-hidden="true"></i>
-            </button>
-            <button type="button" data-sheet-section="abilities">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-rune-star"></use></svg>
-              <span>Habilidades</span>
-              <i aria-hidden="true"></i>
-            </button>
-            <button type="button" data-sheet-section="inventory">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bag"></use></svg>
-              <span>Inventário</span>
-              <i aria-hidden="true"></i>
-            </button>
-            <button type="button" data-sheet-section="future">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
-              <span>História</span>
-              <i aria-hidden="true"></i>
-            </button>
-            <button type="button" data-sheet-section="future">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-group"></use></svg>
-              <span>Companheiros</span>
-              <i aria-hidden="true"></i>
-            </button>
-            <button type="button" data-sheet-section="future">
-              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
-              <span>Registro</span>
-              <i aria-hidden="true"></i>
+            <span class="sheet-sidebar__group-label">Ficha</span>
+            <div class="sheet-sidebar__group sheet-sidebar__group--primary">
+              <button class="is-active" type="button" data-sheet-section="summary" data-nav-label="Resumo" title="Resumo" aria-current="page">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-crown"></use></svg>
+                <span>Resumo</span>
+                <i aria-hidden="true"></i>
+              </button>
+              <button type="button" data-sheet-section="abilities" data-nav-label="Habilidades" title="Habilidades">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-rune-star"></use></svg>
+                <span>Habilidades</span>
+                <i aria-hidden="true"></i>
+              </button>
+              <button type="button" data-sheet-section="inventory" data-nav-label="Inventário" title="Inventário">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bag"></use></svg>
+                <span>Inventário</span>
+                <i aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <span class="sheet-sidebar__group-label sheet-sidebar__group-label--future">Em desenvolvimento</span>
+            <div id="sheet-sidebar-future-menu" class="sheet-sidebar__group sheet-sidebar__group--future">
+              <button type="button" data-sheet-section="combat" data-sheet-future="true" data-nav-label="Combate" title="Combate — em desenvolvimento" aria-disabled="true">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-swords"></use></svg>
+                <span>Combate</span>
+                <small>Breve</small>
+              </button>
+              <button type="button" data-sheet-section="history" data-sheet-future="true" data-nav-label="História" title="História — em desenvolvimento" aria-disabled="true">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                <span>História</span>
+                <small>Breve</small>
+              </button>
+              <button type="button" data-sheet-section="companions" data-sheet-future="true" data-nav-label="Companheiros" title="Companheiros — em desenvolvimento" aria-disabled="true">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-group"></use></svg>
+                <span>Companheiros</span>
+                <small>Breve</small>
+              </button>
+              <button type="button" data-sheet-section="journal" data-sheet-future="true" data-nav-label="Registro" title="Registro — em desenvolvimento" aria-disabled="true">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
+                <span>Registro</span>
+                <small>Breve</small>
+              </button>
+            </div>
+
+            <button id="sheet-sidebar-more" class="sheet-sidebar__more" type="button" aria-expanded="false" aria-controls="sheet-sidebar-future-menu" data-nav-label="Mais" title="Mais seções">
+              <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-medallion"></use></svg>
+              <span>Mais</span>
             </button>
           </nav>
 
           <div class="sheet-sidebar__footer">
             <span aria-hidden="true"><i></i><svg class="sheet-icon"><use href="#sheet-icon-compass"></use></svg><i></i></span>
-            <p>As histórias mais poderosas começam aqui.</p>
+            <p><strong>Sessão local</strong>Use Salvar para preservar as alterações.</p>
           </div>
         </aside>
 
@@ -1100,83 +1114,94 @@
             </div>
           </section>
 
-          <section id="sheet-abilities-view" class="sheet-abilities-view" data-sheet-view="abilities" aria-labelledby="sheet-abilities-view-heading" hidden>
-            <div class="sheet-abilities-workspace">
-              <section class="sheet-panel sheet-ability-list-panel" aria-label="Lista de habilidades">
-                <header class="sheet-abilities-toolbar">
+          <section id="sheet-abilities-view" class="sheet-abilities-view screen screen--abilities" data-sheet-view="abilities" data-theme="abilities" aria-labelledby="sheet-abilities-view-heading" hidden>
+            <div class="abilities-page">
+              <header class="abilities-page__header">
+                <div class="abilities-page__heading">
+                  <span class="abilities-page__kicker">Grimório operacional</span>
                   <h2 id="sheet-abilities-view-heading" tabindex="-1">
                     <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-rune-star"></use></svg>
-                    Lista de habilidades
+                    Controle de habilidades
                   </h2>
-                  <div class="sheet-abilities-filters">
-                    <label class="sheet-ability-search">
-                      <span class="sr-only">Buscar habilidade</span>
-                      <input id="sheet-ability-search" type="search" placeholder="Buscar habilidade..." autocomplete="off" />
-                    </label>
-                    <label class="sheet-ability-filter">
-                      <span class="sr-only">Filtrar por tipo</span>
-                      <select id="sheet-ability-type-filter">
-                        <option value="todos">Todos os tipos</option>
-                        <option value="passiva">Passiva</option>
-                        <option value="tecnica">Técnica</option>
-                        <option value="reacao">Reação</option>
-                        <option value="suprema">Suprema</option>
-                        <option value="outro">Outro</option>
-                      </select>
-                    </label>
-                    <label class="sheet-ability-filter">
-                      <span class="sr-only">Filtrar por situação</span>
-                      <select id="sheet-ability-state-filter">
-                        <option value="todos">Todas as situações</option>
-                        <option value="disponivel">Disponível</option>
-                        <option value="passiva">Passiva</option>
-                        <option value="recarga">Em recarga</option>
-                        <option value="esgotada">Sem usos</option>
-                      </select>
-                    </label>
-                    <button id="sheet-import-ability" class="sheet-primary-action" type="button">
-                      <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-export"></use></svg>
-                      Importar JSON
-                    </button>
-                    <input id="sheet-ability-file" class="sr-only" type="file" accept="application/json,.json" />
-                  </div>
-                </header>
-                <div class="sheet-ability-table-head" role="row">
-                  <span class="sheet-ability-col-state" aria-label="Estado"></span>
-                  <span class="sheet-ability-col-name">Nome</span>
-                  <span class="sheet-ability-col-type">Tipo</span>
-                  <span class="sheet-ability-col-mana">Mana</span>
-                  <span class="sheet-ability-col-pe">PE</span>
-                  <span class="sheet-ability-col-action">Ação</span>
-                  <span class="sheet-ability-col-attribute">Atributo</span>
-                  <span class="sheet-ability-col-range">Alcance</span>
-                  <span class="sheet-ability-col-damage">Dano</span>
-                  <span class="sheet-ability-col-duration">Duração</span>
-                  <span class="sheet-ability-col-uses">Usos</span>
-                  <span class="sheet-ability-col-cooldown">Recarga</span>
-                  <span class="sheet-ability-col-status">Situação</span>
+                  <p>Gerencie técnicas, passivas, reações e habilidades supremas do personagem.</p>
                 </div>
-                <div id="sheet-ability-list" class="sheet-ability-list" role="table"></div>
-              </section>
-              <article id="sheet-ability-details" class="sheet-panel sheet-ability-details" aria-live="polite"></article>
-              <section id="sheet-ability-stats" class="sheet-ability-stats" aria-label="Resumo das habilidades"></section>
+
+                <div class="abilities-toolbar" aria-label="Busca e filtros de habilidades">
+                  <label class="abilities-search">
+                    <span class="sr-only">Buscar habilidade</span>
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-eye"></use></svg>
+                    <input id="sheet-ability-search" type="search" placeholder="Buscar habilidade..." autocomplete="off" />
+                  </label>
+                  <label class="abilities-select abilities-type-select">
+                    <span class="sr-only">Filtrar por tipo</span>
+                    <select id="sheet-ability-type-filter">
+                      <option value="todos">Todos os tipos</option>
+                      <option value="passiva">Passiva</option>
+                      <option value="tecnica">Técnica</option>
+                      <option value="reacao">Reação</option>
+                      <option value="suprema">Suprema</option>
+                      <option value="outro">Outro</option>
+                    </select>
+                  </label>
+                  <label class="abilities-select">
+                    <span class="sr-only">Filtrar por situação</span>
+                    <select id="sheet-ability-state-filter">
+                      <option value="todos">Todas as situações</option>
+                      <option value="disponivel">Disponível</option>
+                      <option value="passiva">Passiva</option>
+                      <option value="recarga">Em recarga</option>
+                      <option value="esgotada">Sem usos</option>
+                    </select>
+                  </label>
+                  <button id="sheet-import-ability" class="sheet-primary-action abilities-import-action" type="button">
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-export"></use></svg>
+                    Importar JSON
+                  </button>
+                  <input id="sheet-ability-file" class="sr-only" type="file" accept="application/json,.json" />
+                </div>
+              </header>
+
+              <div class="abilities-page__workspace">
+                <aside class="abilities-sidebar" aria-labelledby="abilities-list-heading">
+                  <header class="abilities-sidebar__header">
+                    <div>
+                      <span>Acervo conhecido</span>
+                      <h3 id="abilities-list-heading">Lista de habilidades</h3>
+                    </div>
+                    <strong id="sheet-ability-list-count" aria-live="polite">0</strong>
+                  </header>
+                  <nav id="sheet-ability-type-tabs" class="abilities-type-tabs" aria-label="Filtrar habilidades por tipo">
+                    <button type="button" data-ability-type-filter="todos" aria-pressed="true">Todas</button>
+                    <button type="button" data-ability-type-filter="tecnica" aria-pressed="false">Técnicas</button>
+                    <button type="button" data-ability-type-filter="passiva" aria-pressed="false">Passivas</button>
+                    <button type="button" data-ability-type-filter="reacao" aria-pressed="false">Reações</button>
+                    <button type="button" data-ability-type-filter="suprema" aria-pressed="false">Supremas</button>
+                    <button type="button" data-ability-type-filter="outro" aria-pressed="false">Outras</button>
+                  </nav>
+                  <div id="sheet-ability-list" class="ability-list" aria-live="polite"></div>
+                </aside>
+
+                <article id="sheet-ability-details" class="ability-detail" aria-live="polite"></article>
+              </div>
+
+              <section id="sheet-ability-stats" class="abilities-ledger" aria-label="Resumo das habilidades"></section>
             </div>
           </section>
 
-          <section id="sheet-inventory-view" class="sheet-inventory-view" data-sheet-view="inventory" aria-labelledby="sheet-inventory-view-heading" hidden>
-            <div class="sheet-inventory-premium-shell">
-              <header class="sheet-inventory-commandbar">
-                <div class="sheet-inventory-commandbar__title">
-                  <span class="sheet-inventory-toolbar__eyebrow">Câmara de carga</span>
+          <section id="sheet-inventory-view" class="sheet-inventory-view screen screen--inventory" data-sheet-view="inventory" data-theme="inventory" aria-labelledby="sheet-inventory-view-heading" hidden>
+            <div class="inventory-shell">
+              <header class="inventory-header">
+                <div>
+                  <span class="inventory-kicker">Câmara de carga</span>
                   <h2 id="sheet-inventory-view-heading" tabindex="-1">
                     <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bag"></use></svg>
                     Inventário
                   </h2>
-                  <p>Organize o que carrega. Escolha o que veste.</p>
+                  <p>Objetos reais ocupam espaço real. Escolha o que leva consigo.</p>
                 </div>
-                <div class="sheet-inventory-toolbar__actions">
-                  <span id="sheet-inventory-capacity" class="sheet-inventory-capacity" aria-live="polite">0 / 30 espaços</span>
-                  <button id="sheet-import-item" class="sheet-primary-action sheet-inventory-receive-action" type="button" aria-controls="sheet-item-file">
+                <div class="inventory-header__actions">
+                  <span id="sheet-inventory-capacity" class="inventory-capacity" aria-live="polite">0 / 30 espaços</span>
+                  <button id="sheet-import-item" class="sheet-primary-action inventory-receive-action" type="button" aria-controls="sheet-item-file">
                     <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-export"></use></svg>
                     Receber item
                   </button>
@@ -1184,47 +1209,42 @@
                 </div>
               </header>
 
-              <nav class="sheet-inventory-mobile-nav" aria-label="Áreas do inventário">
-                <button type="button" class="is-active" data-inventory-mobile-view="backpack" aria-pressed="true">Mochila</button>
-                <button type="button" data-inventory-mobile-view="received" aria-pressed="false">Recebido</button>
-                <button type="button" data-inventory-mobile-view="loadout" aria-pressed="false">Equipado</button>
-                <button type="button" data-inventory-mobile-view="inspect" aria-pressed="false">Detalhes</button>
-              </nav>
-
-              <div class="sheet-inventory-workspace">
-                <aside class="sheet-inventory-received-panel" data-inventory-mobile-panel="received" aria-labelledby="sheet-inventory-received-heading">
-                  <header class="sheet-inventory-region-heading">
-                    <span>Área de recebimento</span>
-                    <h3 id="sheet-inventory-received-heading">Item recebido</h3>
+              <div class="inventory-workspace">
+                <aside class="inventory-bench" aria-labelledby="sheet-inventory-received-heading">
+                  <header class="inventory-region-heading">
+                    <span>Bancada do aventureiro</span>
+                    <h3 id="sheet-inventory-received-heading">Bancada de staging</h3>
                   </header>
-                  <div id="sheet-inventory-received" class="sheet-inventory-received" aria-live="polite">
-                    <div class="sheet-inventory-received__empty">
-                      <span class="sheet-inventory-received__seal" aria-hidden="true">✦</span>
-                      <strong>Bancada livre</strong>
-                      <p>Itens importados aparecem aqui antes de entrar na mochila.</p>
+                  <div id="sheet-inventory-received" class="sheet-inventory-received inventory-bench__surface" aria-live="polite">
+                    <div class="inventory-bench__empty">
+                      <span aria-hidden="true">✦</span>
+                      <strong>Espaço livre</strong>
+                      <p>Use esta área para retirar temporariamente uma peça.</p>
                     </div>
                   </div>
-                  <section id="sheet-inventory-pending-actions" class="sheet-inventory-pending-actions" aria-labelledby="sheet-inventory-pending-heading" hidden>
+                  <section id="sheet-inventory-pending-actions" class="inventory-pending-actions" aria-labelledby="sheet-inventory-pending-heading" hidden>
                     <h3 id="sheet-inventory-pending-heading">Item aguardando espaço</h3>
                     <p id="sheet-inventory-pending-message"></p>
                     <div>
-                      <button id="sheet-reorganize-for-item" class="secondary-action-button" type="button">Posicionar</button>
-                      <button id="sheet-rotate-pending-item" class="secondary-action-button" type="button">Girar</button>
-                      <button id="sheet-discard-pending-item" class="sheet-danger-action" type="button">Recusar</button>
-                      <button id="sheet-cancel-item-import" class="sheet-footer-link" type="button">Cancelar</button>
+                      <button id="sheet-reorganize-for-item" class="secondary-action-button" type="button">Reorganizar mochila</button>
+                      <button id="sheet-rotate-pending-item" class="secondary-action-button" type="button">Girar 90°</button>
+                      <button id="sheet-discard-pending-item" class="sheet-danger-action" type="button">Descartar</button>
+                      <button id="sheet-cancel-item-import" class="sheet-footer-link" type="button" hidden>Deixar na bancada</button>
                     </div>
                   </section>
                 </aside>
 
-                <section class="sheet-inventory-backpack-stage" data-inventory-mobile-panel="backpack" aria-labelledby="sheet-inventory-backpack-heading">
-                  <header class="sheet-inventory-backpack-heading">
+                <section class="inventory-backpack" aria-labelledby="sheet-inventory-backpack-heading">
+                  <header class="inventory-region-heading inventory-region-heading--backpack">
                     <div>
                       <span>Compartimento principal</span>
                       <h3 id="sheet-inventory-backpack-heading">Mochila de campanha</h3>
                     </div>
-                    <span class="sheet-inventory-backpack-heading__hint">6 × 5</span>
+                    <span class="inventory-backpack__size">6 × 5</span>
                   </header>
-                  <div class="sheet-inventory-grid-shell">
+                  <div class="inventory-backpack__body">
+                  <div class="inventory-backpack__strap inventory-backpack__strap--left" aria-hidden="true"></div>
+                  <div class="inventory-backpack__strap inventory-backpack__strap--right" aria-hidden="true"></div>
                   <div
                     id="sheet-inventory-grid-scroll"
                     class="sheet-inventory-grid-scroll"
@@ -1246,24 +1266,21 @@
                   </div>
                   </div>
                   <p id="sheet-inventory-placement-status" class="sheet-inventory-placement-status" aria-live="polite">
-                    Selecione um item para examiná-lo ou reorganizar a mochila.
+                    Segure a imagem de um objeto para movê-lo ou selecione-o para examinar.
                   </p>
                 </section>
 
-                <aside class="sheet-inventory-sidecar">
-                  <section class="sheet-inventory-loadout" data-inventory-mobile-panel="loadout" aria-labelledby="sheet-inventory-loadout-heading">
-                    <header class="sheet-inventory-region-heading">
-                      <span>Em uso</span>
+                <aside class="inventory-sidecar">
+                  <section class="inventory-equipment" aria-labelledby="sheet-inventory-loadout-heading">
+                    <header class="inventory-region-heading">
+                      <span>Pronto para uso</span>
                       <h3 id="sheet-inventory-loadout-heading">Equipamento</h3>
                     </header>
-                    <button id="sheet-inventory-armor-slot" class="sheet-inventory-armor-slot" type="button" aria-label="Slot de armadura vazio">
-                      <span class="sheet-inventory-armor-slot__ghost" aria-hidden="true">♜</span>
-                      <span><small>Armadura</small><strong>Nenhuma equipada</strong></span>
-                    </button>
+                    <div id="sheet-inventory-equipment-slots" class="inventory-equipment__slots"></div>
                   </section>
 
-                  <section class="sheet-inventory-details-panel" data-inventory-mobile-panel="inspect" aria-labelledby="sheet-inventory-details-heading">
-                    <header class="sheet-inventory-details-panel__heading">
+                  <section class="inventory-details-panel" aria-labelledby="sheet-inventory-details-heading">
+                    <header class="inventory-region-heading">
                       <span>Inspeção</span>
                       <h3 id="sheet-inventory-details-heading">Detalhes do item</h3>
                     </header>
@@ -1277,23 +1294,23 @@
                     <div id="sheet-inventory-item-actions" class="sheet-inventory-item-actions" hidden>
                       <button id="sheet-equip-item" class="sheet-primary-action" type="button" hidden>Equipar</button>
                       <button id="sheet-rotate-item" class="secondary-action-button" type="button">Girar 90°</button>
-                      <button id="sheet-move-item" class="secondary-action-button" type="button">Mover</button>
+                      <button id="sheet-move-item" class="secondary-action-button" type="button">Mover com teclado</button>
                       <button id="sheet-discard-item" class="sheet-danger-action" type="button">Descartar</button>
                     </div>
                   </section>
                 </aside>
               </div>
 
-              <footer class="sheet-inventory-ledger" aria-label="Resumo da mochila">
-                <div class="sheet-inventory-ledger__weight">
+              <footer class="inventory-ledger" aria-label="Resumo da mochila">
+                <div class="inventory-ledger__weight">
                   <span>Peso transportado</span>
                   <strong id="sheet-inventory-weight">0 kg</strong>
                   <i><b id="sheet-inventory-weight-bar"></b></i>
                 </div>
                 <div><span>Itens</span><strong id="sheet-inventory-item-count">0</strong></div>
                 <div><span>Espaços</span><strong id="sheet-inventory-space-summary">0 / 30</strong></div>
-                <div class="sheet-inventory-ledger__coins"><span aria-hidden="true">◈</span><strong id="sheet-inventory-gold">0</strong><small>ouro</small></div>
-                <div class="sheet-inventory-ledger__coins is-silver"><span aria-hidden="true">◇</span><strong id="sheet-inventory-silver">0</strong><small>prata</small></div>
+                <div class="inventory-ledger__coin"><span aria-hidden="true">◆</span><strong id="sheet-inventory-gold">0</strong><small>ouro</small></div>
+                <div class="inventory-ledger__coin inventory-ledger__coin--silver"><span aria-hidden="true">◇</span><strong id="sheet-inventory-silver">0</strong><small>prata</small></div>
               </footer>
             </div>
           </section>
@@ -1405,10 +1422,46 @@
     </section>
   </dialog>
 
+  <dialog id="inventory-reveal-dialog" class="inventory-reveal" aria-labelledby="inventory-reveal-title">
+    <section class="inventory-reveal__stage">
+      <span class="inventory-reveal__flash" aria-hidden="true"></span>
+      <div class="inventory-reveal__particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="inventory-reveal__kicker">Item recebido</p>
+      <div id="inventory-reveal-art" class="inventory-reveal__art"></div>
+      <h2 id="inventory-reveal-title"></h2>
+      <p id="inventory-reveal-rarity" class="inventory-reveal__rarity"></p>
+      <strong id="inventory-reveal-attribute" class="inventory-reveal__attribute"></strong>
+      <p id="inventory-reveal-meta" class="inventory-reveal__meta"></p>
+      <div class="inventory-reveal__actions">
+        <button id="inventory-reveal-equip" class="secondary-action-button" type="button" hidden>Equipar agora</button>
+        <button id="inventory-reveal-confirm" class="wine-button" type="button">OK</button>
+      </div>
+    </section>
+  </dialog>
+
+  <div id="inventory-drag-layer" aria-hidden="true"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/motion@12.42.1/dist/motion.js"></script>
-  <script src="./attribute-motion.js"></script>
-  <script src="./motion-enhancements.js"></script>
-  <script src="./inventory-domain.js"></script>
-  <script src="./script.js"></script>
+  <script src="./js/motion/creation-motion.js"></script>
+  <script src="./js/motion/sheet-motion.js"></script>
+  <script src="./js/domain/inventory.js"></script>
+  <script src="./js/domain/abilities.js"></script>
+  <script src="./js/domain/import-export.js"></script>
+  <script src="./js/domain/character.js"></script>
+  <script src="./js/state/ui-state.js"></script>
+  <script src="./js/ui/abilities-view.js"></script>
+  <script src="./js/ui/creation-view.js"></script>
+  <script src="./js/ui/inventory-card.js"></script>
+  <script src="./js/ui/inventory-view.js"></script>
+  <script src="./js/ui/sheet-navigation.js"></script>
+  <script src="./js/motion/inventory-motion.js"></script>
+  <script src="./js/state/character-state.js"></script>
+  <script src="./js/ui/dom-bindings.js"></script>
+  <script src="./js/controllers/creation-controller.js"></script>
+  <script src="./js/controllers/abilities-controller.js"></script>
+  <script src="./js/ui/sheet-summary-view.js"></script>
+  <script src="./js/controllers/inventory-controller.js"></script>
+  <script src="./js/controllers/sheet-controller.js"></script>
+  <script src="./js/app.js"></script>
 </body>
 </html>

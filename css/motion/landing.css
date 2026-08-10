@@ -1,0 +1,17 @@
+@keyframes grimoire-glow {
+  from { filter: drop-shadow(0 0 0 rgba(211, 173, 109, 0)); transform: translateY(0); }
+  to { filter: drop-shadow(0 2px 7px rgba(211, 173, 109, 0.26)); transform: translateY(-1px); }
+}
+
+@keyframes celestial-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes celestial-orbit-reverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes spark-breathe {
+  from { opacity: 0.34; transform: translateY(0); }
+  to { opacity: 0.64; transform: translateY(-1px); }
+}

@@ -1,0 +1,6 @@
+.worktrees/
+debug.log
+.tools/
+node_modules/
+playwright-report/
+test-results/

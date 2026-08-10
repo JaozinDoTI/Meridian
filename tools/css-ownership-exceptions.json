@@ -1,0 +1,62 @@
+[
+  {
+    "selectorPattern": "^:root$",
+    "files": ["css/features/character-creation.css", "css/tokens.css", "css/foundations.css"],
+    "reason": "Tokens globais, aliases históricos e variáveis responsivas da criação compartilham somente o escopo raiz."
+  },
+  {
+    "selectorPattern": "^\\.abilit(?:y|ies)",
+    "files": ["css/features/abilities.css", "css/motion/abilities.css"],
+    "reason": "A feature possui geometria/apresentação; a folha de motion possui apenas estados transitórios e reduced motion."
+  },
+  {
+    "selectorPattern": "^\\.action-grid$",
+    "files": ["css/features/landing.css", "css/components.css"],
+    "reason": "A Landing compõe a instância; components fornece a primitiva de grade compartilhada."
+  },
+  {
+    "selectorPattern": "^\\.attribute-card(?:::before|::after)?$",
+    "files": ["css/features/character-creation.css", "css/motion/primitives.css"],
+    "reason": "A criação define o card; motion/primitives controla exclusivamente feedback transitório do atributo."
+  },
+  {
+    "selectorPattern": "^\\.character-sheet-screen$",
+    "files": ["css/layouts/sheet-shell.css", "css/layouts/sheet-navigation.css", "css/themes.css", "css/motion/primitives.css"],
+    "reason": "Shell, adaptação da navegação, tema e reduced motion usam a raiz da ficha com propriedades distintas."
+  },
+  {
+    "selectorPattern": "^(?:\\.choice-list|\\.class-list|\\.species-list)$",
+    "files": ["css/features/character-creation.css", "css/components.css"],
+    "reason": "Components fornece a lista interativa; character-creation define somente a composição da etapa."
+  },
+  {
+    "selectorPattern": "^\\.inventory(?:-|\\b)",
+    "files": ["css/features/inventory.css", "css/motion/inventory.css"],
+    "reason": "A feature é dona da apresentação estática; motion é dona de drag, reveal, encaixe, retorno e reduced motion."
+  },
+  {
+    "selectorPattern": "^\\.sheet-inventory-occupancy span$",
+    "files": ["css/features/sheet-summary.css", "css/motion/inventory.css"],
+    "reason": "O resumo define o indicador; motion neutraliza sua transição quando movimento é reduzido."
+  },
+  {
+    "selectorPattern": "^\\.sheet-navigation(?:::before|::after)?$",
+    "files": ["css/layouts/sheet-shell.css", "css/layouts/sheet-navigation.css"],
+    "reason": "O shell reserva a região; o módulo de navegação controla seus estados responsivos e ornamentos."
+  },
+  {
+    "selectorPattern": "^\\.sheet-(?:resource-card--life\\.is-critical \\.sheet-resource-heading|vulnerability-card__heading) \\.sheet-icon$",
+    "files": ["css/features/sheet-summary.css", "css/motion/primitives.css"],
+    "reason": "O resumo define aparência crítica; motion/primitives controla somente o pulso de feedback."
+  },
+  {
+    "selectorPattern": "^\\.species-character-art$",
+    "files": ["css/features/character-creation.css", "css/motion/character-creation.css"],
+    "reason": "A feature define a arte; motion controla a transição entre espécies."
+  },
+  {
+    "selectorPattern": "^\\*(?:::before|::after)?$",
+    "files": ["css/foundations.css", "css/components.css"],
+    "reason": "Foundations aplica o reset; components mantém a restrição de largura exigida pelos cards interativos."
+  }
+]
