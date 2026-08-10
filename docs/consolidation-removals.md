@@ -149,3 +149,13 @@ Foram removidas 88 linhas líquidas; a auditoria caiu para 1.541 seletores e 65 
 | Morto/duplicado, removido | details panel, heading e pending actions da composição espacial antiga | `.inventory-sidecar`, `.inventory-region-heading`, `.inventory-details-panel` e `.inventory-pending-actions` | produtores antigos ausentes e snapshots idênticos |
 
 O bloco antigo de inspeção/ações caiu de 118 para 22 linhas canônicas; a auditoria registra agora 1.523 seletores.
+
+## Fase 3 — Inventário: breakpoints ativos finais
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, reposicionado | `grid-row: auto` em 1099 px | media query junto aos breakpoints V2/V3 | tablet/desktop baixo idênticos ao baseline |
+| Ativo, explicitado | ações de inspeção empilhadas entre 471 e 560 px | seletor contextualizado por `.inventory-shell` | comportamento até 470 px continua sob o breakpoint atual já existente |
+| Morto, removido | toolbar, workspace, grid shell, details panel e pending actions dos breakpoints espaciais antigos | composição responsiva `.inventory-*` atual | produtores ausentes e cinco viewports aprovados |
+
+A Fase 3 termina com 1.512 seletores e 64 sobreposições. Toda apresentação estática do Inventário pertence a `css/features/inventory.css`, todo movimento específico pertence a `css/motion/inventory.css`, e o antigo `inventory.css` não existe mais.

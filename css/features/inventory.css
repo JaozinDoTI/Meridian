@@ -14,31 +14,6 @@
 .sheet-inventory-occupancy { height: 5px; overflow: hidden; border-radius: 999px; background: var(--sheet-gold-faint); }
 .sheet-inventory-occupancy span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sheet-gold), var(--sheet-wine)); transition: width 220ms ease; }
 
-@media (max-width: 1099px) {
-  .sheet-inventory-view { grid-row: auto; }
-  .sheet-inventory-workspace { grid-template-columns: minmax(0, 1fr); height: auto; }
-  .sheet-inventory-details-panel { min-height: 300px; }
-}
-
-@media (max-width: 899px) {
-  .sheet-inventory-toolbar { align-items: flex-start; flex-direction: column; }
-  .sheet-inventory-toolbar__actions { justify-content: flex-start; width: 100%; }
-  .sheet-inventory-grid-shell { place-items: start; padding: 10px 0; }
-  .sheet-inventory-grid-scroll { --inventory-cell-size: 58px; width: 100%; border-right: 0; border-left: 0; border-radius: 0; }
-  .sheet-inventory-details-panel { min-height: 260px; }
-}
-
-@media (max-width: 560px) {
-  .sheet-inventory-toolbar__actions .sheet-primary-action { width: 100%; }
-  .sheet-inventory-grid-scroll { --inventory-cell-size: 54px; padding: 9px; }
-  .sheet-inventory-item { padding: 6px; }
-  .sheet-inventory-item strong { font-size: 10px; }
-  .sheet-inventory-item-actions,
-  .sheet-inventory-pending-actions > div { flex-direction: column; }
-  .sheet-inventory-item-actions > *,
-  .sheet-inventory-pending-actions > div > * { width: 100%; }
-}
-
 /* Reconstrução física do inventário — a mochila é o contraste, não a tela inteira. */
 .sheet-inventory-view {
   grid-column: 1 / -1;
@@ -1042,6 +1017,10 @@ body.is-inventory-grabbing * { cursor: grabbing !important; }
   .inventory-equipment__slots { grid-template-columns: repeat(3,1fr); }
 }
 
+@media (max-width: 1099px) {
+  .sheet-inventory-view { grid-row: auto; }
+}
+
 @media (max-width: 760px) {
   .inventory-header { align-items: flex-start; padding: 14px; }
   .inventory-header p { display: none; }
@@ -1069,6 +1048,11 @@ body.is-inventory-grabbing * { cursor: grabbing !important; }
   .inventory-pending-actions button,
   .inventory-shell .sheet-inventory-item-actions button { width: 100%; }
   .inventory-reveal__stage { min-height: 520px; padding-inline: 18px; }
+}
+
+@media (min-width: 471px) and (max-width: 560px) {
+  .inventory-shell .sheet-inventory-item-actions { flex-direction: column; }
+  .inventory-shell .sheet-inventory-item-actions > * { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
