@@ -229,3 +229,14 @@ A auditoria registra 1.514 seletores e 77 sobreposições entre arquivos. O aume
 | Legado, removido | import e arquivo `motion.css` na raiz | imports canônicos em `css/motion/` | busca final sem import raiz e teste arquitetural explícito |
 
 A auditoria caiu para 71 sobreposições entre arquivos. O gate final aprovou 20 testes de navegador, 5 testes de domínio e 15 snapshots, sem atualização de baseline.
+
+## Fase 7 — JavaScript: retirada dos arquivos raiz
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, dividido | estado, DOM, criação, habilidades, resumo, inventário, navegação e bootstrap de `script.js` | `js/state/character-state.js`, `js/ui/dom-bindings.js`, `js/controllers/`, `js/ui/sheet-summary-view.js` e `js/app.js` | 20 contratos/E2E, 6 testes de domínio e 15 snapshots aprovados |
+| Ativo, movido | domínio espacial de `inventory-domain.js` | `js/domain/inventory.js` | 3 testes puros e todos os fluxos de inventário aprovados |
+| Ativo, movido | `attribute-motion.js` e `motion-enhancements.js` | `js/motion/creation-motion.js` e `js/motion/sheet-motion.js` | atributos, recursos, navegação e reduced motion aprovados |
+| Infraestrutura, corrigida | auditor DOM acoplado a `script.js` | descoberta dos scripts locais declarados em `index.html` | 327 IDs, 261 consultas e 15 scripts auditados |
+
+Este commit é uma divisão mecânica de responsabilidades e preserva o carregamento clássico. `js/app.js` contém apenas listeners e bootstrap; nenhuma função de domínio ou renderização permanece nele. As extrações puras de Habilidades e import/export seguem em commits separados.

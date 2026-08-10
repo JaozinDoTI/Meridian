@@ -1,7 +1,6 @@
 import { readFile } from "node:fs/promises";
 
 const html = await readFile("index.html", "utf8");
-const script = await readFile("script.js", "utf8");
 const appCss = await readFile("css/app.css", "utf8");
 const failures = [];
 const dynamicIds = new Set([
@@ -12,6 +11,16 @@ const dynamicIds = new Set([
 ]);
 
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(function collectId(match) { return match[1]; });
+const localScripts = [...html.matchAll(/<script\s+src="(\.\/[^"?]+)(?:\?[^"#]*)?"/g)]
+  .map(function collectScript(match) { return match[1].replace(/^\.\//, ""); });
+const script = (await Promise.all(localScripts.map(async function readScript(file) {
+  try {
+    return await readFile(file, "utf8");
+  } catch (_error) {
+    failures.push("Script local ausente: " + file);
+    return "";
+  }
+}))).join("\n");
 const idCounts = new Map();
 ids.forEach(function countId(id) { idCounts.set(id, (idCounts.get(id) || 0) + 1); });
 for (const [id, count] of idCounts) {
@@ -28,12 +37,6 @@ const availableSections = [...html.matchAll(/data-sheet-section="(summary|abilit
 const futureSections = [...html.matchAll(/data-sheet-future="true"/g)];
 if (availableSections.length !== 3) failures.push(`Seções disponíveis: ${availableSections.length}, esperado 3`);
 if (futureSections.length !== 4) failures.push(`Seções futuras: ${futureSections.length}, esperado 4`);
-
-const localScripts = [...html.matchAll(/<script\s+src="(\.\/[^"]+)"/g)]
-  .map(function collectScript(match) { return match[1].replace(/^\.\//, ""); });
-for (const file of localScripts) {
-  try { await readFile(file); } catch (_error) { failures.push(`Script local ausente: ${file}`); }
-}
 
 const cssImports = [...appCss.matchAll(/@import\s+url\("([^"]+)"\)/g)]
   .map(function collectImport(match) { return match[1]; });

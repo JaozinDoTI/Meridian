@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-await import("../../inventory-domain.js");
+await import("../../js/domain/inventory.js");
 const inventory = globalThis.GrimorioInventoryDomain;
 
 function createItem(overrides = {}) {
