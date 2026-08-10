@@ -159,3 +159,11 @@ O bloco antigo de inspeção/ações caiu de 118 para 22 linhas canônicas; a au
 | Morto, removido | toolbar, workspace, grid shell, details panel e pending actions dos breakpoints espaciais antigos | composição responsiva `.inventory-*` atual | produtores ausentes e cinco viewports aprovados |
 
 A Fase 3 termina com 1.512 seletores e 64 sobreposições. Toda apresentação estática do Inventário pertence a `css/features/inventory.css`, todo movimento específico pertence a `css/motion/inventory.css`, e o antigo `inventory.css` não existe mais.
+
+## Fase 4 — Resumo: mochila resumida
+
+| Classificação | Origem | Destino canônico | Prova |
+| --- | --- | --- | --- |
+| Ativo, movido | `.sheet-inventory-summary*` e barra `.sheet-inventory-occupancy` | `css/features/sheet-summary.css` | contagens da coleção completa, progresso e 15 snapshots aprovados |
+
+Esses seletores representam o card resumido presente na view `summary`; a tela completa de Inventário deixou de ser sua proprietária.
