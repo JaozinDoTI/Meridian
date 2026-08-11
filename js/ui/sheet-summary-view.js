@@ -84,6 +84,93 @@ function renderizarCombateDaFicha() {
   sheetMovement.textContent = personagem.combate.movimento;
 }
 
+function ehArmaDoInventario(item) {
+  return item?.item?.tipo === "arma";
+}
+
+function obterDanoDaArma(item) {
+  const atributo = item?.item?.atributoPrincipal;
+  const rotulo = String(atributo?.rotulo || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return rotulo === "dano" && atributo?.valor ? atributo.valor : "—";
+}
+
+function obterAlcanceDaArma(item) {
+  const propriedade = (item?.item?.propriedades || []).find(function (valor) {
+    return /^\s*alcance\s*:/i.test(valor);
+  });
+  return propriedade ? propriedade.replace(/^\s*alcance\s*:\s*/i, "").trim() || "—" : "—";
+}
+
+function obterArmasDaFicha() {
+  const equipadas = [
+    { item: personagem.equipamentos?.maoPrincipal, slot: "Mão principal" },
+    { item: personagem.equipamentos?.maoSecundaria, slot: "Mão secundária" }
+  ].filter(function (entrada) {
+    return ehArmaDoInventario(entrada.item);
+  });
+  const guardadas = (personagem.inventario || [])
+    .filter(ehArmaDoInventario)
+    .map(function (item) { return { item, slot: "Mochila" }; });
+  return equipadas.concat(guardadas);
+}
+
+function criarCelulaDaTabelaDeArmas(valor) {
+  const celula = document.createElement("span");
+  celula.setAttribute("role", "cell");
+  celula.textContent = valor;
+  celula.title = valor;
+  return celula;
+}
+
+function criarLinhaDaTabelaDeArmas(entrada) {
+  const { item, slot } = entrada;
+  const linha = document.createElement("div");
+  const propriedades = item.item.propriedades?.length
+    ? item.item.propriedades.join(" · ")
+    : "—";
+  linha.className = "sheet-weapons-row";
+  linha.classList.toggle("is-equipped", slot !== "Mochila");
+  linha.setAttribute("role", "row");
+  linha.setAttribute("aria-label", `${item.item.nome}, ${slot}`);
+  linha.append(
+    criarCelulaDaTabelaDeArmas(item.item.nome),
+    criarCelulaDaTabelaDeArmas(obterDanoDaArma(item)),
+    criarCelulaDaTabelaDeArmas(slot),
+    criarCelulaDaTabelaDeArmas(propriedades),
+    criarCelulaDaTabelaDeArmas(String(item.item.quantidade || 1))
+  );
+  return linha;
+}
+
+function renderizarArmasDaFicha() {
+  const maoPrincipal = personagem.equipamentos?.maoPrincipal;
+  const maoSecundaria = personagem.equipamentos?.maoSecundaria;
+  const armaEquipada = ehArmaDoInventario(maoPrincipal)
+    ? maoPrincipal
+    : ehArmaDoInventario(maoSecundaria)
+      ? maoSecundaria
+      : null;
+  sheetCombatWeapon.textContent = armaEquipada?.item.nome || "Nenhuma";
+  sheetCombatWeaponDamage.textContent = armaEquipada ? obterDanoDaArma(armaEquipada) : "—";
+  sheetCombatWeaponRange.textContent = armaEquipada ? obterAlcanceDaArma(armaEquipada) : "—";
+
+  const armas = obterArmasDaFicha();
+  if (!armas.length) {
+    const vazio = document.createElement("div");
+    const mensagem = criarCelulaDaTabelaDeArmas("Nenhuma arma cadastrada.");
+    vazio.className = "sheet-static-table__empty";
+    vazio.setAttribute("role", "row");
+    vazio.append(mensagem);
+    sheetWeaponsList.replaceChildren(vazio);
+    return;
+  }
+  sheetWeaponsList.replaceChildren(...armas.map(criarLinhaDaTabelaDeArmas));
+}
+
 function renderizarRecursoDaFicha(config) {
   const atual = personagem.recursos[config.atual];
   const maximo = personagem.recursos[config.maximo];

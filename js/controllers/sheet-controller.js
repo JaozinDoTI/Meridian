@@ -5,7 +5,9 @@ const {
 
 function renderizarFicha() {
   renderizarIdentidadeDaFicha();
+  renderizarHistoriaDaFicha();
   renderizarCombateDaFicha();
+  renderizarArmasDaFicha();
   renderizarRecursosDaFicha();
   renderizarAtributosDaFicha();
   renderizarPericiasDaFicha();
@@ -70,8 +72,45 @@ function abrirEtapaRevisao() {
   }, "#review-heading");
 }
 
+let historiaAntesDaEdicao = "";
+let acionadorDoEditorDaHistoria = originStoryOpen;
+let editorDaHistoriaAbertoNaFicha = false;
+const LIMITE_CARACTERES_HISTORIA = Number(originStoryInput.maxLength) || 20000;
+
+function renderizarHistoriaDaFicha() {
+  window.GrimorioHistoryView.render(sheetHistoryView, personagem, {
+    especie: obterNomeDaEspecieComVariante(),
+    classe: obterNomeDaClasseParaResumo()
+  });
+}
+
+function contarPalavrasDaHistoria(valor) {
+  const historia = String(valor || "").trim();
+  return historia ? historia.split(/\s+/).length : 0;
+}
+
+function formatarContagemDePalavras(total) {
+  return `${total} ${total === 1 ? "palavra" : "palavras"}`;
+}
+
+function atualizarResumoDaHistoria() {
+  const historia = typeof personagem.origem.historia === "string"
+    ? personagem.origem.historia.trim()
+    : "";
+  const contagem = formatarContagemDePalavras(contarPalavrasDaHistoria(historia));
+  originStoryPreview.textContent = historia || "Nenhuma história escrita. Use o editor para desenvolver o passado, os vínculos e as motivações do personagem.";
+  originStorySummaryCount.textContent = contagem;
+  originStoryOpenLabel.textContent = historia ? "Editar história" : "Escrever história";
+}
+
 function atualizarContadorDaHistoria() {
-  originStoryCounter.textContent = `${originStoryInput.value.length} / 5000`;
+  originStoryCounter.textContent = `${originStoryInput.value.length} / ${LIMITE_CARACTERES_HISTORIA}`;
+  originStoryWordCount.textContent = formatarContagemDePalavras(contarPalavrasDaHistoria(originStoryInput.value));
+}
+
+function definirErroDaHistoria(mensagem) {
+  definirErro(originStoryInput, originStoryError, mensagem);
+  originStoryOpen.setAttribute("aria-invalid", mensagem ? "true" : "false");
 }
 
 function restaurarOrigem() {
@@ -80,8 +119,9 @@ function restaurarOrigem() {
   originStoryInput.value = personagem.origem.historia;
   definirErro(originTitleInput, originTitleError, "");
   definirErro(originPlaceInput, originPlaceError, "");
-  definirErro(originStoryInput, originStoryError, "");
+  definirErroDaHistoria("");
   atualizarContadorDaHistoria();
+  atualizarResumoDaHistoria();
 }
 
 function atualizarOrigem() {
@@ -89,9 +129,64 @@ function atualizarOrigem() {
   personagem.origem.local = originPlaceInput.value;
   personagem.origem.historia = originStoryInput.value;
   atualizarContadorDaHistoria();
+  atualizarResumoDaHistoria();
+}
+
+function atualizarHistoriaDaOrigem() {
+  personagem.origem.historia = originStoryInput.value;
+  atualizarContadorDaHistoria();
+  atualizarResumoDaHistoria();
+}
+
+function abrirEditorDaHistoria(acionador) {
+  if (originStoryDialog.open) {
+    originStoryInput.focus();
+    return;
+  }
+
+  acionadorDoEditorDaHistoria = acionador && typeof acionador.focus === "function"
+    ? acionador
+    : originStoryOpen;
+  editorDaHistoriaAbertoNaFicha = !characterSheetScreen.hidden;
+  historiaAntesDaEdicao = personagem.origem.historia;
+  originStoryInput.value = personagem.origem.historia;
+  atualizarContadorDaHistoria();
+  document.body.classList.add("origin-story-is-open");
+  originStoryDialog.showModal();
+  originStoryInput.focus();
+}
+
+function fecharEditorDaHistoria(resultado) {
+  document.body.classList.remove("origin-story-is-open");
+  if (originStoryDialog.open) originStoryDialog.close(resultado);
+  acionadorDoEditorDaHistoria.focus();
+}
+
+function salvarHistoriaDoEditor() {
+  const historiaFoiAlterada = originStoryInput.value !== historiaAntesDaEdicao;
+  atualizarHistoriaDaOrigem();
+  definirErroDaHistoria("");
+  if (editorDaHistoriaAbertoNaFicha) {
+    renderizarHistoriaDaFicha();
+    if (historiaFoiAlterada) {
+      marcarFichaComoAlterada();
+      window.GrimorioHistoryView.confirmarAtualizacao(sheetHistoryView);
+    }
+  }
+  fecharEditorDaHistoria("save");
+}
+
+function cancelarEditorDaHistoria() {
+  personagem.origem.historia = historiaAntesDaEdicao;
+  originStoryInput.value = historiaAntesDaEdicao;
+  atualizarContadorDaHistoria();
+  atualizarResumoDaHistoria();
+  fecharEditorDaHistoria("cancel");
 }
 
 function usarPerguntaDeInspiracao(pergunta) {
+  abrirEditorDaHistoria(originStoryOpen);
+
   if (!pergunta || originStoryInput.value.includes(pergunta)) {
     originStoryInput.focus();
     return;
@@ -99,9 +194,9 @@ function usarPerguntaDeInspiracao(pergunta) {
 
   const separador = originStoryInput.value.trim() ? "\n\n" : "";
   const proximaHistoria = `${originStoryInput.value}${separador}${pergunta}\n\n`;
-  originStoryInput.value = proximaHistoria.slice(0, Number(originStoryInput.maxLength) || 5000);
-  atualizarOrigem();
-  definirErro(originStoryInput, originStoryError, "");
+  originStoryInput.value = proximaHistoria.slice(0, LIMITE_CARACTERES_HISTORIA);
+  atualizarHistoriaDaOrigem();
+  definirErroDaHistoria("");
   originStoryInput.focus();
 }
 
@@ -115,13 +210,14 @@ function validarOrigem() {
 
   definirErro(originTitleInput, originTitleError, !personagem.origem.titulo ? "Dê um título para a Origem do personagem." : "");
   definirErro(originPlaceInput, originPlaceError, personagem.origem.local.length > 100 ? "O Local de Origem pode ter no máximo 100 caracteres." : "");
-  definirErro(originStoryInput, originStoryError, !personagem.origem.historia || personagem.origem.historia.length < 20 ? "Conte um pouco mais sobre o passado do personagem." : personagem.origem.historia.length > 5000 ? "A história pode ter no máximo 5000 caracteres." : "");
+  definirErroDaHistoria(!personagem.origem.historia || personagem.origem.historia.length < 20 ? "Conte um pouco mais sobre o passado do personagem." : personagem.origem.historia.length > LIMITE_CARACTERES_HISTORIA ? "A história pode ter no máximo 20.000 caracteres." : "");
 
   const primeiroInvalido = [originTitleInput, originPlaceInput, originStoryInput].find(function (campo) {
     return campo.getAttribute("aria-invalid") === "true";
   });
 
   if (primeiroInvalido) {
+    if (primeiroInvalido === originStoryInput) abrirEditorDaHistoria(originStoryOpen);
     primeiroInvalido.focus();
     return false;
   }

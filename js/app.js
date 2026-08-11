@@ -18,7 +18,7 @@ sheetSidebar.addEventListener("click", function (event) {
   const button = event.target.closest("button[data-sheet-section]");
   if (!button) return;
 
-  if (["summary", "abilities", "inventory"].includes(button.dataset.sheetSection)) {
+  if (["summary", "abilities", "inventory", "history"].includes(button.dataset.sheetSection)) {
     ativarSecaoDaFicha(button.dataset.sheetSection);
     return;
   }
@@ -45,7 +45,12 @@ sheetOpenInventory.addEventListener("click", function () {
 sheetImportItem.addEventListener("click", abrirSeletorDeItemDoInventario);
 sheetItemFile.addEventListener("change", importarArquivoDeItem);
 sheetReorganizeForItem.addEventListener("click", reorganizarMochilaParaItemPendente);
-sheetRotatePendingItem.addEventListener("click", girarItemAtivoDoInventario);
+sheetRotatePendingItem.addEventListener("click", function () {
+  const item = personagem.inventarioStaging;
+  if (!item) return;
+  selecionarItemDoInventario(item, "bench");
+  girarItemAtivoDoInventario();
+});
 sheetDiscardPendingItem.addEventListener("click", descartarItemImportado);
 sheetCancelItemImport.addEventListener("click", cancelarImportacaoDeItem);
 sheetInventoryItemLayer.addEventListener("click", function (event) {
@@ -59,46 +64,62 @@ sheetInventoryItemLayer.addEventListener("click", function (event) {
 
   executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
     estadoDaInterface.selectedItemId = button.dataset.inventoryItemId;
+    estadoDaInterface.selectedItemSource = { kind: "inventory", slot: null };
   }, { persistente: false });
 });
 sheetInventoryReceived.addEventListener("click", function (event) {
   if (Date.now() < inventoryClickSuppressedUntil) return;
-  // Clique de ponteiro não transforma staging parado em candidato espacial.
-  // A ativação semântica por teclado continua disponível (detail === 0).
-  if (event.detail !== 0) return;
   const grab = event.target.closest("[data-inventory-drag-source='bench']");
   const item = personagem.inventarioStaging;
   if (!grab || !item) return;
-  const disponibilidade = obterDisponibilidadeDoItemPendente();
-  if (!disponibilidade.available) {
-    sheetInventoryPlacementStatus.textContent = disponibilidade.code === "item-too-large"
-      ? "Não cabe nesta orientação. Use Girar 90° para tentar outro footprint."
-      : "Ainda não existe espaço livre para esta peça. Reorganize a mochila primeiro.";
-    return;
-  }
-  definirPosicaoCandidata(disponibilidade.position);
-  const celula = sheetInventoryCellLayer.querySelector(
-    `[data-x="${disponibilidade.position.x}"][data-y="${disponibilidade.position.y}"]`
-  );
-  celula?.focus({ preventScroll: true });
-  sheetInventoryPlacementStatus.textContent = `Posicionando ${item.item.nome} pelo teclado. Use setas, R e Enter.`;
+  executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+    estadoDaInterface.selectedItemId = item.id;
+    estadoDaInterface.selectedItemSource = { kind: "bench", slot: null };
+  }, { persistente: false });
 });
 sheetMoveItem.addEventListener("click", iniciarModoExplicitoDeMovimento);
 sheetRotateItem.addEventListener("click", girarItemAtivoDoInventario);
 sheetEquipItem.addEventListener("click", equiparItemSelecionado);
+sheetEquipChoice.addEventListener("click", function (event) {
+  const botao = event.target.closest("[data-equip-selected-slot]");
+  if (botao) equiparItemSelecionadoNoSlot(botao.dataset.equipSelectedSlot);
+});
+sheetStoreItem.addEventListener("click", guardarItemSelecionadoNaMochila);
+sheetUnequipItem.addEventListener("click", desequiparItemSelecionado);
+sheetSwitchHandItem.addEventListener("click", trocarMaoDoItemSelecionado);
 sheetInventoryEquipmentSlots.addEventListener("click", function (event) {
   if (Date.now() < inventoryClickSuppressedUntil) return;
   const slot = event.target.closest("button[data-equipment-slot]")?.dataset.equipmentSlot;
   if (!slot) return;
-  if (personagem.equipamentos?.[slot]) desequiparItemDoSlot(slot);
-  else sheetInventoryPlacementStatus.textContent = `${rotuloDoSlotDeEquipamento(slot)} está vazio.`;
+  const item = personagem.equipamentos?.[slot];
+  if (item) {
+    executarMutacaoDoInventario(function (_inventario, estadoDaInterface) {
+      estadoDaInterface.selectedItemId = item.id;
+      estadoDaInterface.selectedItemSource = { kind: "equipment", slot };
+    }, { persistente: false });
+  } else sheetInventoryPlacementStatus.textContent = `${rotuloDoSlotDeEquipamento(slot)} está vazio.`;
 });
-sheetDiscardItem.addEventListener("click", abrirConfirmacaoDeDescarte);
+sheetDiscardItem.addEventListener("click", solicitarDescarteDoItemSelecionado);
+sheetPositionRotate.addEventListener("click", girarItemAtivoDoInventario);
+sheetPositionConfirm.addEventListener("click", confirmarPosicionamentoAtual);
+sheetPositionCancel.addEventListener("click", function () {
+  if (inventoryUIState.movingItemId) cancelarMovimentoDoInventario();
+  else cancelarImportacaoDeItem();
+});
 inventoryRevealConfirm.addEventListener("click", animarItemDoRevealAteBancada);
 inventoryRevealEquip.addEventListener("click", equiparItemPendenteAgora);
+inventoryRevealEquipChoices.addEventListener("click", function (event) {
+  const slot = event.target.closest("button[data-reveal-equip-slot]")?.dataset.revealEquipSlot;
+  if (slot) equiparItemPendenteNoSlot(slot);
+});
 inventoryRevealDialog.addEventListener("cancel", function (event) {
   event.preventDefault();
   animarItemDoRevealAteBancada();
+});
+inventoryOccupiedConfirm.addEventListener("click", fecharFeedbackDeRecebimentoOcupado);
+inventoryOccupiedDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  fecharFeedbackDeRecebimentoOcupado();
 });
 inventoryDiscardCancel.addEventListener("click", cancelarDescarteDoInventario);
 inventoryDiscardConfirm.addEventListener("click", confirmarDescarteDoInventario);
@@ -281,11 +302,33 @@ originForm.addEventListener("submit", function (event) {
   abrirEtapaAtributos();
 });
 
-[originTitleInput, originPlaceInput, originStoryInput].forEach(function (input) {
+[originTitleInput, originPlaceInput].forEach(function (input) {
   input.addEventListener("input", function () {
     atualizarOrigem();
     definirErro(input, input === originTitleInput ? originTitleError : input === originPlaceInput ? originPlaceError : originStoryError, "");
   });
+});
+
+originStoryInput.addEventListener("input", function () {
+  atualizarHistoriaDaOrigem();
+  definirErroDaHistoria("");
+});
+
+originStoryOpen.addEventListener("click", function () {
+  abrirEditorDaHistoria(originStoryOpen);
+});
+sheetEditHistory.addEventListener("click", function () {
+  abrirEditorDaHistoria(sheetEditHistory);
+});
+originStoryClose.addEventListener("click", cancelarEditorDaHistoria);
+originStoryCancel.addEventListener("click", cancelarEditorDaHistoria);
+originStorySave.addEventListener("click", salvarHistoriaDoEditor);
+originStoryDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  cancelarEditorDaHistoria();
+});
+originStoryDialog.addEventListener("close", function () {
+  document.body.classList.remove("origin-story-is-open");
 });
 
 originPromptList.addEventListener("click", function (event) {

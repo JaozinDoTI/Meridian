@@ -13,13 +13,12 @@
 }
 
 .sheet-inventory-item::after {
-  animation: inventory-symbol-presence 4.6s ease-in-out infinite;
+  opacity: .62;
 }
 
 .sheet-inventory-item:hover::after,
 .sheet-inventory-item:focus-visible::after,
 .sheet-inventory-item.is-selected::after {
-  animation-duration: 1.8s;
   opacity: .82;
 }
 
@@ -113,6 +112,14 @@
 .inventory-equipment-slot.is-invalid-target,
 .inventory-bench__surface.is-invalid-target {
   animation: inventory-target-invalid var(--inventory-motion-fast) var(--inventory-ease-return) 1 both;
+}
+
+.inventory-equipment-slot.is-incompatible-target {
+  transition-duration: var(--inventory-motion-instant);
+}
+
+.inventory-position-actions:not([hidden]) {
+  animation: inventory-controls-enter var(--inventory-motion-fast) var(--inventory-ease-lift) both;
 }
 
 .inventory-drag-object {
@@ -230,17 +237,9 @@
   100% { opacity: 0; transform: translate(var(--particle-x), var(--particle-y)) scale(1.15); }
 }
 
-@keyframes inventory-symbol-presence {
-  0%, 100% {
-    opacity: .48;
-    filter: drop-shadow(0 2px 3px rgba(10, 5, 4, .62));
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-  50% {
-    opacity: .68;
-    filter: drop-shadow(0 3px 5px var(--item-glow));
-    transform: translateX(-50%) translateY(-2px) scale(1.025);
-  }
+@keyframes inventory-controls-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes inventory-preview-outline-enter {

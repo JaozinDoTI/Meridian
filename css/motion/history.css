@@ -1,0 +1,74 @@
+.sheet-history-view.history-is-entering .history-page__header {
+  animation: history-region-enter 260ms var(--ease-emphasized) both;
+}
+
+.sheet-history-view.history-is-entering .history-context {
+  animation: history-region-enter 280ms 45ms var(--ease-emphasized) both;
+}
+
+.sheet-history-view.history-is-entering .history-manuscript {
+  animation: history-region-enter 320ms 85ms var(--ease-emphasized) both;
+}
+
+.history-manuscript__content.history-was-updated {
+  animation: history-content-settle 280ms var(--ease-emphasized) both;
+}
+
+.history-manuscript__content.history-was-updated::before {
+  position: absolute;
+  top: -11px;
+  left: 0;
+  width: 42px;
+  height: 2px;
+  background: var(--history-gold);
+  content: "";
+  pointer-events: none;
+  transform-origin: left center;
+  animation: history-save-mark 520ms var(--ease-emphasized) both;
+}
+
+.origin-story-dialog[open] {
+  animation: history-dialog-enter 210ms var(--ease-emphasized) both;
+}
+
+.origin-story-dialog[open]::backdrop {
+  animation: history-backdrop-enter 180ms var(--ease-standard) both;
+}
+
+@keyframes history-region-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes history-content-settle {
+  from { opacity: 0.72; transform: translate3d(0, 3px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes history-save-mark {
+  0% { opacity: 0; transform: scaleX(0); }
+  28% { opacity: 0.9; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+
+@keyframes history-dialog-enter {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes history-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-history-view.history-is-entering .history-page__header,
+  .sheet-history-view.history-is-entering .history-context,
+  .sheet-history-view.history-is-entering .history-manuscript,
+  .history-manuscript__content.history-was-updated,
+  .history-manuscript__content.history-was-updated::before,
+  .origin-story-dialog[open],
+  .origin-story-dialog[open]::backdrop {
+    animation: none !important;
+  }
+}

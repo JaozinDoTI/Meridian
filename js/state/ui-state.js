@@ -6,6 +6,7 @@
       reorganizingForPending: false,
       movingItemId: null,
       selectedItemId: null,
+      selectedItemSource: null,
       hoveredCell: null,
       candidatePosition: null,
       discardingItemId: null

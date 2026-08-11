@@ -68,6 +68,17 @@ function criarIconeHabilidade(iconeId) {
   return svg;
 }
 
+function criarMetricaDoResumoDeHabilidade(rotulo, valor, variante) {
+  const metrica = document.createElement("span");
+  const label = document.createElement("small");
+  const content = document.createElement("b");
+  metrica.className = `sheet-ability-summary-metric${variante ? ` is-${variante}` : ""}`;
+  label.textContent = rotulo;
+  content.textContent = valor || "—";
+  metrica.append(label, content);
+  return metrica;
+}
+
 function criarItemVisualHabilidade(habilidade, modoResumo) {
   const estado = obterEstadoHabilidade(habilidade);
   if (!modoResumo) {
@@ -84,9 +95,17 @@ function criarItemVisualHabilidade(habilidade, modoResumo) {
 
   const button = document.createElement("button");
   button.type = "button";
-  button.className = `sheet-ability-summary-item is-${estado}`;
+  button.className = `sheet-ability-summary-item is-${estado} is-type-${habilidade.tipo}`;
   button.dataset.abilityId = habilidade.id;
-  button.setAttribute("aria-label", `${habilidade.nome}: ${obterRotuloEstadoHabilidade(estado)}`);
+  const mana = habilidade.custos?.mana || "—";
+  const pe = habilidade.custos?.pe || "—";
+  const alcance = habilidade.alcance || "—";
+  const dano = habilidade.dano || "—";
+  const duracao = habilidade.duracao || "—";
+  button.setAttribute(
+    "aria-label",
+    `${habilidade.nome}: ${obterRotuloEstadoHabilidade(estado)}. Mana ${mana}. PE ${pe}. Alcance ${alcance}. Dano ${dano}. Duração ${duracao}.`
+  );
   const icon = document.createElement("span");
   icon.className = "sheet-ability-item-icon";
   icon.append(criarIconeHabilidade(habilidade.iconeId));
@@ -104,7 +123,22 @@ function criarItemVisualHabilidade(habilidade, modoResumo) {
   operation.className = "sheet-ability-item-operation";
   operation.textContent = obterResumoOperacionalHabilidade(habilidade);
 
-  button.append(icon, copy, operation);
+  const mechanics = document.createElement("span");
+  mechanics.className = "sheet-ability-summary-mechanics";
+  const costs = document.createElement("span");
+  costs.className = "sheet-ability-summary-costs";
+  costs.append(
+    criarMetricaDoResumoDeHabilidade("Mana", mana, "mana"),
+    criarMetricaDoResumoDeHabilidade("PE", pe, "pe")
+  );
+  mechanics.append(
+    costs,
+    criarMetricaDoResumoDeHabilidade("Alcance", alcance, "range"),
+    criarMetricaDoResumoDeHabilidade("Duração", duracao, "duration"),
+    criarMetricaDoResumoDeHabilidade("Dano", dano, "damage")
+  );
+
+  button.append(icon, copy, operation, mechanics);
   return button;
 }
 
@@ -390,7 +424,7 @@ function definirMenuDeSecoesFuturasAberto(aberto) {
 }
 
 function ativarSecaoDaFicha(secao, habilidadeId) {
-  if (!["summary", "abilities", "inventory"].includes(secao)) return;
+  if (!["summary", "abilities", "inventory", "history"].includes(secao)) return;
   definirMenuDeSecoesFuturasAberto(false);
   if (habilidadeId && encontrarHabilidade(habilidadeId)) habilidadeSelecionadaId = habilidadeId;
 
@@ -406,6 +440,11 @@ function ativarSecaoDaFicha(secao, habilidadeId) {
   }
   if (secao === "inventory") {
     sheetInventoryViewHeading.focus({ preventScroll: true });
+  }
+  if (secao === "history") {
+    renderizarHistoriaDaFicha();
+    window.GrimorioHistoryView.animarEntrada(sheetHistoryView);
+    sheetHistoryViewHeading.focus({ preventScroll: true });
   }
   mostrarMensagemDaFicha("");
 }

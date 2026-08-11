@@ -101,7 +101,7 @@
           : dimensions.altura > dimensions.largura
             ? "tall"
             : "square",
-        density: area <= 1 ? "compact" : area <= 3 ? "small" : "full",
+        density: area <= 1 ? "compact" : area <= 2 ? "slim" : area <= 3 ? "small" : "full",
         dimensoes: dimensions
       };
     }

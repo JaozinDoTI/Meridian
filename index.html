@@ -507,23 +507,28 @@
               </section>
 
             <div class="origin-writing-panel">
-              <div class="origin-story-field">
-                <label for="origin-story">História do personagem <span aria-hidden="true">*</span></label>
-                <textarea
-                  id="origin-story"
-                  name="origin-story"
-                  maxlength="5000"
-                  rows="12"
-                  placeholder="Conte como seu personagem cresceu, o que perdeu, quem conheceu e por que decidiu iniciar esta jornada..."
-                  aria-describedby="origin-story-error origin-story-counter"
-                  required
-                ></textarea>
-                <div class="origin-story-footer">
-                  <p id="origin-story-error" class="form-error" aria-live="polite"></p>
-                  <span id="origin-story-counter" aria-live="polite">0 / 5000</span>
-                </div>
-              </div>
+              <section class="origin-story-summary" aria-labelledby="origin-story-summary-title">
+                <header>
+                  <div>
+                    <span>História do personagem</span>
+                    <h3 id="origin-story-summary-title">Registre a jornada até aqui</h3>
+                  </div>
+                  <span id="origin-story-summary-count">0 palavras</span>
+                </header>
+                <p id="origin-story-preview">Nenhuma história escrita. Use o editor para desenvolver o passado, os vínculos e as motivações do personagem.</p>
+                <button
+                  id="origin-story-open"
+                  class="wine-button origin-story-open"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-controls="origin-story-dialog"
+                  aria-invalid="false"
+                >
+                  <span id="origin-story-open-label">Escrever história</span> <span aria-hidden="true">→</span>
+                </button>
+              </section>
             </div>
+
           </form>
         </section>
 
@@ -817,6 +822,11 @@
                 <span>Inventário</span>
                 <i aria-hidden="true"></i>
               </button>
+              <button type="button" data-sheet-section="history" data-nav-label="História" title="História">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                <span>História</span>
+                <i aria-hidden="true"></i>
+              </button>
             </div>
 
             <span class="sheet-sidebar__group-label sheet-sidebar__group-label--future">Em desenvolvimento</span>
@@ -824,11 +834,6 @@
               <button type="button" data-sheet-section="combat" data-sheet-future="true" data-nav-label="Combate" title="Combate — em desenvolvimento" aria-disabled="true">
                 <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-swords"></use></svg>
                 <span>Combate</span>
-                <small>Breve</small>
-              </button>
-              <button type="button" data-sheet-section="history" data-sheet-future="true" data-nav-label="História" title="História — em desenvolvimento" aria-disabled="true">
-                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
-                <span>História</span>
                 <small>Breve</small>
               </button>
               <button type="button" data-sheet-section="companions" data-sheet-future="true" data-nav-label="Companheiros" title="Companheiros — em desenvolvimento" aria-disabled="true">
@@ -1048,9 +1053,9 @@
                 </h2>
               </header>
               <dl>
-                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-sword"></use></svg><dt>Arma equipada</dt><dd>Nenhuma</dd></div>
-                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-burst"></use></svg><dt>Dano</dt><dd>—</dd></div>
-                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-target"></use></svg><dt>Alcance</dt><dd>—</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-sword"></use></svg><dt>Arma equipada</dt><dd id="sheet-combat-weapon">Nenhuma</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-burst"></use></svg><dt>Dano</dt><dd id="sheet-combat-weapon-damage">—</dd></div>
+                <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-target"></use></svg><dt>Alcance</dt><dd id="sheet-combat-weapon-range">—</dd></div>
                 <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-spiral"></use></svg><dt>Técnica selecionada</dt><dd>Nenhuma</dd></div>
                 <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-hourglass"></use></svg><dt>Usos</dt><dd>—</dd></div>
                 <div><svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-bolt"></use></svg><dt>Efeito ativo</dt><dd>Nenhum</dd></div>
@@ -1063,9 +1068,11 @@
               </header>
               <div class="sheet-static-table sheet-weapons-table" role="table" aria-label="Armas e condições">
                 <div class="sheet-static-table__head" role="row">
-                  <span role="columnheader">Item</span><span role="columnheader">Dano</span><span role="columnheader">Tipo</span><span role="columnheader">Efeito</span><span role="columnheader">Qtd.</span>
+                  <span role="columnheader">Item</span><span role="columnheader">Dano</span><span role="columnheader">Local</span><span role="columnheader">Efeito</span><span role="columnheader">Qtd.</span>
                 </div>
-                <div class="sheet-static-table__empty" role="row"><span role="cell">Nenhuma arma cadastrada.</span></div>
+                <div id="sheet-weapons-list" class="sheet-static-table__body" role="rowgroup">
+                  <div class="sheet-static-table__empty" role="row"><span role="cell">Nenhuma arma cadastrada.</span></div>
+                </div>
               </div>
             </section>
           </section>
@@ -1212,24 +1219,24 @@
               <div class="inventory-workspace">
                 <aside class="inventory-bench" aria-labelledby="sheet-inventory-received-heading">
                   <header class="inventory-region-heading">
-                    <span>Bancada do aventureiro</span>
-                    <h3 id="sheet-inventory-received-heading">Bancada de staging</h3>
+                    <span>Triagem do aventureiro</span>
+                    <h3 id="sheet-inventory-received-heading">Recebimento</h3>
                   </header>
                   <div id="sheet-inventory-received" class="sheet-inventory-received inventory-bench__surface" aria-live="polite">
                     <div class="inventory-bench__empty">
                       <span aria-hidden="true">✦</span>
-                      <strong>Espaço livre</strong>
-                      <p>Use esta área para retirar temporariamente uma peça.</p>
+                      <strong>Nenhum item em recebimento</strong>
+                      <p>Importe um item ou deixe uma peça aqui temporariamente.</p>
                     </div>
                   </div>
                   <section id="sheet-inventory-pending-actions" class="inventory-pending-actions" aria-labelledby="sheet-inventory-pending-heading" hidden>
-                    <h3 id="sheet-inventory-pending-heading">Item aguardando espaço</h3>
+                    <h3 id="sheet-inventory-pending-heading">Item em recebimento</h3>
                     <p id="sheet-inventory-pending-message"></p>
                     <div>
                       <button id="sheet-reorganize-for-item" class="secondary-action-button" type="button">Reorganizar mochila</button>
                       <button id="sheet-rotate-pending-item" class="secondary-action-button" type="button">Girar 90°</button>
                       <button id="sheet-discard-pending-item" class="sheet-danger-action" type="button">Descartar</button>
-                      <button id="sheet-cancel-item-import" class="sheet-footer-link" type="button" hidden>Deixar na bancada</button>
+                      <button id="sheet-cancel-item-import" class="sheet-footer-link" type="button" hidden>Deixar no recebimento</button>
                     </div>
                   </section>
                 </aside>
@@ -1268,13 +1275,18 @@
                   <p id="sheet-inventory-placement-status" class="sheet-inventory-placement-status" aria-live="polite">
                     Segure a imagem de um objeto para movê-lo ou selecione-o para examinar.
                   </p>
+                  <div id="sheet-inventory-position-actions" class="inventory-position-actions" aria-label="Controles de posicionamento" hidden>
+                    <button id="sheet-position-rotate" class="secondary-action-button" type="button">Girar</button>
+                    <button id="sheet-position-confirm" class="sheet-primary-action" type="button">Confirmar</button>
+                    <button id="sheet-position-cancel" class="sheet-danger-action" type="button">Cancelar</button>
+                  </div>
                 </section>
 
-                <aside class="inventory-sidecar">
+                <aside class="inventory-sidecar" aria-label="Equipamentos e inspeção">
                   <section class="inventory-equipment" aria-labelledby="sheet-inventory-loadout-heading">
                     <header class="inventory-region-heading">
                       <span>Pronto para uso</span>
-                      <h3 id="sheet-inventory-loadout-heading">Equipamento</h3>
+                      <h3 id="sheet-inventory-loadout-heading">Equipamentos</h3>
                     </header>
                     <div id="sheet-inventory-equipment-slots" class="inventory-equipment__slots"></div>
                   </section>
@@ -1293,9 +1305,19 @@
                     </div>
                     <div id="sheet-inventory-item-actions" class="sheet-inventory-item-actions" hidden>
                       <button id="sheet-equip-item" class="sheet-primary-action" type="button" hidden>Equipar</button>
+                      <div id="sheet-equip-choice" class="inventory-equip-choice" hidden>
+                        <span>Equipar em</span>
+                        <div>
+                          <button class="sheet-primary-action" type="button" data-equip-selected-slot="maoPrincipal">Mão principal</button>
+                          <button class="sheet-primary-action" type="button" data-equip-selected-slot="maoSecundaria">Mão secundária</button>
+                        </div>
+                      </div>
+                      <button id="sheet-store-item" class="sheet-primary-action" type="button" hidden>Guardar na mochila</button>
+                      <button id="sheet-unequip-item" class="sheet-primary-action" type="button" hidden>Desequipar</button>
+                      <button id="sheet-switch-hand-item" class="secondary-action-button" type="button" hidden>Trocar de mão</button>
                       <button id="sheet-rotate-item" class="secondary-action-button" type="button">Girar 90°</button>
-                      <button id="sheet-move-item" class="secondary-action-button" type="button">Mover com teclado</button>
-                      <button id="sheet-discard-item" class="sheet-danger-action" type="button">Descartar</button>
+                      <button id="sheet-move-item" class="secondary-action-button" type="button">Posicionar</button>
+                      <button id="sheet-discard-item" class="sheet-danger-action inventory-item-actions__discard" type="button">Descartar item</button>
                     </div>
                   </section>
                 </aside>
@@ -1312,6 +1334,59 @@
                 <div class="inventory-ledger__coin"><span aria-hidden="true">◆</span><strong id="sheet-inventory-gold">0</strong><small>ouro</small></div>
                 <div class="inventory-ledger__coin inventory-ledger__coin--silver"><span aria-hidden="true">◇</span><strong id="sheet-inventory-silver">0</strong><small>prata</small></div>
               </footer>
+            </div>
+          </section>
+
+          <section id="sheet-history-view" class="sheet-history-view screen screen--history" data-sheet-view="history" data-theme="history" aria-labelledby="sheet-history-view-heading" hidden>
+            <div class="history-page">
+              <header class="history-page__header">
+                <div>
+                  <span class="history-page__kicker">Memórias do personagem</span>
+                  <h2 id="sheet-history-view-heading" tabindex="-1">
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                    História
+                  </h2>
+                  <p>O caminho percorrido antes da aventura começar.</p>
+                </div>
+                <button id="sheet-edit-history" class="sheet-primary-action history-edit-action" type="button" aria-controls="origin-story-dialog">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                  Editar história
+                </button>
+              </header>
+
+              <div class="history-workspace">
+                <aside class="history-context" aria-label="Contexto da história">
+                  <div class="history-context__seal" aria-hidden="true">
+                    <svg class="sheet-icon"><use href="#sheet-icon-feather"></use></svg>
+                  </div>
+                  <dl>
+                    <div><dt>Personagem</dt><dd id="sheet-history-character-name"></dd></div>
+                    <div><dt>Local de origem</dt><dd id="sheet-history-origin-place"></dd></div>
+                    <div><dt>Espécie</dt><dd id="sheet-history-species-name"></dd></div>
+                    <div><dt>Classe</dt><dd id="sheet-history-class-name"></dd></div>
+                  </dl>
+                  <div class="history-context__metrics" aria-label="Métricas da história">
+                    <span><strong id="sheet-history-word-count">0</strong> palavras</span>
+                    <span id="sheet-history-reading-time">Sem tempo de leitura</span>
+                  </div>
+                </aside>
+
+                <article class="history-manuscript" aria-labelledby="sheet-history-origin-title">
+                  <div class="history-manuscript__page">
+                    <header>
+                      <span>Relato de origem</span>
+                      <h3 id="sheet-history-origin-title"></h3>
+                      <p id="sheet-history-origin-caption"></p>
+                    </header>
+                    <div id="sheet-history-content" class="history-manuscript__content"></div>
+                    <div id="sheet-history-empty" class="history-manuscript__empty" hidden>
+                      <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                      <strong>Nenhuma história registrada</strong>
+                      <p>Use o editor para escrever o passado e as motivações deste personagem.</p>
+                    </div>
+                  </div>
+                </article>
+              </div>
             </div>
           </section>
 
@@ -1334,6 +1409,43 @@
       </div>
     </section>
   </main>
+
+  <dialog id="origin-story-dialog" class="origin-story-dialog" aria-labelledby="origin-story-dialog-title">
+    <section class="origin-story-dialog__shell">
+      <header class="origin-story-dialog__header">
+        <div>
+          <p>Origem do personagem</p>
+          <h2 id="origin-story-dialog-title">Escreva sua história</h2>
+        </div>
+        <button id="origin-story-close" type="button" aria-label="Fechar editor de história">×</button>
+      </header>
+
+      <div class="origin-story-field origin-story-field--dialog">
+        <label for="origin-story">História do personagem <span aria-hidden="true">*</span></label>
+        <textarea
+          id="origin-story"
+          name="origin-story"
+          maxlength="20000"
+          rows="18"
+          placeholder="Conte como seu personagem cresceu, o que perdeu, quem conheceu e por que decidiu iniciar esta jornada..."
+          aria-describedby="origin-story-error origin-story-counter origin-story-word-count"
+          required
+        ></textarea>
+        <div class="origin-story-footer">
+          <p id="origin-story-error" class="form-error" aria-live="polite"></p>
+          <span id="origin-story-counter" aria-live="polite">0 / 20000</span>
+        </div>
+      </div>
+
+      <footer class="origin-story-dialog__actions">
+        <span id="origin-story-word-count" aria-live="polite">0 palavras</span>
+        <div>
+          <button id="origin-story-cancel" class="secondary-action-button" type="button">Cancelar</button>
+          <button id="origin-story-save" class="wine-button" type="button">Salvar história</button>
+        </div>
+      </footer>
+    </section>
+  </dialog>
 
   <dialog id="portrait-crop-dialog" class="portrait-crop-dialog" aria-labelledby="portrait-crop-title">
     <section class="portrait-crop-shell">
@@ -1422,6 +1534,21 @@
     </section>
   </dialog>
 
+  <dialog id="inventory-occupied-dialog" class="ability-dialog ability-dialog--compact" aria-labelledby="inventory-occupied-title" aria-describedby="inventory-occupied-description">
+    <section class="ability-dialog__shell">
+      <header class="ability-dialog__header">
+        <span>Importação interrompida</span>
+        <h2 id="inventory-occupied-title">Recebimento ocupado</h2>
+      </header>
+      <p id="inventory-occupied-description" class="ability-dialog__description">
+        Você já possui um item aguardando destino. Guarde, equipe ou recuse esse item antes de receber outro.
+      </p>
+      <footer class="ability-dialog__actions">
+        <button id="inventory-occupied-confirm" class="wine-button" type="button">Entendi</button>
+      </footer>
+    </section>
+  </dialog>
+
   <dialog id="inventory-reveal-dialog" class="inventory-reveal" aria-labelledby="inventory-reveal-title">
     <section class="inventory-reveal__stage">
       <span class="inventory-reveal__flash" aria-hidden="true"></span>
@@ -1433,8 +1560,13 @@
       <strong id="inventory-reveal-attribute" class="inventory-reveal__attribute"></strong>
       <p id="inventory-reveal-meta" class="inventory-reveal__meta"></p>
       <div class="inventory-reveal__actions">
-        <button id="inventory-reveal-equip" class="secondary-action-button" type="button" hidden>Equipar agora</button>
-        <button id="inventory-reveal-confirm" class="wine-button" type="button">OK</button>
+        <button id="inventory-reveal-equip" class="wine-button" type="button" aria-expanded="false" hidden>Equipar</button>
+        <button id="inventory-reveal-confirm" class="secondary-action-button" type="button">Levar ao Recebimento</button>
+      </div>
+      <div id="inventory-reveal-equip-choices" class="inventory-reveal__equip-choices" aria-label="Escolher destino do equipamento" hidden>
+        <span>Onde deseja equipar?</span>
+        <button class="secondary-action-button" type="button" data-reveal-equip-slot="maoPrincipal">Mão principal</button>
+        <button class="secondary-action-button" type="button" data-reveal-equip-slot="maoSecundaria">Mão secundária</button>
       </div>
     </section>
   </dialog>
@@ -1454,6 +1586,7 @@
   <script src="./js/ui/inventory-card.js"></script>
   <script src="./js/ui/inventory-view.js"></script>
   <script src="./js/ui/sheet-navigation.js"></script>
+  <script src="./js/ui/history-view.js"></script>
   <script src="./js/motion/inventory-motion.js"></script>
   <script src="./js/state/character-state.js"></script>
   <script src="./js/ui/dom-bindings.js"></script>

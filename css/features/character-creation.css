@@ -1839,6 +1839,75 @@
   overflow: hidden;
 }
 
+.origin-story-summary {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  min-height: 0;
+  padding: clamp(18px, 2.4vw, 30px);
+  border: 1px solid rgba(184, 134, 59, 0.26);
+  background:
+    linear-gradient(135deg, rgba(184, 134, 59, 0.06), transparent 42%),
+    rgba(252, 248, 239, 0.5);
+}
+
+.origin-story-summary > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(184, 134, 59, 0.28);
+}
+
+.origin-story-summary > header div > span {
+  color: var(--dourado-escuro);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.origin-story-summary h3 {
+  margin: 4px 0 0;
+  color: var(--vinho-escuro);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+#origin-story-summary-count {
+  flex: 0 0 auto;
+  color: var(--texto-suave);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#origin-story-preview {
+  display: -webkit-box;
+  align-self: center;
+  margin: 0;
+  overflow: hidden;
+  color: var(--texto-suave);
+  font-size: clamp(13px, 1.2vw, 16px);
+  font-style: italic;
+  line-height: 1.65;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+}
+
+.origin-story-open {
+  justify-self: start;
+  min-width: 180px;
+}
+
+.origin-story-open[aria-invalid="true"] {
+  outline: 2px solid rgba(111, 17, 24, 0.35);
+  outline-offset: 3px;
+}
+
 .origin-fields {
   grid-column: 1 / -1;
   display: grid;
@@ -1923,6 +1992,133 @@
 .origin-story-field textarea::-webkit-scrollbar-thumb {
   border: 1px solid rgba(184, 134, 59, 0.35);
   background: rgba(111, 17, 24, 0.65);
+}
+
+body.origin-story-is-open {
+  overflow: hidden;
+}
+
+.origin-story-dialog {
+  width: min(980px, calc(100vw - 32px));
+  height: min(760px, calc(100dvh - 32px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  color: var(--texto);
+  border: 1px solid rgba(119, 24, 36, 0.5);
+  border-radius: 6px;
+  background: var(--papel-claro);
+  box-shadow: 0 24px 70px rgba(35, 23, 20, 0.36);
+}
+
+.origin-story-dialog::backdrop {
+  background: rgba(20, 15, 14, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.origin-story-dialog__shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  background:
+    linear-gradient(rgba(184, 134, 59, 0.075) 1px, transparent 1px),
+    var(--papel-claro);
+  background-size: 100% 38px;
+}
+
+.origin-story-dialog__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 26px 16px;
+  border-bottom: 1px solid rgba(184, 134, 59, 0.34);
+  background: rgba(252, 248, 239, 0.9);
+}
+
+.origin-story-dialog__header p {
+  margin: 0 0 3px;
+  color: var(--dourado-escuro);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.origin-story-dialog__header h2 {
+  margin: 0;
+  color: var(--vinho-escuro);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.origin-story-dialog__header > button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: var(--vinho-escuro);
+  border: 1px solid rgba(184, 134, 59, 0.45);
+  border-radius: 50%;
+  background: rgba(252, 248, 239, 0.7);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.origin-story-dialog__header > button:hover,
+.origin-story-dialog__header > button:focus-visible {
+  color: var(--papel-claro);
+  border-color: var(--vinho);
+  outline: none;
+  background: var(--vinho);
+}
+
+.origin-story-field--dialog {
+  min-height: 0;
+  padding: 18px 26px 0;
+  overflow: hidden;
+}
+
+.origin-story-field--dialog textarea {
+  height: 100%;
+  min-height: 0;
+  padding: 14px 18px;
+  resize: none;
+  font-size: 16px;
+  line-height: 32px;
+}
+
+.origin-story-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 26px 18px;
+  border-top: 1px solid rgba(184, 134, 59, 0.3);
+  background: rgba(252, 248, 239, 0.94);
+}
+
+.origin-story-dialog__actions > span {
+  color: var(--texto-suave);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.origin-story-dialog__actions > div {
+  display: flex;
+  gap: 10px;
+}
+
+.origin-story-dialog__actions button {
+  min-width: 148px;
 }
 
 .attributes-stage,
@@ -3048,12 +3244,7 @@
     grid-template-columns: 1fr;
   }
   .origin-writing-panel {
-    min-height: 540px;
-  }
-  .origin-story-field textarea {
-    height: 360px;
-    min-height: 360px;
-    resize: vertical;
+    min-height: 260px;
   }
   .attributes-stage,
   .review-stage {
@@ -3151,6 +3342,29 @@
   .origin-layout { gap: 10px; }
   .origin-prompts,
   .origin-writing-panel { padding: 9px; }
+  .origin-story-summary { gap: 12px; padding: 16px; }
+  .origin-story-summary > header { gap: 10px; }
+  #origin-story-preview { -webkit-line-clamp: 5; }
+  .origin-story-open { justify-self: stretch; width: 100%; }
+  .origin-story-dialog {
+    width: 100vw;
+    height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .origin-story-dialog__header { padding: 16px 16px 12px; }
+  .origin-story-dialog__header > button { width: 34px; height: 34px; }
+  .origin-story-field--dialog { padding: 12px 14px 0; }
+  .origin-story-field--dialog > label { font-size: 12px; }
+  .origin-story-field--dialog textarea { padding: 10px 12px; font-size: 15px; line-height: 28px; }
+  .origin-story-dialog__actions {
+    align-items: stretch;
+    padding: 10px 14px 14px;
+  }
+  .origin-story-dialog__actions > span { align-self: center; }
+  .origin-story-dialog__actions > div { flex: 1; }
+  .origin-story-dialog__actions button { flex: 1; min-width: 0; }
   .origin-fields { grid-template-columns: 1fr; gap: 4px; }
   .origin-prompt-list { gap: 4px; }
   .origin-prompt-list button { min-height: 27px; padding: 4px 6px; font-size: 9px; }

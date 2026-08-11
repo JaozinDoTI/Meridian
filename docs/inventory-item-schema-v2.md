@@ -28,6 +28,6 @@ O schema v2 amplia o item visual sem alterar as regras espaciais. Arquivos v1 co
 - `imagem`: caminho relativo/local ou imagem `data:` PNG, JPEG, WebP ou GIF. URLs remotas não são aceitas.
 - `atributoPrincipal`: objeto com `rotulo` e `valor` textuais.
 - `propriedades`: até oito textos, cada um com no máximo 90 caracteres.
-- `equipavelEm`: identificador textual do slot. Nesta versão, somente `armadura` está ativo.
+- `equipavelEm`: identificador textual do slot (`armadura`, `maoPrincipal` ou `maoSecundaria`). Armas sem slot explícito podem ser equipadas em qualquer uma das mãos; a interface solicita a escolha ao jogador.
 
 Os campos obrigatórios e as validações espaciais permanecem iguais ao schema v1: `nome`, `tipo`, `raridade`, `peso` e `tamanho`.

@@ -59,7 +59,9 @@ test("preserva criacao completa, retrato, revisao, exportacao e abertura da fich
   await expect(page.locator("#origin-step")).toBeVisible();
   await page.locator("#origin-title").fill("Herdeira das MarÃ©s");
   await page.locator("#origin-place").fill("Costa de Vidro");
+  await page.locator("#origin-story-open").click();
   await page.locator("#origin-story").fill("Lyra atravessou as ruÃ­nas costeiras em busca de um mapa perdido.");
+  await page.locator("#origin-story-save").click();
   await page.locator("#creation-next").click();
 
   await expect(page.locator("#attributes-step")).toBeVisible();
