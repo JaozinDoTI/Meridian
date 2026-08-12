@@ -16,6 +16,7 @@ const requiredFiles = [
   "js/domain/abilities.js",
   "js/domain/inventory.js",
   "js/domain/import-export.js",
+  "js/domain/links.js",
   "js/state/character-state.js",
   "js/state/ui-state.js",
   "js/controllers/creation-controller.js",

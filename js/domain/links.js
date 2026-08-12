@@ -1,0 +1,289 @@
+(function disponibilizarDominioDeVinculos(raiz, fabrica) {
+  "use strict";
+
+  const api = fabrica();
+
+  if (typeof module === "object" && module.exports) {
+    module.exports = api;
+  }
+
+  if (raiz) {
+    raiz.GrimorioLinksDomain = api;
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this, function criarDominioDeVinculos() {
+  "use strict";
+
+  const LIMITES = Object.freeze({
+    id: 120,
+    nome: 100,
+    subtitulo: 120,
+    descricao: 5000,
+    imagem: 1500000
+  });
+  const TIPOS = Object.freeze(["pessoa", "lugar", "evento", "objeto"]);
+  const TIPO_ENVELOPE = "grimorio-vinculo";
+  const VERSAO_SCHEMA = 1;
+  let sequenciaIdAlternativo = 0;
+
+  class LinksDomainError extends Error {
+    constructor(code, message, details) {
+      super(message);
+      this.name = "LinksDomainError";
+      this.code = code;
+      this.details = details || null;
+    }
+  }
+
+  function ehObjetoDeDados(valor) {
+    if (!valor || typeof valor !== "object" || Array.isArray(valor)) return false;
+    const prototipo = Object.getPrototypeOf(valor);
+    return prototipo === Object.prototype || prototipo === null;
+  }
+
+  function normalizarTextoObrigatorio(valor, campo, limite, rotulo) {
+    if (valor === undefined || valor === null) {
+      throw new LinksDomainError("invalid-" + campo, "O campo " + rotulo + " é obrigatório.");
+    }
+    if (typeof valor !== "string") {
+      throw new LinksDomainError("invalid-" + campo, "O campo " + rotulo + " deve ser texto.");
+    }
+
+    const texto = valor.trim();
+    if (!texto) {
+      throw new LinksDomainError("invalid-" + campo, "O campo " + rotulo + " é obrigatório.");
+    }
+    if (texto.length > limite) {
+      throw new LinksDomainError(
+        "invalid-" + campo,
+        "O campo " + rotulo + " deve possuir no máximo " + limite + " caracteres."
+      );
+    }
+    return texto;
+  }
+
+  function normalizarTextoOpcional(valor, campo, limite, rotulo) {
+    if (valor === undefined || valor === null) return "";
+    if (typeof valor !== "string") {
+      throw new LinksDomainError("invalid-" + campo, "O campo " + rotulo + " deve ser texto.");
+    }
+
+    const texto = valor.trim();
+    if (texto.length > limite) {
+      throw new LinksDomainError(
+        "invalid-" + campo,
+        "O campo " + rotulo + " deve possuir no máximo " + limite + " caracteres."
+      );
+    }
+    return texto;
+  }
+
+  function normalizarTipo(valor) {
+    if (valor === undefined || valor === null || valor === "") return "pessoa";
+    if (typeof valor !== "string") {
+      throw new LinksDomainError("invalid-tipo", "O tipo do vínculo deve ser texto.");
+    }
+
+    const tipo = valor.trim().toLowerCase();
+    if (!tipo) return "pessoa";
+    if (!TIPOS.includes(tipo)) {
+      throw new LinksDomainError(
+        "invalid-tipo",
+        "O tipo do vínculo deve ser pessoa, lugar, evento ou objeto."
+      );
+    }
+    return tipo;
+  }
+
+  function normalizarImagem(valor) {
+    const imagem = normalizarTextoOpcional(valor, "imagem", LIMITES.imagem, "imagem");
+    if (!imagem) return "";
+
+    const imagemRasterIncorporada = /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/]+={0,2}$/i.test(imagem);
+    if (imagemRasterIncorporada) return imagem;
+
+    const possuiProtocolo = /^[a-z][a-z0-9+.-]*:/i.test(imagem);
+    const caminhoDeRede = imagem.startsWith("//") || imagem.startsWith("\\\\");
+    const possuiMarcacao = /[<>]/.test(imagem);
+    const formatoExecutavel = /\.(?:svg|html?)(?:[?#]|$)/i.test(imagem);
+    if (possuiProtocolo || caminhoDeRede || possuiMarcacao || formatoExecutavel) {
+      throw new LinksDomainError(
+        "invalid-imagem",
+        "A imagem deve ser uma imagem PNG, JPEG ou WebP incorporada, ou um caminho local seguro."
+      );
+    }
+    return imagem;
+  }
+
+  function ehIdValido(valor) {
+    return typeof valor === "string"
+      && valor.trim().length > 0
+      && valor.trim().length <= LIMITES.id;
+  }
+
+  function criarIdPadrao() {
+    if (typeof globalThis !== "undefined"
+      && globalThis.crypto
+      && typeof globalThis.crypto.randomUUID === "function") {
+      return globalThis.crypto.randomUUID();
+    }
+
+    sequenciaIdAlternativo += 1;
+    return "vinculo-" + Date.now().toString(36) + "-" + sequenciaIdAlternativo.toString(36);
+  }
+
+  function criarIdVinculo(criarId, idsUsados) {
+    const fabricaId = typeof criarId === "function" ? criarId : criarIdPadrao;
+    const reservados = idsUsados instanceof Set ? idsUsados : new Set();
+
+    for (let tentativa = 0; tentativa < 100; tentativa += 1) {
+      const candidato = fabricaId();
+      if (!ehIdValido(candidato)) continue;
+      const id = candidato.trim();
+      if (!reservados.has(id)) return id;
+    }
+
+    throw new LinksDomainError(
+      "id-generation-failed",
+      "Não foi possível gerar um ID interno único e válido para o vínculo."
+    );
+  }
+
+  function obterCampo(dados, canonico, alias) {
+    return dados[canonico] !== undefined ? dados[canonico] : dados[alias];
+  }
+
+  function normalizarConteudoVinculo(dados) {
+    if (!ehObjetoDeDados(dados)) {
+      throw new LinksDomainError("invalid-vinculo", "O vínculo deve ser um objeto válido.");
+    }
+
+    return {
+      tipo: normalizarTipo(obterCampo(dados, "tipo", "type")),
+      nome: normalizarTextoObrigatorio(obterCampo(dados, "nome", "name"), "nome", LIMITES.nome, "nome"),
+      subtitulo: normalizarTextoOpcional(
+        obterCampo(dados, "subtitulo", "subtitle"),
+        "subtitulo",
+        LIMITES.subtitulo,
+        "subtítulo"
+      ),
+      descricao: normalizarTextoOpcional(
+        obterCampo(dados, "descricao", "description"),
+        "descricao",
+        LIMITES.descricao,
+        "descrição"
+      ),
+      imagem: normalizarImagem(obterCampo(dados, "imagem", "image"))
+    };
+  }
+
+  function normalizarVinculo(dados, opcoes) {
+    const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
+    const idsUsados = configuracao.idsUsados instanceof Set ? configuracao.idsUsados : new Set();
+    const conteudo = normalizarConteudoVinculo(dados);
+    const idRecebido = ehIdValido(dados.id) ? dados.id.trim() : null;
+    const preservarId = configuracao.preservarId === true
+      && idRecebido
+      && !idsUsados.has(idRecebido);
+    const id = preservarId
+      ? idRecebido
+      : criarIdVinculo(configuracao.criarId, idsUsados);
+    const vinculo = {
+      id,
+      tipo: conteudo.tipo,
+      nome: conteudo.nome,
+      subtitulo: conteudo.subtitulo,
+      descricao: conteudo.descricao,
+      imagem: conteudo.imagem
+    };
+
+    idsUsados.add(id);
+    return vinculo;
+  }
+
+  function normalizarColecaoVinculos(colecao, opcoes) {
+    if (colecao === undefined) return [];
+    if (!Array.isArray(colecao)) {
+      throw new LinksDomainError(
+        "invalid-links-collection",
+        "A coleção de vínculos deve ser uma lista."
+      );
+    }
+
+    const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
+    const idsUsados = new Set();
+    return colecao.map(function (dados, indice) {
+      try {
+        return normalizarVinculo(dados, {
+          criarId: configuracao.criarId,
+          idsUsados,
+          preservarId: true
+        });
+      } catch (erro) {
+        if (erro instanceof LinksDomainError && !erro.details) erro.details = { indice };
+        throw erro;
+      }
+    });
+  }
+
+  function criarEnvelopeVinculo(dados) {
+    const vinculo = normalizarConteudoVinculo(dados);
+    return {
+      tipo: TIPO_ENVELOPE,
+      schemaVersion: VERSAO_SCHEMA,
+      vinculo
+    };
+  }
+
+  function lerEnvelopeVinculo(envelope, opcoes) {
+    if (!ehObjetoDeDados(envelope)) {
+      throw new LinksDomainError("invalid-envelope", "O envelope do vínculo deve ser um objeto válido.");
+    }
+
+    const tipo = obterCampo(envelope, "tipo", "type");
+    if (tipo !== TIPO_ENVELOPE) {
+      throw new LinksDomainError(
+        "invalid-envelope-type",
+        "O tipo do envelope deve ser grimorio-vinculo."
+      );
+    }
+
+    const versao = envelope.schemaVersion !== undefined ? envelope.schemaVersion : envelope.versao;
+    if (typeof versao === "number" && versao > VERSAO_SCHEMA) {
+      throw new LinksDomainError(
+        "future-schema-version",
+        "A versão futura deste vínculo ainda não é compatível."
+      );
+    }
+    if (versao !== VERSAO_SCHEMA) {
+      throw new LinksDomainError(
+        "invalid-schema-version",
+        "A versão do vínculo deve ser 1."
+      );
+    }
+
+    const dados = envelope.vinculo !== undefined ? envelope.vinculo : envelope.link;
+    if (!ehObjetoDeDados(dados)) {
+      throw new LinksDomainError(
+        "invalid-envelope-link",
+        "O campo vínculo do envelope deve ser um objeto válido."
+      );
+    }
+
+    const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
+    return normalizarVinculo(dados, {
+      criarId: configuracao.criarId,
+      idsUsados: configuracao.idsUsados,
+      preservarId: false
+    });
+  }
+
+  return Object.freeze({
+    LIMITES,
+    LinksDomainError,
+    criarIdVinculo,
+    normalizarVinculo,
+    normalizarColecaoVinculos,
+    criarEnvelopeVinculo,
+    lerEnvelopeVinculo
+  });
+});
