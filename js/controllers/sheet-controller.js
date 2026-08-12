@@ -344,6 +344,13 @@ function aplicarPersonagemImportado(dadosImportados, versaoDaFicha) {
         return;
       }
 
+      if (campo === "vinculos") {
+        dadosNormalizados[campo] = valorImportado === undefined
+          ? undefined
+          : JSON.parse(JSON.stringify(valorImportado));
+        return;
+      }
+
       dadosNormalizados[campo] = Array.isArray(valorImportado)
         ? JSON.parse(JSON.stringify(valorImportado))
         : valorPadrao;

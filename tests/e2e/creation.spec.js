@@ -1,10 +1,37 @@
 import { expect, test } from "@playwright/test";
-import { importCompleteCharacter, preparePage } from "../helpers/app.js";
+import { readFile } from "node:fs/promises";
+import {
+  completeCharacterFixture,
+  importCompleteCharacter,
+  preparePage
+} from "../helpers/app.js";
 
 const portraitPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
   "base64"
 );
+
+async function readCompleteCharacter() {
+  return JSON.parse(await readFile(completeCharacterFixture, "utf8"));
+}
+
+async function importCharacterData(page, data, name = "character.json") {
+  await page.setInputFiles("#json-file", {
+    name,
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(data))
+  });
+}
+
+async function exportCurrentCharacter(page) {
+  const downloadPromise = page.waitForEvent("download");
+  await page.locator("#sheet-export-json").click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  let json = "";
+  for await (const chunk of stream) json += chunk.toString("utf8");
+  return JSON.parse(json);
+}
 
 test.beforeEach(async function ({ page }) {
   await preparePage(page);
@@ -99,6 +126,8 @@ test("preserva criacao completa, retrato, revisao, exportacao e abertura da fich
   expect(envelope.versao).toBe(2);
   expect(envelope.personagem.nome).toBe("Lyra do Meridiano");
   expect(envelope.personagem.retrato).toMatch(/^data:image\/webp;base64,/);
+  expect(envelope.personagem.vinculos).toEqual([]);
+  expect(envelope.personagem.origem).not.toHaveProperty("vinculos");
 
   await page.locator("#review-open-sheet").click();
   await expect(page.locator("#character-sheet-screen")).toBeVisible();
@@ -107,28 +136,85 @@ test("preserva criacao completa, retrato, revisao, exportacao e abertura da fich
 });
 
 test("preserva personagem em round-trip de exportacao e reimportacao", async function ({ page }) {
-  await importCompleteCharacter(page);
+  const importedEnvelope = await readCompleteCharacter();
+  importedEnvelope.personagem.vinculos = [
+    {
+      id: "aliada-01",
+      tipo: "pessoa",
+      nome: "  Maelis  ",
+      subtitulo: "Aliada",
+      descricao: "Conheceu Ariadne nas ruínas.",
+      imagem: "assets/vinculos/maelis.webp"
+    },
+    {
+      id: "porto-01",
+      tipo: "lugar",
+      nome: "Porto de Vidro",
+      subtitulo: "",
+      descricao: "Um refúgio costeiro.",
+      imagem: ""
+    }
+  ];
+  importedEnvelope.personagem.origem.vinculos = [{ nome: "não deve persistir" }];
+  await importCharacterData(page, importedEnvelope, "round-trip-com-vinculos.json");
+  await expect(page.locator("#character-sheet-screen")).toBeVisible();
 
-  const firstDownloadPromise = page.waitForEvent("download");
-  await page.locator("#sheet-export-json").click();
-  const firstDownload = await firstDownloadPromise;
-  const firstStream = await firstDownload.createReadStream();
-  let firstJson = "";
-  for await (const chunk of firstStream) firstJson += chunk.toString("utf8");
-  const firstEnvelope = JSON.parse(firstJson);
-
-  await page.setInputFiles("#json-file", {
-    name: "round-trip.json",
-    mimeType: "application/json",
-    buffer: Buffer.from(firstJson)
+  const firstEnvelope = await exportCurrentCharacter(page);
+  expect(firstEnvelope.tipo).toBe("grimorio-ficha");
+  expect(firstEnvelope.versao).toBe(2);
+  expect(firstEnvelope.personagem.vinculos).toHaveLength(2);
+  expect(firstEnvelope.personagem.vinculos[0]).toMatchObject({
+    id: "aliada-01",
+    nome: "Maelis"
   });
-  const secondDownloadPromise = page.waitForEvent("download");
-  await page.locator("#sheet-export-json").click();
-  const secondDownload = await secondDownloadPromise;
-  const secondStream = await secondDownload.createReadStream();
-  let secondJson = "";
-  for await (const chunk of secondStream) secondJson += chunk.toString("utf8");
-  const secondEnvelope = JSON.parse(secondJson);
+  expect(firstEnvelope.personagem.origem).not.toHaveProperty("vinculos");
+
+  await importCharacterData(page, firstEnvelope, "round-trip.json");
+  const secondEnvelope = await exportCurrentCharacter(page);
 
   expect(secondEnvelope.personagem).toEqual(firstEnvelope.personagem);
+});
+
+test("normaliza vínculos legados e IDs duplicados ao importar", async function ({ page }) {
+  const legacyEnvelope = await readCompleteCharacter();
+  await importCharacterData(page, legacyEnvelope, "ficha-legada.json");
+  let exportedEnvelope = await exportCurrentCharacter(page);
+  expect(exportedEnvelope.personagem.vinculos).toEqual([]);
+
+  const duplicateIdsEnvelope = await readCompleteCharacter();
+  duplicateIdsEnvelope.personagem.vinculos = [
+    { id: "repetido", tipo: "pessoa", nome: "Primeiro" },
+    { id: "repetido", tipo: "evento", nome: "Segundo" }
+  ];
+  await importCharacterData(page, duplicateIdsEnvelope, "vinculos-duplicados.json");
+  exportedEnvelope = await exportCurrentCharacter(page);
+
+  const ids = exportedEnvelope.personagem.vinculos.map((vinculo) => vinculo.id);
+  expect(ids[0]).toBe("repetido");
+  expect(new Set(ids).size).toBe(2);
+  expect(exportedEnvelope.personagem.vinculos.map((vinculo) => vinculo.nome)).toEqual([
+    "Primeiro",
+    "Segundo"
+  ]);
+});
+
+test("rejeita vínculos inválidos sem substituir a ficha atual", async function ({ page }) {
+  await importCompleteCharacter(page);
+  const currentEnvelope = await exportCurrentCharacter(page);
+
+  const nonArrayEnvelope = await readCompleteCharacter();
+  nonArrayEnvelope.personagem.nome = "Ficha invasora";
+  nonArrayEnvelope.personagem.vinculos = { nome: "formato incorreto" };
+  await importCharacterData(page, nonArrayEnvelope, "vinculos-nao-lista.json");
+  await expect(page.locator("#file-status")).toContainText(/vínculos deve ser uma lista/i);
+  await expect(page.locator("#sheet-character-name")).toHaveText("Ariadne Vesper");
+  expect((await exportCurrentCharacter(page)).personagem).toEqual(currentEnvelope.personagem);
+
+  const missingNameEnvelope = await readCompleteCharacter();
+  missingNameEnvelope.personagem.nome = "Outra ficha invasora";
+  missingNameEnvelope.personagem.vinculos = [{ id: "sem-nome", tipo: "pessoa" }];
+  await importCharacterData(page, missingNameEnvelope, "vinculo-sem-nome.json");
+  await expect(page.locator("#file-status")).toContainText(/campo nome é obrigatório/i);
+  await expect(page.locator("#sheet-character-name")).toHaveText("Ariadne Vesper");
+  expect((await exportCurrentCharacter(page)).personagem).toEqual(currentEnvelope.personagem);
 });

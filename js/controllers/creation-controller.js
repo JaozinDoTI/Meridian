@@ -2195,6 +2195,9 @@ function prepararDadosIniciaisDaFicha(personagemAlvo = personagem, versaoDoInven
   };
   personagemAlvo.armas ??= [];
   personagemAlvo.habilidades ??= [];
+  personagemAlvo.vinculos = window.GrimorioLinksDomain.normalizarColecaoVinculos(
+    personagemAlvo.vinculos
+  );
   personagemAlvo.inventario ??= [];
   personagemAlvo.inventarioStaging ??= null;
   personagemAlvo.equipamentos ??= {};
