@@ -1932,6 +1932,12 @@
   color: var(--vinho);
 }
 
+.origin-story-field > label small {
+  color: var(--texto-suave);
+  font-size: 10px;
+  font-weight: 400;
+}
+
 .origin-story-field textarea {
   width: 100%;
   height: 100%;
@@ -2020,13 +2026,42 @@ body.origin-story-is-open {
 
 .origin-story-dialog__shell {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   height: 100%;
   min-height: 0;
   background:
     linear-gradient(rgba(184, 134, 59, 0.075) 1px, transparent 1px),
     var(--papel-claro);
   background-size: 100% 38px;
+}
+
+.origin-story-prompt-context {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 26px;
+  border-bottom: 1px solid rgba(184, 134, 59, 0.26);
+  background: rgba(184, 134, 59, 0.1);
+}
+
+.origin-story-prompt-context[hidden] {
+  display: none;
+}
+
+.origin-story-prompt-context span {
+  color: var(--dourado-escuro);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.origin-story-prompt-context p {
+  margin: 0;
+  color: var(--vinho-escuro);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-style: italic;
 }
 
 .origin-story-dialog__header {
@@ -3355,6 +3390,7 @@ body.origin-story-is-open {
   }
   .origin-story-dialog__header { padding: 16px 16px 12px; }
   .origin-story-dialog__header > button { width: 34px; height: 34px; }
+  .origin-story-prompt-context { grid-template-columns: 1fr; gap: 3px; padding: 8px 14px; }
   .origin-story-field--dialog { padding: 12px 14px 0; }
   .origin-story-field--dialog > label { font-size: 12px; }
   .origin-story-field--dialog textarea { padding: 10px 12px; font-size: 15px; line-height: 28px; }

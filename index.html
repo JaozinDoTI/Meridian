@@ -1420,8 +1420,13 @@
         <button id="origin-story-close" type="button" aria-label="Fechar editor de história">×</button>
       </header>
 
+      <aside id="origin-story-prompt-context" class="origin-story-prompt-context" aria-live="polite" hidden>
+        <span>Inspiração selecionada</span>
+        <p id="origin-story-prompt-text"></p>
+      </aside>
+
       <div class="origin-story-field origin-story-field--dialog">
-        <label for="origin-story">História do personagem <span aria-hidden="true">*</span></label>
+        <label for="origin-story">História do personagem <small>Opcional</small></label>
         <textarea
           id="origin-story"
           name="origin-story"
@@ -1429,7 +1434,6 @@
           rows="18"
           placeholder="Conte como seu personagem cresceu, o que perdeu, quem conheceu e por que decidiu iniciar esta jornada..."
           aria-describedby="origin-story-error origin-story-counter origin-story-word-count"
-          required
         ></textarea>
         <div class="origin-story-footer">
           <p id="origin-story-error" class="form-error" aria-live="polite"></p>

@@ -113,6 +113,16 @@ function definirErroDaHistoria(mensagem) {
   originStoryOpen.setAttribute("aria-invalid", mensagem ? "true" : "false");
 }
 
+function definirPerguntaDeInspiracao(pergunta) {
+  const texto = typeof pergunta === "string" ? pergunta.trim() : "";
+  originStoryPromptText.textContent = texto;
+  originStoryPromptContext.hidden = !texto;
+}
+
+function limparPerguntaDeInspiracao() {
+  definirPerguntaDeInspiracao("");
+}
+
 function restaurarOrigem() {
   originTitleInput.value = personagem.origem.titulo;
   originPlaceInput.value = personagem.origem.local;
@@ -138,8 +148,9 @@ function atualizarHistoriaDaOrigem() {
   atualizarResumoDaHistoria();
 }
 
-function abrirEditorDaHistoria(acionador) {
+function abrirEditorDaHistoria(acionador, perguntaDeInspiracao = "") {
   if (originStoryDialog.open) {
+    definirPerguntaDeInspiracao(perguntaDeInspiracao);
     originStoryInput.focus();
     return;
   }
@@ -150,6 +161,7 @@ function abrirEditorDaHistoria(acionador) {
   editorDaHistoriaAbertoNaFicha = !characterSheetScreen.hidden;
   historiaAntesDaEdicao = personagem.origem.historia;
   originStoryInput.value = personagem.origem.historia;
+  definirPerguntaDeInspiracao(perguntaDeInspiracao);
   atualizarContadorDaHistoria();
   document.body.classList.add("origin-story-is-open");
   originStoryDialog.showModal();
@@ -158,6 +170,7 @@ function abrirEditorDaHistoria(acionador) {
 
 function fecharEditorDaHistoria(resultado) {
   document.body.classList.remove("origin-story-is-open");
+  limparPerguntaDeInspiracao();
   if (originStoryDialog.open) originStoryDialog.close(resultado);
   acionadorDoEditorDaHistoria.focus();
 }
@@ -185,19 +198,7 @@ function cancelarEditorDaHistoria() {
 }
 
 function usarPerguntaDeInspiracao(pergunta) {
-  abrirEditorDaHistoria(originStoryOpen);
-
-  if (!pergunta || originStoryInput.value.includes(pergunta)) {
-    originStoryInput.focus();
-    return;
-  }
-
-  const separador = originStoryInput.value.trim() ? "\n\n" : "";
-  const proximaHistoria = `${originStoryInput.value}${separador}${pergunta}\n\n`;
-  originStoryInput.value = proximaHistoria.slice(0, LIMITE_CARACTERES_HISTORIA);
-  atualizarHistoriaDaOrigem();
-  definirErroDaHistoria("");
-  originStoryInput.focus();
+  abrirEditorDaHistoria(originStoryOpen, pergunta);
 }
 
 function validarOrigem() {
@@ -210,7 +211,7 @@ function validarOrigem() {
 
   definirErro(originTitleInput, originTitleError, !personagem.origem.titulo ? "Dê um título para a Origem do personagem." : "");
   definirErro(originPlaceInput, originPlaceError, personagem.origem.local.length > 100 ? "O Local de Origem pode ter no máximo 100 caracteres." : "");
-  definirErroDaHistoria(!personagem.origem.historia || personagem.origem.historia.length < 20 ? "Conte um pouco mais sobre o passado do personagem." : personagem.origem.historia.length > LIMITE_CARACTERES_HISTORIA ? "A história pode ter no máximo 20.000 caracteres." : "");
+  definirErroDaHistoria(personagem.origem.historia.length > LIMITE_CARACTERES_HISTORIA ? "A história pode ter no máximo 20.000 caracteres." : "");
 
   const primeiroInvalido = [originTitleInput, originPlaceInput, originStoryInput].find(function (campo) {
     return campo.getAttribute("aria-invalid") === "true";

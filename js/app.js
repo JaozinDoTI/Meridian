@@ -329,6 +329,7 @@ originStoryDialog.addEventListener("cancel", function (event) {
 });
 originStoryDialog.addEventListener("close", function () {
   document.body.classList.remove("origin-story-is-open");
+  limparPerguntaDeInspiracao();
 });
 
 originPromptList.addEventListener("click", function (event) {
