@@ -95,17 +95,39 @@
   }
 
   function normalizarImagem(valor) {
+    if (typeof valor === "string" && /[\u0000-\u001f\u007f]/.test(valor)) {
+      throw new LinksDomainError(
+        "invalid-imagem",
+        "A imagem deve ser uma imagem PNG, JPEG ou WebP incorporada, ou um caminho local seguro."
+      );
+    }
     const imagem = normalizarTextoOpcional(valor, "imagem", LIMITES.imagem, "imagem");
     if (!imagem) return "";
 
     const imagemRasterIncorporada = /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/]+={0,2}$/i.test(imagem);
     if (imagemRasterIncorporada) return imagem;
 
-    const possuiProtocolo = /^[a-z][a-z0-9+.-]*:/i.test(imagem);
+    const possuiControleOuEspaco = /[\u0000-\u0020\u007f]/.test(imagem);
+    const possuiProtocolo = /^[a-z][a-z0-9+.-]*:/i.test(imagem) || imagem.includes(":");
     const caminhoAbsoluto = /^[\\/]/.test(imagem);
+    const separadorInvalido = imagem.includes("\\") || imagem.includes("//");
+    const sufixoAmbiguo = /[?#]/.test(imagem) || /%[0-9a-f]{2}/i.test(imagem);
     const possuiMarcacao = /[<>]/.test(imagem);
-    const formatoExecutavel = /\.(?:svg|html?)(?:[?#]|$)/i.test(imagem);
-    if (possuiProtocolo || caminhoAbsoluto || possuiMarcacao || formatoExecutavel) {
+    const ultimoSegmento = imagem.slice(imagem.lastIndexOf("/") + 1);
+    const indiceExtensao = ultimoSegmento.lastIndexOf(".");
+    const possuiExtensao = indiceExtensao >= 0;
+    const extensao = possuiExtensao ? ultimoSegmento.slice(indiceExtensao + 1).toLowerCase() : "";
+    const extensaoInvalida = possuiExtensao
+      && !["png", "jpg", "jpeg", "webp", "gif"].includes(extensao);
+    const caminhoIncompleto = !ultimoSegmento || ultimoSegmento === "." || ultimoSegmento === "..";
+    if (possuiControleOuEspaco
+      || possuiProtocolo
+      || caminhoAbsoluto
+      || separadorInvalido
+      || sufixoAmbiguo
+      || possuiMarcacao
+      || extensaoInvalida
+      || caminhoIncompleto) {
       throw new LinksDomainError(
         "invalid-imagem",
         "A imagem deve ser uma imagem PNG, JPEG ou WebP incorporada, ou um caminho local seguro."
@@ -179,6 +201,9 @@
   function normalizarVinculoInterno(dados, opcoes) {
     const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
     const idsUsados = configuracao.idsUsados instanceof Set ? configuracao.idsUsados : new Set();
+    const idsIndisponiveis = configuracao.idsIndisponiveis instanceof Set
+      ? configuracao.idsIndisponiveis
+      : idsUsados;
     const conteudo = normalizarConteudoVinculo(dados);
     const idRecebido = ehIdValido(dados.id) ? dados.id.trim() : null;
     const preservarId = configuracao.idPersistido === true
@@ -186,7 +211,7 @@
       && !idsUsados.has(idRecebido);
     const id = preservarId
       ? idRecebido
-      : criarIdVinculo(configuracao.criarId, idsUsados);
+      : criarIdVinculo(configuracao.criarId, idsIndisponiveis);
     const vinculo = {
       id,
       tipo: conteudo.tipo,
@@ -197,6 +222,7 @@
     };
 
     idsUsados.add(id);
+    idsIndisponiveis.add(id);
     return vinculo;
   }
 
@@ -205,6 +231,7 @@
     return normalizarVinculoInterno(dados, {
       criarId: configuracao.criarId,
       idsUsados: configuracao.idsUsados,
+      idsIndisponiveis: configuracao.idsUsados,
       idPersistido: false
     });
   }
@@ -232,15 +259,12 @@
           ? dados.id.trim()
           : null;
         const preservarId = idRecebido !== null && !idsUsados.has(idRecebido);
-        const idsIndisponiveis = preservarId
-          ? new Set([...idsReservados, ...idsUsados].filter(function (id) { return id !== idRecebido; }))
-          : new Set([...idsReservados, ...idsUsados]);
         const vinculo = normalizarVinculoInterno(dados, {
           criarId: configuracao.criarId,
-          idsUsados: idsIndisponiveis,
+          idsUsados,
+          idsIndisponiveis: idsReservados,
           idPersistido: preservarId
         });
-        idsUsados.add(vinculo.id);
         return vinculo;
       } catch (erro) {
         if (erro instanceof LinksDomainError && !erro.details) erro.details = { indice };
@@ -297,6 +321,7 @@
     return normalizarVinculoInterno(dados, {
       criarId: configuracao.criarId,
       idsUsados: configuracao.idsUsados,
+      idsIndisponiveis: configuracao.idsUsados,
       idPersistido: false
     });
   }

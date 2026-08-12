@@ -115,6 +115,45 @@ test("rejeita protocolos, caminhos de rede, SVG e HTML em imagens", function () 
   });
 });
 
+test("rejeita controles, espaços de protocolo, escapes ambíguos, query e hash", function () {
+  const imagensInseguras = [
+    "ht\ntps://example.com/retrato.png",
+    "java\nscript:alert(1)",
+    "data\n:image/svg+xml;base64,PHN2Zz4=",
+    "java script:alert(1)",
+    "assets/retrato%2esvg",
+    "assets/retrato%2Ehtml",
+    "assets%2fretrato.png",
+    "assets%5cretrato.png",
+    "javascript%3aalert",
+    "assets/retrato.png?raw=1",
+    "assets/retrato.png#fragmento",
+    "assets\\retrato.png",
+    "assets/retra\u007fto.png",
+    "\nassets/retrato.png",
+    "assets/retrato.png\t",
+    "assets/.svg"
+  ];
+
+  imagensInseguras.forEach(function (imagem) {
+    assert.throws(
+      function () { links.normalizarVinculo({ nome: "Imagem", imagem }); },
+      /imagem.*(?:segura|local|PNG|JPEG|WebP)/i,
+      JSON.stringify(imagem)
+    );
+  });
+});
+
+test("aceita imagem raster incorporada exatamente no limite", function () {
+  const prefixo = "data:image/webp;base64,";
+  const imagem = prefixo + "A".repeat(links.LIMITES.imagem - prefixo.length);
+  const result = links.normalizarVinculo({ nome: "Limite", imagem }, {
+    criarId: function () { return "imagem-limite"; }
+  });
+
+  assert.equal(result.imagem.length, links.LIMITES.imagem);
+});
+
 test("rejeita imagem acima de 1.500.000 caracteres", function () {
   assert.throws(function () {
     links.normalizarVinculo({ nome: "Imagem", imagem: "a".repeat(1500001) });
@@ -160,6 +199,44 @@ test("a coleção reserva IDs válidos posteriores antes de gerar substitutos", 
     "id-gerado",
     "id-posterior"
   ]);
+});
+
+test("normaliza coleção grande sem copiar reservas acumuladas por item", function () {
+  const SetOriginal = globalThis.Set;
+  let itensIteradosDeSet = 0;
+  class SetRastreado extends SetOriginal {
+    *[Symbol.iterator]() {
+      for (const item of super[Symbol.iterator]()) {
+        itensIteradosDeSet += 1;
+        yield item;
+      }
+    }
+  }
+  const tamanho = 500;
+  const colecao = Array.from({ length: tamanho }, function (_, indice) {
+    return indice % 2 === 0
+      ? { nome: "Sem ID " + indice }
+      : { id: "persistido-" + indice, nome: "Persistido " + indice };
+  });
+  let chamadasDaFactory = 0;
+
+  globalThis.Set = SetRastreado;
+  try {
+    const result = links.normalizarColecaoVinculos(colecao, {
+      criarId: function () {
+        chamadasDaFactory += 1;
+        return "gerado-" + chamadasDaFactory;
+      }
+    });
+    assert.equal(result.length, tamanho);
+    assert.equal(chamadasDaFactory, tamanho / 2);
+    assert.ok(
+      itensIteradosDeSet <= tamanho * 4,
+      "esperava trabalho linear sobre Sets, mas houve " + itensIteradosDeSet + " iterações"
+    );
+  } finally {
+    globalThis.Set = SetOriginal;
+  }
 });
 
 test("considera válido apenas ID textual não vazio com até 120 caracteres", function () {
