@@ -78,8 +78,7 @@ test("aceita imagens incorporadas raster e caminhos locais ou relativos", functi
     "data:image/webp;base64,AAAA",
     "assets/retrato.png",
     "./assets/retrato.webp",
-    "../retratos/retrato.jpeg",
-    "/assets/retrato.png"
+    "../retratos/retrato.jpeg"
   ];
 
   imagens.forEach(function (imagem, indice) {
@@ -97,6 +96,8 @@ test("rejeita protocolos, caminhos de rede, SVG e HTML em imagens", function () 
     "javascript:alert(1)",
     "blob:https://example.com/id",
     "//cdn.example.com/retrato.png",
+    "/assets/retrato.png",
+    "\\assets\\retrato.png",
     "data:image/svg+xml;base64,PHN2Zz4=",
     "data:text/html;base64,PGgxPk9pPC9oMT4=",
     "assets/retrato.svg",
@@ -122,7 +123,8 @@ test("rejeita imagem acima de 1.500.000 caracteres", function () {
 
 test("a normalização individual gera ID novo e não confia no ID recebido", function () {
   const result = links.normalizarVinculo({ id: "id-importado", nome: "Oráculo" }, {
-    criarId: function () { return "id-interno"; }
+    criarId: function () { return "id-interno"; },
+    preservarId: true
   });
 
   assert.equal(result.id, "id-interno");
@@ -142,6 +144,21 @@ test("a coleção preserva o primeiro ID válido e regenera ausentes ou duplicad
     "id-estavel",
     "id-regenerado-1",
     "id-regenerado-2"
+  ]);
+});
+
+test("a coleção reserva IDs válidos posteriores antes de gerar substitutos", function () {
+  const candidatos = ["id-posterior", "id-gerado"];
+  const result = links.normalizarColecaoVinculos([
+    { nome: "Sem ID" },
+    { id: "id-posterior", nome: "ID persistido" }
+  ], {
+    criarId: function () { return candidatos.shift(); }
+  });
+
+  assert.deepEqual(result.map(function (vinculo) { return vinculo.id; }), [
+    "id-gerado",
+    "id-posterior"
   ]);
 });
 

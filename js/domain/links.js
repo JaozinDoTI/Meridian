@@ -102,10 +102,10 @@
     if (imagemRasterIncorporada) return imagem;
 
     const possuiProtocolo = /^[a-z][a-z0-9+.-]*:/i.test(imagem);
-    const caminhoDeRede = imagem.startsWith("//") || imagem.startsWith("\\\\");
+    const caminhoAbsoluto = /^[\\/]/.test(imagem);
     const possuiMarcacao = /[<>]/.test(imagem);
     const formatoExecutavel = /\.(?:svg|html?)(?:[?#]|$)/i.test(imagem);
-    if (possuiProtocolo || caminhoDeRede || possuiMarcacao || formatoExecutavel) {
+    if (possuiProtocolo || caminhoAbsoluto || possuiMarcacao || formatoExecutavel) {
       throw new LinksDomainError(
         "invalid-imagem",
         "A imagem deve ser uma imagem PNG, JPEG ou WebP incorporada, ou um caminho local seguro."
@@ -176,12 +176,12 @@
     };
   }
 
-  function normalizarVinculo(dados, opcoes) {
+  function normalizarVinculoInterno(dados, opcoes) {
     const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
     const idsUsados = configuracao.idsUsados instanceof Set ? configuracao.idsUsados : new Set();
     const conteudo = normalizarConteudoVinculo(dados);
     const idRecebido = ehIdValido(dados.id) ? dados.id.trim() : null;
-    const preservarId = configuracao.preservarId === true
+    const preservarId = configuracao.idPersistido === true
       && idRecebido
       && !idsUsados.has(idRecebido);
     const id = preservarId
@@ -200,6 +200,15 @@
     return vinculo;
   }
 
+  function normalizarVinculo(dados, opcoes) {
+    const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
+    return normalizarVinculoInterno(dados, {
+      criarId: configuracao.criarId,
+      idsUsados: configuracao.idsUsados,
+      idPersistido: false
+    });
+  }
+
   function normalizarColecaoVinculos(colecao, opcoes) {
     if (colecao === undefined) return [];
     if (!Array.isArray(colecao)) {
@@ -210,14 +219,29 @@
     }
 
     const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
+    const idsReservados = new Set();
+    colecao.forEach(function reservarIdRecebido(dados) {
+      if (ehObjetoDeDados(dados) && ehIdValido(dados.id)) {
+        idsReservados.add(dados.id.trim());
+      }
+    });
     const idsUsados = new Set();
     return colecao.map(function (dados, indice) {
       try {
-        return normalizarVinculo(dados, {
+        const idRecebido = ehObjetoDeDados(dados) && ehIdValido(dados.id)
+          ? dados.id.trim()
+          : null;
+        const preservarId = idRecebido !== null && !idsUsados.has(idRecebido);
+        const idsIndisponiveis = preservarId
+          ? new Set([...idsReservados, ...idsUsados].filter(function (id) { return id !== idRecebido; }))
+          : new Set([...idsReservados, ...idsUsados]);
+        const vinculo = normalizarVinculoInterno(dados, {
           criarId: configuracao.criarId,
-          idsUsados,
-          preservarId: true
+          idsUsados: idsIndisponiveis,
+          idPersistido: preservarId
         });
+        idsUsados.add(vinculo.id);
+        return vinculo;
       } catch (erro) {
         if (erro instanceof LinksDomainError && !erro.details) erro.details = { indice };
         throw erro;
@@ -270,10 +294,10 @@
     }
 
     const configuracao = ehObjetoDeDados(opcoes) ? opcoes : {};
-    return normalizarVinculo(dados, {
+    return normalizarVinculoInterno(dados, {
       criarId: configuracao.criarId,
       idsUsados: configuracao.idsUsados,
-      preservarId: false
+      idPersistido: false
     });
   }
 
