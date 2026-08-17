@@ -127,6 +127,7 @@ test("preserva criacao completa, retrato, revisao, exportacao e abertura da fich
   expect(envelope.personagem.nome).toBe("Lyra do Meridiano");
   expect(envelope.personagem.retrato).toMatch(/^data:image\/webp;base64,/);
   expect(envelope.personagem.vinculos).toEqual([]);
+  expect(envelope.personagem.registros).toEqual([]);
   expect(envelope.personagem.origem).not.toHaveProperty("vinculos");
 
   await page.locator("#review-open-sheet").click();
@@ -156,6 +157,20 @@ test("preserva personagem em round-trip de exportacao e reimportacao", async fun
     }
   ];
   importedEnvelope.personagem.origem.vinculos = [{ nome: "não deve persistir" }];
+  importedEnvelope.personagem.registros = [
+    {
+      id: "registro-01",
+      tipo: "descoberta",
+      titulo: "  A porta sob a torre  ",
+      conteudo: "Encontramos inscrições antigas.",
+      data: "12º dia da Névoa",
+      sessao: "Sessão 4",
+      marcadores: ["torre", "mistério"],
+      fixado: true,
+      criadoEm: "2026-08-10T10:00:00.000Z",
+      atualizadoEm: "2026-08-11T10:00:00.000Z"
+    }
+  ];
   await importCharacterData(page, importedEnvelope, "round-trip-com-vinculos.json");
   await expect(page.locator("#character-sheet-screen")).toBeVisible();
 
@@ -167,6 +182,14 @@ test("preserva personagem em round-trip de exportacao e reimportacao", async fun
     id: "aliada-01",
     nome: "Maelis"
   });
+  expect(firstEnvelope.personagem.registros).toEqual([
+    expect.objectContaining({
+      id: "registro-01",
+      tipo: "descoberta",
+      titulo: "A porta sob a torre",
+      fixado: true
+    })
+  ]);
   expect(firstEnvelope.personagem.origem).not.toHaveProperty("vinculos");
 
   await importCharacterData(page, firstEnvelope, "round-trip.json");

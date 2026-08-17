@@ -22,6 +22,7 @@ const personagem = {
     historia: ""
   },
   vinculos: [],
+  registros: [],
   atributos: {
     forca: 0,
     agilidade: 0,

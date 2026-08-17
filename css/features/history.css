@@ -48,7 +48,7 @@
 
 .history-page__kicker {
   color: var(--history-gold);
-  font: 800 8px/1 var(--font-interface, sans-serif);
+  font: var(--font-weight-extrabold) var(--text-label)/var(--line-height-label) var(--font-interface, sans-serif);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -56,28 +56,30 @@
 .history-page__header h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--control-gap);
   margin: 4px 0 0;
   color: var(--history-wine);
-  font: 500 clamp(24px, 2.2vw, 32px)/1.05 var(--font-editorial, Georgia, serif);
+  font: var(--font-weight-medium) var(--text-page-title)/var(--line-height-title) var(--font-editorial, Georgia, serif);
 }
 
 .history-page__header h2 .sheet-icon {
-  width: 25px;
-  height: 25px;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
   color: var(--history-gold);
 }
 
 .history-page__header p {
   margin: 5px 0 0;
   color: var(--history-muted);
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: var(--text-body);
+  line-height: var(--line-height-body);
 }
 
 .history-edit-action {
   flex: 0 0 auto;
   min-width: 154px;
+  min-height: var(--control-height);
+  font-size: var(--text-control);
 }
 
 .history-workspace {

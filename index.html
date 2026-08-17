@@ -827,6 +827,11 @@
                 <span>História</span>
                 <i aria-hidden="true"></i>
               </button>
+              <button type="button" data-sheet-section="journal" data-nav-label="Registro" title="Registro">
+                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
+                <span>Registro</span>
+                <i aria-hidden="true"></i>
+              </button>
             </div>
 
             <span class="sheet-sidebar__group-label sheet-sidebar__group-label--future">Em desenvolvimento</span>
@@ -839,11 +844,6 @@
               <button type="button" data-sheet-section="companions" data-sheet-future="true" data-nav-label="Companheiros" title="Companheiros — em desenvolvimento" aria-disabled="true">
                 <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-group"></use></svg>
                 <span>Companheiros</span>
-                <small>Breve</small>
-              </button>
-              <button type="button" data-sheet-section="journal" data-sheet-future="true" data-nav-label="Registro" title="Registro — em desenvolvimento" aria-disabled="true">
-                <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
-                <span>Registro</span>
                 <small>Breve</small>
               </button>
             </div>
@@ -1141,7 +1141,7 @@
                   </label>
                   <label class="abilities-select abilities-type-select">
                     <span class="sr-only">Filtrar por tipo</span>
-                    <select id="sheet-ability-type-filter">
+                    <select id="sheet-ability-type-filter" class="ui-select">
                       <option value="todos">Todos os tipos</option>
                       <option value="passiva">Passiva</option>
                       <option value="tecnica">Técnica</option>
@@ -1152,7 +1152,7 @@
                   </label>
                   <label class="abilities-select">
                     <span class="sr-only">Filtrar por situação</span>
-                    <select id="sheet-ability-state-filter">
+                    <select id="sheet-ability-state-filter" class="ui-select">
                       <option value="todos">Todas as situações</option>
                       <option value="disponivel">Disponível</option>
                       <option value="passiva">Passiva</option>
@@ -1390,6 +1390,119 @@
             </div>
           </section>
 
+          <section id="sheet-journal-view" class="sheet-journal-view screen screen--journal" data-sheet-view="journal" data-theme="journal" aria-labelledby="sheet-journal-view-heading" hidden>
+            <div class="journal-page">
+              <header class="journal-header">
+                <div class="journal-header__copy">
+                  <span class="journal-kicker">Crônica da campanha</span>
+                  <h2 id="sheet-journal-view-heading" tabindex="-1">
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
+                    Registro de Jornada
+                  </h2>
+                  <p>Acontecimentos, pistas e promessas que moldaram esta jornada.</p>
+                </div>
+                <div class="journal-header__actions">
+                  <span id="journal-count">0 registros</span>
+                  <button id="journal-create" class="sheet-primary-action journal-primary-action" type="button" aria-controls="journal-editor-dialog">
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-plus"></use></svg>
+                    Novo registro
+                  </button>
+                </div>
+              </header>
+
+              <form id="journal-quick-capture" class="journal-quick-capture" novalidate>
+                <svg class="sheet-icon journal-quick-capture__icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                <label class="sr-only" for="journal-quick-title">Título da anotação rápida</label>
+                <input id="journal-quick-title" type="text" maxlength="120" autocomplete="off" placeholder="O que aconteceu?" aria-describedby="journal-quick-error" />
+                <div id="journal-quick-expanded" class="journal-quick-capture__expanded" hidden>
+                  <label class="sr-only" for="journal-quick-content">Relato breve</label>
+                  <textarea id="journal-quick-content" maxlength="20000" rows="2" placeholder="Acrescente um detalhe breve, se quiser."></textarea>
+                  <div class="journal-quick-capture__footer">
+                    <label for="journal-quick-type">Tipo
+                      <select id="journal-quick-type" class="ui-select">
+                        <option value="nota">Nota</option>
+                        <option value="sessao">Sessão</option>
+                        <option value="descoberta">Descoberta</option>
+                        <option value="pendencia">Pendência</option>
+                      </select>
+                    </label>
+                    <div>
+                      <button id="journal-quick-cancel" class="secondary-action-button" type="button">Cancelar</button>
+                      <button id="journal-quick-save" class="wine-button" type="submit">Registrar</button>
+                    </div>
+                  </div>
+                </div>
+                <p id="journal-quick-error" class="form-error" role="alert"></p>
+              </form>
+
+              <div class="journal-toolbar" aria-label="Ferramentas do registro">
+                <label class="journal-search" for="journal-search">
+                  <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-eye"></use></svg>
+                  <span class="sr-only">Buscar na jornada</span>
+                  <input id="journal-search" type="search" placeholder="Buscar na jornada..." autocomplete="off" />
+                </label>
+                <label for="journal-type-filter">
+                  <span class="sr-only">Filtrar por tipo</span>
+                  <select id="journal-type-filter" class="ui-select">
+                    <option value="">Todos os tipos</option>
+                    <option value="sessao">Sessões</option>
+                    <option value="descoberta">Descobertas</option>
+                    <option value="pendencia">Pendências</option>
+                    <option value="nota">Notas</option>
+                  </select>
+                </label>
+                <label class="journal-pinned-filter"><input id="journal-pinned-only" type="checkbox" /> Somente fixados</label>
+                <button id="journal-clear-filters" class="journal-clear-filters" type="button" hidden>Limpar filtros</button>
+                <span id="journal-results-status" class="journal-results-status" aria-live="polite"></span>
+              </div>
+
+              <div class="journal-workspace">
+                <aside id="journal-timeline" class="journal-timeline" aria-label="Registros da jornada">
+                  <div id="journal-entry-list" class="journal-entry-list"></div>
+                  <div id="journal-empty" class="journal-empty" hidden>
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-book"></use></svg>
+                    <strong>A jornada ainda não foi registrada.</strong>
+                    <p>Anote acontecimentos, pistas e promessas para retomar quando precisar.</p>
+                    <button class="secondary-action-button" type="button" data-journal-empty-action="create">Criar primeiro registro</button>
+                  </div>
+                  <div id="journal-no-results" class="journal-empty" hidden>
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-eye"></use></svg>
+                    <strong>Nenhum registro corresponde a estes filtros.</strong>
+                    <button class="secondary-action-button" type="button" data-journal-empty-action="clear">Limpar filtros</button>
+                  </div>
+                </aside>
+
+                <article id="journal-reader" class="journal-reader" aria-labelledby="journal-reader-title">
+                  <div id="journal-reader-empty" class="journal-reader__empty">
+                    <svg class="sheet-icon" aria-hidden="true"><use href="#sheet-icon-feather"></use></svg>
+                    <strong>Abra uma página da jornada</strong>
+                    <p>Selecione um registro no acervo ou comece uma nova anotação.</p>
+                  </div>
+                  <div id="journal-reader-content" hidden>
+                    <header class="journal-reader__header">
+                      <div>
+                        <span id="journal-reader-type" class="journal-reader__type"></span>
+                        <h3 id="journal-reader-title" tabindex="-1"></h3>
+                        <p id="journal-reader-meta"></p>
+                      </div>
+                      <div class="journal-reader__actions">
+                        <span id="journal-reader-pinned" class="journal-reader__pinned" hidden>Fixado</span>
+                        <button id="journal-reader-pin" type="button">Fixar</button>
+                        <button id="journal-reader-edit" type="button">Editar registro</button>
+                        <button id="journal-reader-delete" class="journal-danger-action" type="button">Excluir</button>
+                      </div>
+                    </header>
+                    <div id="journal-reader-body" class="journal-reader__body"></div>
+                    <div id="journal-reader-tags" class="journal-reader__tags" aria-label="Marcadores"></div>
+                    <button id="journal-back-to-list" class="journal-back-to-list" type="button">Voltar aos registros</button>
+                  </div>
+                </article>
+              </div>
+
+              <p id="journal-live-status" class="sr-only" aria-live="polite"></p>
+            </div>
+          </section>
+
           <footer class="sheet-footer">
             <div class="sheet-footer__legend" aria-label="Legenda">
               <span>Legenda:</span>
@@ -1447,6 +1560,74 @@
           <button id="origin-story-cancel" class="secondary-action-button" type="button">Cancelar</button>
           <button id="origin-story-save" class="wine-button" type="button">Salvar história</button>
         </div>
+      </footer>
+    </section>
+  </dialog>
+
+  <dialog id="journal-editor-dialog" class="journal-dialog" aria-labelledby="journal-editor-heading" aria-describedby="journal-editor-description">
+    <form id="journal-editor-form" class="journal-dialog__shell" novalidate>
+      <header class="journal-dialog__header">
+        <div>
+          <span>Crônica da campanha</span>
+          <h2 id="journal-editor-heading">Novo registro</h2>
+          <p id="journal-editor-description">Registre uma página completa desta jornada.</p>
+        </div>
+        <button id="journal-editor-close" type="button" aria-label="Fechar editor">×</button>
+      </header>
+      <p id="journal-editor-error-summary" class="journal-dialog__error" role="alert" tabindex="-1"></p>
+      <div class="journal-form-grid">
+        <label class="journal-field">Tipo
+          <select id="journal-editor-type" class="ui-select">
+            <option value="nota">Nota</option>
+            <option value="sessao">Sessão</option>
+            <option value="descoberta">Descoberta</option>
+            <option value="pendencia">Pendência</option>
+          </select>
+        </label>
+        <label class="journal-field journal-field--wide">Título <span>Obrigatório</span>
+          <input id="journal-editor-title" type="text" maxlength="120" aria-describedby="journal-editor-title-error" />
+          <small id="journal-editor-title-error" class="form-error"></small>
+        </label>
+        <label class="journal-field journal-field--wide">Relato
+          <textarea id="journal-editor-content" maxlength="20000" rows="9" placeholder="Descreva o acontecimento, a pista ou a promessa..."></textarea>
+        </label>
+        <label class="journal-field">Sessão
+          <input id="journal-editor-session" type="text" maxlength="100" placeholder="Ex.: Sessão 5" />
+        </label>
+        <label class="journal-field">Data do mundo
+          <input id="journal-editor-date" type="text" maxlength="100" placeholder="Ex.: 13º dia da Névoa" />
+        </label>
+        <label class="journal-field journal-field--wide">Marcadores
+          <input id="journal-editor-tags" type="text" placeholder="Separe por vírgulas" />
+          <small>Até 10 marcadores de 30 caracteres.</small>
+        </label>
+        <label class="journal-field journal-field--check"><input id="journal-editor-pinned" type="checkbox" /> Fixar no início da jornada</label>
+      </div>
+      <footer class="journal-dialog__actions">
+        <button id="journal-editor-cancel" class="secondary-action-button" type="button">Cancelar</button>
+        <button id="journal-editor-save" class="wine-button" type="submit">Salvar registro</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="journal-discard-dialog" class="journal-dialog journal-dialog--compact" aria-labelledby="journal-discard-heading" aria-describedby="journal-discard-description">
+    <section class="journal-dialog__shell">
+      <header class="journal-dialog__header"><div><span>Alterações não salvas</span><h2 id="journal-discard-heading">Descartar alterações?</h2></div></header>
+      <p id="journal-discard-description">O texto digitado neste editor será perdido.</p>
+      <footer class="journal-dialog__actions">
+        <button id="journal-discard-keep" class="secondary-action-button" type="button">Continuar editando</button>
+        <button id="journal-discard-confirm" class="wine-button" type="button">Descartar</button>
+      </footer>
+    </section>
+  </dialog>
+
+  <dialog id="journal-delete-dialog" class="journal-dialog journal-dialog--compact" aria-labelledby="journal-delete-heading" aria-describedby="journal-delete-description">
+    <section class="journal-dialog__shell">
+      <header class="journal-dialog__header"><div><span>Página da jornada</span><h2 id="journal-delete-heading">Excluir registro?</h2></div></header>
+      <p id="journal-delete-description"></p>
+      <footer class="journal-dialog__actions">
+        <button id="journal-delete-cancel" class="secondary-action-button" type="button">Cancelar</button>
+        <button id="journal-delete-confirm" class="wine-button" type="button">Excluir registro</button>
       </footer>
     </section>
   </dialog>
@@ -1585,6 +1766,7 @@
   <script src="./js/domain/import-export.js"></script>
   <script src="./js/domain/character.js"></script>
   <script src="./js/domain/links.js"></script>
+  <script src="./js/domain/journal.js"></script>
   <script src="./js/state/ui-state.js"></script>
   <script src="./js/ui/abilities-view.js"></script>
   <script src="./js/ui/creation-view.js"></script>
@@ -1592,6 +1774,7 @@
   <script src="./js/ui/inventory-view.js"></script>
   <script src="./js/ui/sheet-navigation.js"></script>
   <script src="./js/ui/history-view.js"></script>
+  <script src="./js/ui/journal-view.js"></script>
   <script src="./js/motion/inventory-motion.js"></script>
   <script src="./js/state/character-state.js"></script>
   <script src="./js/ui/dom-bindings.js"></script>
@@ -1600,6 +1783,7 @@
   <script src="./js/ui/sheet-summary-view.js"></script>
   <script src="./js/controllers/inventory-controller.js"></script>
   <script src="./js/controllers/sheet-controller.js"></script>
+  <script src="./js/controllers/journal-controller.js"></script>
   <script src="./js/app.js"></script>
 </body>
 </html>

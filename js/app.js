@@ -18,7 +18,7 @@ sheetSidebar.addEventListener("click", function (event) {
   const button = event.target.closest("button[data-sheet-section]");
   if (!button) return;
 
-  if (["summary", "abilities", "inventory", "history"].includes(button.dataset.sheetSection)) {
+  if (["summary", "abilities", "inventory", "history", "journal"].includes(button.dataset.sheetSection)) {
     ativarSecaoDaFicha(button.dataset.sheetSection);
     return;
   }
@@ -42,6 +42,50 @@ sheetOpenAbilities.addEventListener("click", function () {
 sheetOpenInventory.addEventListener("click", function () {
   ativarSecaoDaFicha("inventory");
 });
+journalCreate.addEventListener("click", function () {
+  window.GrimorioJournalController.openCreate(journalCreate);
+});
+journalQuickTitle.addEventListener("focus", window.GrimorioJournalController.expandQuickCapture);
+journalQuickTitle.addEventListener("input", window.GrimorioJournalController.expandQuickCapture);
+journalQuickCapture.addEventListener("submit", window.GrimorioJournalController.submitQuickCapture);
+journalQuickCapture.addEventListener("keydown", window.GrimorioJournalController.quickCaptureKeydown);
+journalQuickCancel.addEventListener("click", window.GrimorioJournalController.cancelQuickCapture);
+journalSearch.addEventListener("input", function () {
+  window.GrimorioJournalController.setQuery(journalSearch.value);
+});
+journalTypeFilter.addEventListener("change", function () {
+  window.GrimorioJournalController.setTypeFilter(journalTypeFilter.value);
+});
+journalPinnedOnly.addEventListener("change", function () {
+  window.GrimorioJournalController.setPinnedOnly(journalPinnedOnly.checked);
+});
+journalClearFilters.addEventListener("click", window.GrimorioJournalController.clearFilters);
+journalReaderEdit.addEventListener("click", function () {
+  window.GrimorioJournalController.openEdit(journalReaderEdit);
+});
+journalReaderPin.addEventListener("click", window.GrimorioJournalController.togglePinned);
+journalReaderDelete.addEventListener("click", window.GrimorioJournalController.requestDelete);
+journalBackToList.addEventListener("click", window.GrimorioJournalController.backToList);
+journalEditorForm.addEventListener("submit", window.GrimorioJournalController.submitEditor);
+journalEditorClose.addEventListener("click", window.GrimorioJournalController.requestEditorCancel);
+journalEditorCancel.addEventListener("click", window.GrimorioJournalController.requestEditorCancel);
+journalEditorDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  window.GrimorioJournalController.requestEditorCancel();
+});
+journalDiscardKeep.addEventListener("click", window.GrimorioJournalController.keepEditing);
+journalDiscardConfirm.addEventListener("click", window.GrimorioJournalController.confirmDiscard);
+journalDiscardDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  window.GrimorioJournalController.keepEditing();
+});
+journalDeleteCancel.addEventListener("click", window.GrimorioJournalController.cancelDelete);
+journalDeleteConfirm.addEventListener("click", window.GrimorioJournalController.confirmDelete);
+journalDeleteDialog.addEventListener("cancel", function (event) {
+  event.preventDefault();
+  window.GrimorioJournalController.cancelDelete();
+});
+document.addEventListener("keydown", window.GrimorioJournalController.focusSearchShortcut);
 sheetImportItem.addEventListener("click", abrirSeletorDeItemDoInventario);
 sheetItemFile.addEventListener("change", importarArquivoDeItem);
 sheetReorganizeForItem.addEventListener("click", reorganizarMochilaParaItemPendente);

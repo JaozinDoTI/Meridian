@@ -42,8 +42,22 @@
     };
   }
 
+  function createJournalUIState() {
+    return {
+      selectedId: null,
+      query: "",
+      typeFilter: "",
+      pinnedOnly: false,
+      draft: null,
+      mode: null,
+      returnFocusTo: null,
+      newlyAddedId: null
+    };
+  }
+
   global.GrimorioUIState = Object.freeze({
     createInventoryUIState,
-    createInventoryDragState
+    createInventoryDragState,
+    createJournalUIState
   });
 })(window);

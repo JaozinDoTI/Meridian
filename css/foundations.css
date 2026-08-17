@@ -29,6 +29,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -37,23 +38,36 @@ button {
   color: inherit;
 }
 
-:where(.ui-display, .ui-title, .ui-heading) {
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: var(--state-disabled-opacity);
+}
+
+:where(button, input, select, textarea):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+:where(.ui-display, .ui-page-title, .ui-section-title, .ui-title, .ui-heading, .ui-kpi) {
   margin: 0;
   color: var(--color-text);
   font-family: var(--font-editorial);
 }
 
-.ui-display { font-size: var(--text-display); line-height: 1.02; }
-.ui-title { font-size: var(--text-title); line-height: 1.1; }
-.ui-heading { font-size: var(--text-heading); line-height: 1.2; }
-.ui-label { color: var(--color-text-muted); font: 700 var(--text-label)/1.2 var(--font-interface); letter-spacing: .12em; text-transform: uppercase; }
-.ui-body { color: var(--color-text); font: 400 var(--text-body)/1.5 var(--font-editorial); }
-.ui-caption { color: var(--color-text-muted); font: 500 var(--text-caption)/1.4 var(--font-interface); }
-.ui-value { color: var(--color-text); font: 700 1em/1 var(--font-editorial); font-variant-numeric: tabular-nums; }
+.ui-display { font-size: var(--text-display); font-weight: var(--font-weight-medium); line-height: var(--line-height-display); }
+.ui-page-title,
+.ui-title { font-size: var(--text-page-title); font-weight: var(--font-weight-medium); line-height: var(--line-height-title); }
+.ui-section-title { font-size: var(--text-section-title); font-weight: var(--font-weight-medium); line-height: var(--line-height-title); }
+.ui-heading { font-size: var(--text-heading); font-weight: var(--font-weight-semibold); line-height: var(--line-height-heading); }
+.ui-label { color: var(--color-text-muted); font: var(--font-weight-bold) var(--text-label)/var(--line-height-label) var(--font-interface); letter-spacing: .12em; text-transform: uppercase; }
+.ui-body { color: var(--color-text); font: var(--font-weight-regular) var(--text-body)/var(--line-height-body) var(--font-editorial); }
+.ui-caption { color: var(--color-text-muted); font: var(--font-weight-medium) var(--text-caption)/var(--line-height-caption) var(--font-interface); }
+.ui-value,
+.ui-kpi { color: var(--color-text); font: var(--font-weight-bold) var(--text-kpi)/1 var(--font-editorial); font-variant-numeric: tabular-nums; }
 
 :where(.ui-focusable):focus-visible {
   outline: var(--focus-ring);
-  outline-offset: 3px;
+  outline-offset: var(--focus-ring-offset);
 }
 
 @media (prefers-reduced-motion: reduce) {

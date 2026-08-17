@@ -33,10 +33,10 @@ for (const id of new Set(literalIdQueries)) {
   if (!idCounts.has(id) && !dynamicIds.has(id)) failures.push(`querySelector sem elemento: #${id}`);
 }
 
-const availableSections = [...html.matchAll(/data-sheet-section="(summary|abilities|inventory)"/g)];
+const availableSections = [...html.matchAll(/data-sheet-section="(summary|abilities|inventory|history|journal)"/g)];
 const futureSections = [...html.matchAll(/data-sheet-future="true"/g)];
-if (availableSections.length !== 3) failures.push(`Seções disponíveis: ${availableSections.length}, esperado 3`);
-if (futureSections.length !== 4) failures.push(`Seções futuras: ${futureSections.length}, esperado 4`);
+if (availableSections.length !== 5) failures.push(`Seções disponíveis: ${availableSections.length}, esperado 5`);
+if (futureSections.length !== 2) failures.push(`Seções futuras: ${futureSections.length}, esperado 2`);
 
 const cssImports = [...appCss.matchAll(/@import\s+url\("([^"]+)"\)/g)]
   .map(function collectImport(match) { return match[1]; });

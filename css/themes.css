@@ -11,7 +11,10 @@
   --color-border: var(--sheet-border, rgba(173, 139, 88, .45));
   --color-danger: var(--sheet-danger, #8f141c);
   --color-success: var(--sheet-success, #426d45);
+  --color-warning: var(--sheet-warning, #8a5a20);
+  --color-info: var(--sheet-mana, #2d6382);
   --color-mana: var(--sheet-mana, #2d6382);
+  --color-on-primary: var(--sheet-table-head-text, #faf6ed);
 }
 
 [data-theme="inventory"] {

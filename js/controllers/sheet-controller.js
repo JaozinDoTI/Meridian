@@ -6,6 +6,7 @@ const {
 function renderizarFicha() {
   renderizarIdentidadeDaFicha();
   renderizarHistoriaDaFicha();
+  window.GrimorioJournalController.render();
   renderizarCombateDaFicha();
   renderizarArmasDaFicha();
   renderizarRecursosDaFicha();
@@ -346,6 +347,13 @@ function aplicarPersonagemImportado(dadosImportados, versaoDaFicha) {
       }
 
       if (campo === "vinculos") {
+        dadosNormalizados[campo] = valorImportado === undefined
+          ? undefined
+          : JSON.parse(JSON.stringify(valorImportado));
+        return;
+      }
+
+      if (campo === "registros") {
         dadosNormalizados[campo] = valorImportado === undefined
           ? undefined
           : JSON.parse(JSON.stringify(valorImportado));

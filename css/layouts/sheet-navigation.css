@@ -118,20 +118,20 @@
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--control-gap);
   width: 100%;
-  min-height: 42px;
-  padding: 0 10px;
+  min-height: var(--control-height-touch);
+  padding: 0 var(--control-padding-x);
   overflow: hidden;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   clip-path: none;
   color: var(--sheet-ink-soft);
   background: transparent;
   font: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-control);
   letter-spacing: 0;
   text-align: left;
   cursor: pointer;
@@ -156,8 +156,8 @@
 }
 
 .sheet-navigation .sheet-sidebar__nav button .sheet-icon {
-  width: 20px;
-  height: 20px;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   color: var(--sheet-gold-strong);
   transition:
     color var(--sheet-motion-fast) var(--sheet-ease-standard),
@@ -176,7 +176,7 @@
   border: 1px solid rgba(129, 113, 100, .26);
   border-radius: 999px;
   color: var(--sheet-muted);
-  font: 800 6px/1 var(--font-interface, sans-serif);
+  font: var(--font-weight-extrabold) var(--text-caption)/var(--line-height-control) var(--font-interface, sans-serif);
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -194,8 +194,8 @@
 }
 
 .sheet-navigation .sheet-sidebar__nav button:focus-visible {
-  outline: 2px solid var(--sheet-gold);
-  outline-offset: 1px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .sheet-navigation .sheet-sidebar__nav button.is-active {
@@ -318,9 +318,9 @@
     grid-template-columns: 1fr;
     justify-items: center;
     width: 100%;
-    min-height: 46px;
+    min-height: var(--control-height-touch);
     padding: 0;
-    border-radius: 9px;
+    border-radius: var(--radius-lg);
   }
 
   .sheet-navigation .sheet-sidebar__nav button > span,
@@ -340,8 +340,8 @@
   }
 
   .sheet-navigation .sheet-sidebar__nav button .sheet-icon {
-    width: 22px;
-    height: 22px;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
   }
 }
 
@@ -374,7 +374,7 @@
   .sheet-navigation .sheet-sidebar__nav {
     position: static;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     align-items: stretch;
     gap: 3px;
     height: 100%;
@@ -421,8 +421,8 @@
 
   .sheet-navigation .sheet-sidebar__nav button .sheet-icon,
   .sheet-navigation .sheet-sidebar__more .sheet-icon {
-    width: 21px;
-    height: 21px;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
   }
 
   .sheet-navigation .sheet-sidebar__nav button::before,
@@ -521,6 +521,7 @@
   .sheet-navigation .sheet-sidebar__nav button,
   .sheet-navigation .sheet-sidebar__more {
     font-size: 8px;
+    padding-inline: 2px;
   }
 }
 

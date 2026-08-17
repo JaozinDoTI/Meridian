@@ -713,7 +713,7 @@
 
 .sheet-resource-control {
   display: grid;
-  grid-template-columns: 26px minmax(42px, 64px) 26px;
+  grid-template-columns: var(--control-height-compact) minmax(42px, 64px) var(--control-height-compact);
   justify-content: center;
   align-items: center;
   gap: 3px;
@@ -723,11 +723,11 @@
 .sheet-resource-control button {
   display: grid;
   place-items: center;
-  width: 26px;
-  min-height: 26px;
+  width: var(--control-height-compact);
+  min-height: var(--control-height-compact);
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 2px;
+  border-radius: var(--control-radius);
   color: var(--sheet-gold-strong);
   background: transparent;
   cursor: pointer;
@@ -746,12 +746,12 @@
 .sheet-resource-control button:disabled {
   color: var(--sheet-muted);
   cursor: default;
-  opacity: 0.4;
+  opacity: var(--state-disabled-opacity);
 }
 
 .sheet-resource-control button .sheet-icon {
-  width: 13px;
-  height: 13px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
 }
 
 .sheet-resource-control input {
@@ -764,9 +764,9 @@
   color: var(--sheet-ink);
   background: transparent;
   font: inherit;
-  font-size: clamp(27px, 2.4vw, 38px);
-  font-weight: 400;
-  line-height: 1.15;
+  font-size: var(--text-kpi);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-title);
   font-variant-numeric: tabular-nums;
   text-align: center;
   appearance: textfield;

@@ -57,3 +57,17 @@ Após cada fase, devem ser executados:
 6. `git diff --check`.
 
 Qualquer falha interrompe a fase. Snapshots só podem ser atualizados quando a mudança visual for intencional, aprovada e documentada.
+
+## Extensão do baseline — Registro de Jornada
+
+Data: 2026-08-17.
+
+- A seção futura `Registro` tornou-se a quinta view funcional da ficha.
+- Foram criados cinco snapshots próprios em `tests/visual/journal-view.spec.js-snapshots`, cobrindo a timeline e o reader preenchidos nos cinco viewports canônicos.
+- Os 15 snapshots anteriores não foram atualizados pela feature. A navegação global mudou intencionalmente ao ganhar o Registro e qualquer renovação desses baselines deve ser revisada separadamente, para não absorver diferenças anteriores sem inspeção.
+- O contrato DOM passa a esperar cinco seções funcionais e duas seções futuras.
+- A ficha v2 continua válida; `personagem.registros` ausente normaliza para `[]`.
+- Verificação após a implementação: 431 IDs, 346 consultas de DOM, 26 scripts canônicos, 1.772 seletores CSS, 72 overlaps documentados e nenhum overlap inesperado.
+- A suíte integrada aprovou 47 testes de domínio e 42 de 43 testes de contrato/E2E após a consolidação do design system. Permanece a falha preexistente de desequipar `item-colossal-sword` sem o item reaparecer na mochila.
+- Os cinco baselines do Registro foram renovados para os tokens consolidados e aprovaram 5 de 5 na verificação final sem update. A suíte visual antiga continua divergindo já no Resumo dos cinco viewports (aproximadamente 1–2% dos pixels, além da altura mobile/tablet), combinando a navegação intencionalmente ampliada e baselines anteriores já defasados; os 15 arquivos antigos foram preservados.
+- A suíte visual do design system aprovou 6 de 6 snapshots (criação desktop/mobile, Habilidades, Inventário e Registro desktop/mobile); combinada ao Registro, a validação nova soma 11 de 11 snapshots.

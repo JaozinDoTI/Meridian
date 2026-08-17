@@ -8,6 +8,7 @@
 @import url("./components/sheet-chrome.css") layer(components);
 @import url("./features/sheet-summary.css") layer(components);
 @import url("./features/history.css") layer(components);
+@import url("./features/journal.css") layer(components);
 @import url("./features/abilities.css") layer(components);
 @import url("./features/inventory.css") layer(components);
 @import url("./layouts/app-shell.css") layer(layouts);
@@ -21,3 +22,4 @@
 @import url("./motion/abilities.css") layer(motion);
 @import url("./motion/inventory.css") layer(motion);
 @import url("./motion/history.css") layer(motion);
+@import url("./motion/journal.css") layer(motion);

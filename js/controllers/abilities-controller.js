@@ -424,7 +424,7 @@ function definirMenuDeSecoesFuturasAberto(aberto) {
 }
 
 function ativarSecaoDaFicha(secao, habilidadeId) {
-  if (!["summary", "abilities", "inventory", "history"].includes(secao)) return;
+  if (!["summary", "abilities", "inventory", "history", "journal"].includes(secao)) return;
   definirMenuDeSecoesFuturasAberto(false);
   if (habilidadeId && encontrarHabilidade(habilidadeId)) habilidadeSelecionadaId = habilidadeId;
 
@@ -445,6 +445,10 @@ function ativarSecaoDaFicha(secao, habilidadeId) {
     renderizarHistoriaDaFicha();
     window.GrimorioHistoryView.animarEntrada(sheetHistoryView);
     sheetHistoryViewHeading.focus({ preventScroll: true });
+  }
+  if (secao === "journal") {
+    window.GrimorioJournalController.activate();
+    sheetJournalViewHeading.focus({ preventScroll: true });
   }
   mostrarMensagemDaFicha("");
 }

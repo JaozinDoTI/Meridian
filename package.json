@@ -7,13 +7,14 @@
     "start:test": "node tools/static-server.mjs",
     "check:contracts": "node tools/audit-dom-contracts.mjs",
     "check:css": "node tools/audit-css-ownership.mjs --strict",
+    "check:design-system": "node tools/audit-design-system.mjs --strict",
     "check:keyframes": "node tools/audit-keyframes.mjs",
     "check:js": "node tools/audit-js-architecture.mjs",
     "test:domain": "node --test --test-isolation=none tests/domain/*.test.js",
     "test:contracts": "playwright test tests/contracts",
     "test:e2e": "playwright test tests/e2e",
     "test:visual": "playwright test tests/visual",
-    "test": "npm run check:contracts && npm run check:css && npm run check:keyframes && npm run check:js && npm run test:domain && playwright test tests/contracts tests/e2e"
+    "test": "npm run check:contracts && npm run check:css && npm run check:design-system && npm run check:keyframes && npm run check:js && npm run test:domain && playwright test tests/contracts tests/e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1"
