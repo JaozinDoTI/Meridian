@@ -6,7 +6,7 @@
 @import url("./features/landing.css?v=20260819-1") layer(components);
 @import url("./features/character-creation.css?v=20260819-1") layer(components);
 @import url("./components/sheet-chrome.css?v=20260819-1") layer(components);
-@import url("./features/sheet-summary.css?v=20260819-1") layer(components);
+@import url("./features/sheet-summary.css?v=20260819-3") layer(components);
 @import url("./features/history.css?v=20260819-1") layer(components);
 @import url("./features/journal.css?v=20260819-1") layer(components);
 @import url("./features/abilities.css?v=20260819-1") layer(components);

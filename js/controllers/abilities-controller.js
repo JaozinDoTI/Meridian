@@ -149,7 +149,9 @@ function criarItemVisualHabilidade(habilidade, modoResumo) {
 
 function renderizarResumoDeHabilidades() {
   sheetAbilitiesSummary.replaceChildren();
-  const habilidades = personagem.habilidades.slice(0, LIMITE_HABILIDADES_RESUMO);
+  const habilidades = personagem.habilidades;
+  const usarListaCompacta = habilidades.length > LIMITE_HABILIDADES_RESUMO;
+  sheetAbilitiesSummary.classList.toggle("is-compact-list", usarListaCompacta);
 
   if (habilidades.length === 0) {
     const empty = document.createElement("div");
