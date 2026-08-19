@@ -1,17 +1,17 @@
 @layer tokens, foundations, components, layouts, themes, motion, overrides;
 
-@import url("./tokens.css?v=20260819-1") layer(tokens);
-@import url("./foundations.css?v=20260819-1") layer(foundations);
-@import url("./components.css?v=20260819-1") layer(components);
+@import url("./tokens.css?v=20260819-5") layer(tokens);
+@import url("./foundations.css?v=20260819-5") layer(foundations);
+@import url("./components.css?v=20260819-5") layer(components);
 @import url("./features/landing.css?v=20260819-1") layer(components);
-@import url("./features/character-creation.css?v=20260819-1") layer(components);
+@import url("./features/character-creation.css?v=20260819-5") layer(components);
 @import url("./components/sheet-chrome.css?v=20260819-1") layer(components);
-@import url("./features/sheet-summary.css?v=20260819-3") layer(components);
+@import url("./features/sheet-summary.css?v=20260819-5") layer(components);
 @import url("./features/history.css?v=20260819-1") layer(components);
-@import url("./features/journal.css?v=20260819-1") layer(components);
+@import url("./features/journal.css?v=20260819-5") layer(components);
 @import url("./features/abilities.css?v=20260819-1") layer(components);
 @import url("./features/inventory.css?v=20260819-1") layer(components);
-@import url("./layouts/app-shell.css?v=20260819-1") layer(layouts);
+@import url("./layouts/app-shell.css?v=20260819-5") layer(layouts);
 @import url("./layouts/sheet-shell.css?v=20260819-1") layer(layouts);
 @import url("./layouts/sheet-navigation.css?v=20260819-1") layer(layouts);
 @import url("./themes.css?v=20260819-1") layer(themes);

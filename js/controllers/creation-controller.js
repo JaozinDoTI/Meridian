@@ -175,6 +175,8 @@ function finalizarTransicaoDeEtapa(anterior) {
   }
 }
 
+const posicoesDeScrollDasEtapas = new WeakMap();
+
 function navegarComTransicao(proximaEtapa, direcao, preparar, seletorDeFoco) {
   const anterior = etapasDaCriacao.find(function (etapa) {
     return !etapa.hidden;
@@ -184,6 +186,10 @@ function navegarComTransicao(proximaEtapa, direcao, preparar, seletorDeFoco) {
 
   if (temporizadorDaTransicaoDeEtapa) {
     finalizarTransicaoDeEtapa(anterior);
+  }
+
+  if (anterior && anterior !== proximaEtapa) {
+    posicoesDeScrollDasEtapas.set(anterior, anterior.scrollTop);
   }
 
   if (preparar) {
@@ -197,7 +203,9 @@ function navegarComTransicao(proximaEtapa, direcao, preparar, seletorDeFoco) {
   });
 
   proximaEtapa.hidden = false;
-  proximaEtapa.scrollTop = 0;
+  proximaEtapa.scrollTop = direcao === "backward"
+    ? (posicoesDeScrollDasEtapas.get(proximaEtapa) || 0)
+    : 0;
 
   if (deveAnimar) {
     corpo.classList.add("is-transitioning");
@@ -211,7 +219,10 @@ function navegarComTransicao(proximaEtapa, direcao, preparar, seletorDeFoco) {
   }
 
   if (seletorDeFoco) {
-    document.querySelector(seletorDeFoco).focus({ preventScroll: true });
+    const destinoDoFoco = document.querySelector(seletorDeFoco);
+    if (destinoDoFoco) {
+      destinoDoFoco.focus({ preventScroll: true });
+    }
   }
 }
 

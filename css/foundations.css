@@ -24,7 +24,23 @@ body {
 body {
   color: var(--texto);
   font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.5;
   background: var(--papel);
+}
+
+img,
+svg,
+video,
+canvas { max-width: 100%; }
+
+:where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+:where(p, li, dd, dt, label, legend, button, output, .ui-body, .ui-caption) {
+  overflow-wrap: anywhere;
 }
 
 button,

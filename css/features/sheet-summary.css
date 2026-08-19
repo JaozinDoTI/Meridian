@@ -2307,6 +2307,20 @@
     border-top: 1px solid color-mix(in srgb, var(--ability-summary-accent) 18%, var(--sheet-divider));
     border-left: 0;
   }
+
+  .sheet-ability-item-copy strong,
+  .sheet-ability-item-copy small,
+  .sheet-ability-item-operation {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .sheet-abilities-summary.is-compact-list .sheet-ability-summary-metric.is-damage b {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
 }
 
 .sheet-inventory-summary {
