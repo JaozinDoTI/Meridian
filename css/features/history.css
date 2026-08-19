@@ -298,7 +298,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 1399px) {
+@media (max-width: 760px) {
   .sheet-history-view { grid-row: auto; }
   .history-page { height: auto; min-height: calc(100dvh - 82px); overflow: visible; }
   .history-workspace { overflow: visible; }

@@ -1192,7 +1192,7 @@ body.is-inventory-grabbing * { cursor: grabbing !important; }
 .is-rarity-legendary { --item-accent: #bd842a; --item-glow: rgba(211, 151, 45, 0.24); }
 
 
-@media (max-width: 1399px) {
+@media (max-width: 1120px) {
   .sheet-inventory-view { grid-row: auto; }
   .inventory-shell { height: auto; }
   .inventory-workspace { min-height: 590px; overflow: visible; }
