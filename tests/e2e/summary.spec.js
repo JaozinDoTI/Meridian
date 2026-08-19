@@ -6,6 +6,29 @@ test.beforeEach(async function ({ page }) {
   await importCompleteCharacter(page);
 });
 
+test("mantem o resumo dentro da viewport em notebook HD baixo", async function ({ page }) {
+  await page.setViewportSize({ width: 1366, height: 650 });
+
+  const composicao = await page.evaluate(function () {
+    const alturaDoDocumento = Math.max(
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight
+    );
+    const painel = document.querySelector("#sheet-abilities-summary").getBoundingClientRect();
+    const habilidades = Array.from(document.querySelectorAll("#sheet-abilities-summary .sheet-ability-summary-item"));
+    return {
+      cabeNaViewport: alturaDoDocumento <= window.innerHeight,
+      habilidadesDentroDoPainel: habilidades.every(function (habilidade) {
+        const caixa = habilidade.getBoundingClientRect();
+        return caixa.top >= painel.top && caixa.bottom <= painel.bottom;
+      })
+    };
+  });
+
+  expect(composicao.cabeNaViewport).toBe(true);
+  expect(composicao.habilidadesDentroDoPainel).toBe(true);
+});
+
 test("preserva identidade, progressao e combate resumido", async function ({ page }) {
   await expect(page.locator("#sheet-character-name")).toHaveText("Ariadne Vesper");
   await expect(page.locator("#sheet-player-name")).toHaveText("Baseline");

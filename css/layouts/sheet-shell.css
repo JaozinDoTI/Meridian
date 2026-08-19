@@ -302,3 +302,36 @@ body.sheet-is-open .celestial-spark {
     overflow: visible;
   }
 }
+
+@media (min-width: 1000px) and (max-height: 700px) {
+  .character-sheet-screen {
+    --sheet-shell-padding: 4px;
+    --sheet-gap: 4px;
+    --sheet-topbar-height: 40px;
+    --sheet-top-row-height: 138px;
+    --sheet-stats-height: 132px;
+    --sheet-middle-height: 58px;
+    --sheet-footer-height: 22px;
+    --sheet-progression-height: 28px;
+  }
+  body.sheet-is-open { overflow: hidden; }
+  body.sheet-is-open .grimoire-page,
+  .character-sheet-screen,
+  .sheet-shell { height: 100dvh; min-height: 0; overflow: hidden; }
+  .sheet-main {
+    grid-template-rows: var(--sheet-topbar-height) var(--sheet-top-row-height) var(--sheet-stats-height) var(--sheet-middle-height) minmax(0, 1fr) var(--sheet-footer-height);
+    gap: var(--sheet-gap);
+    height: 100%;
+    min-height: 0;
+    padding: 0 4px;
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 1000px) and (max-height: 620px) {
+  body.sheet-is-open { overflow-x: hidden; overflow-y: auto; }
+  body.sheet-is-open .grimoire-page,
+  .character-sheet-screen,
+  .sheet-shell { height: auto; min-height: 100dvh; overflow: visible; }
+  .sheet-main { grid-template-rows: auto; height: auto; overflow: visible; }
+}

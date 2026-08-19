@@ -347,3 +347,11 @@
     flex-direction: column;
   }
 }
+
+@media (min-width: 1000px) and (max-height: 700px) {
+  .sheet-title-block h1 { font-size: 20px; }
+  .sheet-title-block p,
+  .sheet-title-ornament { display: none; }
+  .sheet-document-action { min-height: 30px; }
+  .sheet-footer-link { min-height: 22px; }
+}

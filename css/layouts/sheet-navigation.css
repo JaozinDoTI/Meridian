@@ -531,3 +531,14 @@
     transition-duration: .01ms !important;
   }
 }
+
+@media (min-width: 1000px) and (max-height: 700px) {
+  .sheet-navigation { padding-block: 5px; }
+  .sheet-navigation .sheet-sidebar__brand { min-height: 91px; padding: 0 10px 5px; }
+  .sheet-navigation .sheet-sidebar__brand img { width: 82px; height: 52px; }
+  .sheet-navigation .sheet-brand-ornament { margin-top: 0; }
+  .sheet-navigation .sheet-sidebar__nav { gap: 3px; padding: 4px 8px; }
+  .sheet-navigation .sheet-sidebar__nav button { min-height: 40px; }
+  .sheet-sidebar__group-label--future { padding-top: 7px; }
+  .sheet-navigation .sheet-sidebar__footer { padding-top: 5px; }
+}

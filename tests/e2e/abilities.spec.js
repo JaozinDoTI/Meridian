@@ -7,6 +7,28 @@ test.beforeEach(async function ({ page }) {
   await openSheetSection(page, "abilities");
 });
 
+test("mantem habilidades e resumo operacional no shell do notebook HD baixo", async function ({ page }) {
+  await page.setViewportSize({ width: 1366, height: 650 });
+
+  const composicao = await page.evaluate(function () {
+    const resumo = document.querySelector("#sheet-ability-stats").getBoundingClientRect();
+    const rodape = document.querySelector(".sheet-footer").getBoundingClientRect();
+    const alturaDoDocumento = Math.max(
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight
+    );
+    return {
+      semScrollGlobal: alturaDoDocumento <= window.innerHeight,
+      resumoDentroDaViewport: resumo.top >= 0 && resumo.bottom <= window.innerHeight,
+      painelAntesDoRodape: resumo.bottom <= rodape.top
+    };
+  });
+
+  expect(composicao.semScrollGlobal).toBe(true);
+  expect(composicao.resumoDentroDaViewport).toBe(true);
+  expect(composicao.painelAntesDoRodape).toBe(true);
+});
+
 test("preserva busca, filtros, seleção e contadores operacionais", async function ({ page }) {
   await expect(page.locator("#sheet-ability-list-count")).toHaveText("4");
   await expect(page.locator(".ability-list-card")).toHaveCount(4);

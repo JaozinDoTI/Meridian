@@ -616,3 +616,21 @@
   .ability-detail-section--limitations,
   .ability-detail-section--observations { grid-column: 1; padding-inline: 0; border-left: 0; }
 }
+
+@media (min-width: 1000px) and (max-height: 700px) {
+  .sheet-abilities-view { grid-row: 2 / 7; min-height: 0; }
+  .abilities-page { height: 100%; min-height: 0; overflow: hidden; }
+  .abilities-page__header { gap: 12px; padding: 9px 14px; }
+  .abilities-page__heading h2 { font-size: 25px; }
+  .abilities-page__heading p { display: none; }
+  .abilities-page__workspace { min-height: 0; overflow: hidden; }
+  .ability-list-card { min-height: 50px; padding-block: 5px; }
+  .ability-detail__header { padding: 9px 14px; }
+  .ability-detail__content { padding: 8px 14px; }
+  .abilities-ledger__item { padding-block: 4px; }
+}
+
+@media (min-width: 1000px) and (max-height: 620px) {
+  .sheet-abilities-view { grid-row: auto; }
+  .abilities-page { height: auto; overflow: visible; }
+}
