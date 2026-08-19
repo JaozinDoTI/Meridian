@@ -1,5 +1,6 @@
 const { criarNomeSeguroParaArquivo } = window.GrimorioImportExportDomain;
 const dominioDoPersonagem = window.GrimorioCharacterDomain;
+const dominioDasHabilidadesDeClasse = window.GrimorioClassAbilitiesDomain;
 const { normalizarAtributo, formatarModificador } = dominioDoPersonagem;
 const {
   fillList: preencherLista,
@@ -196,6 +197,7 @@ function navegarComTransicao(proximaEtapa, direcao, preparar, seletorDeFoco) {
   });
 
   proximaEtapa.hidden = false;
+  proximaEtapa.scrollTop = 0;
 
   if (deveAnimar) {
     corpo.classList.add("is-transitioning");
@@ -1145,6 +1147,19 @@ function selecionarClasse(id) {
   renderizarDetalhesDaClasse(true);
 }
 
+function concederHabilidadesDaClasseSelecionada() {
+  const classe = obterClasseSelecionada();
+  return dominioDasHabilidadesDeClasse.reconciliarHabilidadesDaClasse(
+    personagem,
+    classe,
+    function (habilidade) {
+      return window.GrimorioAbilitiesDomain.normalizarHabilidade(habilidade, {
+        catalogoIcones: CATALOGO_ICONES_HABILIDADE
+      });
+    }
+  );
+}
+
 function renderizarSimboloDaClasse(animarTroca) {
   if (animarTroca && classSymbol.childNodes.length) {
     trocarConteudoAnimado(classSymbol, function () {
@@ -1860,26 +1875,21 @@ function obterPendenciasDosAtributos() {
 function atributosEPericiasCompletos() {
   const pendencias = obterPendenciasDosAtributos();
 
-  return pendencias.pontosRestantes === 0 && pendencias.periciasTreinadas === CONFIGURACAO_PERICIAS.limiteTreinadas;
+  return pendencias.periciasTreinadas === CONFIGURACAO_PERICIAS.limiteTreinadas;
 }
 
 function obterMensagemDePendenciasDosAtributos() {
   const pendencias = obterPendenciasDosAtributos();
-  const partes = [];
-
-  if (pendencias.pontosRestantes > 0) {
-    partes.push(`distribua ${pendencias.pontosRestantes} ponto${pendencias.pontosRestantes === 1 ? "" : "s"} restante${pendencias.pontosRestantes === 1 ? "" : "s"}`);
-  }
 
   if (pendencias.periciasRestantes > 0) {
-    partes.push(`escolha mais ${pendencias.periciasRestantes} Perícia${pendencias.periciasRestantes === 1 ? "" : "s"}`);
+    return `Para continuar, escolha mais ${pendencias.periciasRestantes} Perícia${pendencias.periciasRestantes === 1 ? "" : "s"}.`;
   }
 
-  if (partes.length === 0) {
-    return "Escolhas concluídas. Você pode avançar.";
+  if (pendencias.pontosRestantes > 0) {
+    return `Você pode avançar ou distribuir os ${pendencias.pontosRestantes} ponto${pendencias.pontosRestantes === 1 ? "" : "s"} restante${pendencias.pontosRestantes === 1 ? "" : "s"}.`;
   }
 
-  return `Para continuar, ${partes.join(" e ")}.`;
+  return "Escolhas concluídas. Você pode avançar.";
 }
 
 function atualizarEstadoDoBotaoDeRevisao() {
@@ -1902,18 +1912,9 @@ function focarPrimeiraPericiaDisponivel() {
 }
 
 function validarAtributosEPericias() {
-  const pontosRestantes = calcularPontosRestantes();
   const totalPericias = contarPericiasTreinadas();
 
   if (!validarAtributos()) {
-    return false;
-  }
-
-  if (pontosRestantes !== 0) {
-    mostrarMensagemDeAtributos(`Distribua todos os pontos de atributos antes de continuar. Você ainda possui ${pontosRestantes} ponto${pontosRestantes === 1 ? "" : "s"} para distribuir.`);
-    selecionarAbaDosAtributos("atributos");
-    focarPrimeiroControleDeAtributoDisponivel();
-    atualizarEstadoDoBotaoDeRevisao();
     return false;
   }
 
@@ -1967,8 +1968,8 @@ function renderizarResumoDosAtributos() {
   attributesAffinityLimit.textContent = CONFIGURACAO_ATRIBUTOS.limiteFinalAfinidade;
   mostrarMensagemDeAtributos(
     pontosRestantes === 0
-      ? "Distribuição completa."
-      : `Você ainda possui ${pontosRestantes} ponto${pontosRestantes === 1 ? "" : "s"} para distribuir.`
+      ? "Orçamento de atributos utilizado por completo."
+      : `Você pode distribuir mais ${pontosRestantes} ponto${pontosRestantes === 1 ? "" : "s"} ou avançar sem gastar todo o saldo.`
   );
   attributesFinalSummary.replaceChildren();
 

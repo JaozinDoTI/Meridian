@@ -136,6 +136,11 @@
     changeIcon.dataset.abilityAction = "change-icon";
     remove.type = "button";
     remove.dataset.abilityAction = "remove";
+    if (ability.removivel === false) {
+      remove.disabled = true;
+      remove.title = "Habilidade concedida pela classe.";
+      remove.setAttribute("aria-label", `${ability.nome} não pode ser removida porque foi concedida pela classe`);
+    }
     actionsMenu.append(changeIcon, remove);
     actions.append(actionsSummary, actionsMenu);
 

@@ -363,6 +363,8 @@ const especies = [
 const classes = [
   {
     id: "experimentalista",
+    passivaBaseId: "metodo-experimental",
+    habilidadesIniciaisIds: ["observacao-dirigida", "aplicacao-improvisada", "falha-instrutiva"],
     nome: "Experimentalista",
     categoria: "Científicas e tecnológicas",
     resumo: "Estuda fenômenos desconhecidos e cria soluções durante a aventura.",
@@ -383,6 +385,8 @@ const classes = [
   },
   {
     id: "protesico",
+    passivaBaseId: "interface-integrada",
+    habilidadesIniciaisIds: ["modulo-de-campo", "sobrecarga-sinaptica", "manutencao-de-emergencia"],
     nome: "Protésico",
     categoria: "Científicas e tecnológicas",
     resumo: "Especialista em conectar carne, metal e impulsos nervosos.",
@@ -403,6 +407,8 @@ const classes = [
   },
   {
     id: "maquinista",
+    passivaBaseId: "rede-de-comando",
+    habilidadesIniciaisIds: ["ordem-prioritaria", "interposicao-mecanica", "rotina-autonoma"],
     nome: "Maquinista",
     categoria: "Científicas e tecnológicas",
     resumo: "Constrói e controla máquinas autônomas.",
@@ -423,6 +429,8 @@ const classes = [
   },
   {
     id: "engenheiro-runico",
+    passivaBaseId: "leitura-runica",
+    habilidadesIniciaisIds: ["leitura-de-assinatura", "patch-ilegal", "desvio-de-punicao"],
     nome: "Engenheiro Rúnico",
     categoria: "Científicas e tecnológicas",
     resumo: "Interfere nas runas implantadas pelo governo.",
@@ -443,6 +451,8 @@ const classes = [
   },
   {
     id: "quimico-de-campo",
+    passivaBaseId: "bancada-de-campo",
+    habilidadesIniciaisIds: ["mistura-rapida", "neutralizacao", "catalisador-instavel"],
     nome: "Químico de Campo",
     categoria: "Científicas e tecnológicas",
     resumo: "Combina substâncias para produzir efeitos durante missões.",
@@ -463,6 +473,8 @@ const classes = [
   },
   {
     id: "hemurgista",
+    passivaBaseId: "controle-hematico",
+    habilidadesIniciaisIds: ["sangria-controlada", "fio-hematico", "coagulacao-forcada"],
     nome: "Hemurgista",
     categoria: "Biológicas",
     resumo: "Controla o próprio sangue e o sangue recentemente derramado.",
@@ -483,6 +495,8 @@ const classes = [
   },
   {
     id: "morfologista",
+    passivaBaseId: "plasticidade-adaptativa",
+    habilidadesIniciaisIds: ["adaptacao-expressa", "resposta-evolutiva", "sobrecarga-anatomica"],
     nome: "Morfologista",
     categoria: "Biológicas",
     resumo: "Altera temporariamente tecidos do próprio corpo.",
@@ -503,6 +517,8 @@ const classes = [
   },
   {
     id: "simbionte",
+    passivaBaseId: "concordancia-simbiotica",
+    habilidadesIniciaisIds: ["manifestacao-simbiotica", "reflexo-do-hospedeiro", "necessidade-compartilhada"],
     nome: "Simbionte",
     categoria: "Biológicas",
     resumo: "Divide o próprio corpo com um organismo artificial ou modificado.",
@@ -523,6 +539,8 @@ const classes = [
   },
   {
     id: "galvanico",
+    passivaBaseId: "acumulo-galvanico",
+    habilidadesIniciaisIds: ["arco-neural", "impulso-eletromuscular", "descarga-reflexa"],
     nome: "Galvânico",
     categoria: "Elementais industriais",
     resumo: "Conduz e acumula eletricidade através do corpo ou de implantes.",
@@ -539,6 +557,8 @@ const classes = [
   },
   {
     id: "caldeirista",
+    passivaBaseId: "sistema-pressurizado",
+    habilidadesIniciaisIds: ["pressurizar", "pistao-de-impacto", "valvula-de-escape"],
     nome: "Caldeirista",
     categoria: "Elementais industriais",
     resumo: "Utiliza calor, vapor e pressão através de equipamento acoplado.",
@@ -555,6 +575,8 @@ const classes = [
   },
   {
     id: "criotecnico",
+    passivaBaseId: "gradiente-termico",
+    habilidadesIniciaisIds: ["extracao-localizada", "fratura-termica", "conservacao-de-emergencia"],
     nome: "Criotécnico",
     categoria: "Elementais industriais",
     resumo: "Retira calor de objetos e pequenas áreas.",
@@ -571,6 +593,8 @@ const classes = [
   },
   {
     id: "magnetista",
+    passivaBaseId: "sensibilidade-magnetica",
+    habilidadesIniciaisIds: ["marcar-polaridade", "atracao-repulsao", "ancora-magnetica"],
     nome: "Magnetista",
     categoria: "Elementais industriais",
     resumo: "Manipula atração e repulsão entre objetos previamente marcados.",
@@ -587,6 +611,8 @@ const classes = [
   },
   {
     id: "barometrico",
+    passivaBaseId: "leitura-de-pressao",
+    habilidadesIniciaisIds: ["pulso-barometrico", "bolsa-de-amortecimento", "vacuo-parcial"],
     nome: "Barométrico",
     categoria: "Elementais industriais",
     resumo: "Controla diferenças de pressão no ar.",
@@ -607,6 +633,8 @@ const classes = [
   },
   {
     id: "oxidante",
+    passivaBaseId: "olhar-de-desgaste",
+    habilidadesIniciaisIds: ["oxidacao-acelerada", "falha-programada", "desgaste-reativo"],
     nome: "Oxidante",
     categoria: "Elementais industriais",
     resumo: "Acelera corrosão, desgaste e decomposição material.",
@@ -623,6 +651,8 @@ const classes = [
   },
   {
     id: "fuliginario",
+    passivaBaseId: "dominio-fuliginario",
+    habilidadesIniciaisIds: ["semear-fuligem", "leitura-de-particulas", "cortina-densa"],
     nome: "Fuliginário",
     categoria: "Elementais industriais",
     resumo: "Absorve e controla fumaça, cinzas e partículas suspensas.",
@@ -639,6 +669,8 @@ const classes = [
   },
   {
     id: "ressonante",
+    passivaBaseId: "sensibilidade-harmonica",
+    habilidadesIniciaisIds: ["leitura-harmonica", "contrafase", "ruptura-harmonica"],
     nome: "Ressonante",
     categoria: "Elementais industriais",
     resumo: "Manipula vibrações físicas e frequências sonoras.",
@@ -655,6 +687,8 @@ const classes = [
   },
   {
     id: "operador-fantasma",
+    passivaBaseId: "identidade-de-cobertura",
+    habilidadesIniciaisIds: ["janela-de-oportunidade", "plantar-narrativa", "apagar-rastros"],
     nome: "Operador Fantasma",
     categoria: "Urbanas e conceituais",
     resumo: "Especialista em infiltração, identidades falsas e sabotagem.",
@@ -671,6 +705,8 @@ const classes = [
   },
   {
     id: "analista-de-padroes",
+    passivaBaseId: "raciocinio-associativo",
+    habilidadesIniciaisIds: ["coleta-sistematica", "inferencia-tatica", "contradicao"],
     nome: "Analista de Padrões",
     categoria: "Urbanas e conceituais",
     resumo: "Transforma informações e evidências em vantagens concretas.",

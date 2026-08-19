@@ -2,13 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta
     name="description"
     content="Grimório RPG: crie uma nova ficha de personagem ou prepare a importação de uma ficha existente."
   />
   <title>Grimório RPG</title>
-  <link rel="stylesheet" href="./css/app.css" />
+  <link rel="stylesheet" href="./css/app.css?v=20260819-1" />
 </head>
 <body>
   <main class="grimoire-page" aria-labelledby="page-title">
@@ -536,8 +536,8 @@
           <header class="creation-stage__heading">
             <span aria-hidden="true"></span>
             <div>
-              <h2 id="attributes-heading" tabindex="-1">Distribua seus atributos</h2>
-              <p>Defina as capacidades iniciais do personagem e combine suas escolhas com as características da Espécie.</p>
+              <h2 id="attributes-heading" tabindex="-1">Distribua até 10 pontos de atributo</h2>
+              <p>Você decide quanto do orçamento usar para definir as capacidades iniciais do personagem.</p>
             </div>
             <span aria-hidden="true"></span>
           </header>
@@ -549,7 +549,7 @@
 
           <div id="attributes-panel" class="attributes-layout attributes-tab-panel" role="tabpanel" aria-labelledby="attributes-tab-button">
             <section class="attributes-distribution" aria-labelledby="attributes-distribution-heading">
-              <h3 id="attributes-distribution-heading">Distribuição dos atributos</h3>
+              <h3 id="attributes-distribution-heading">Distribuição opcional dos atributos</h3>
               <p id="attributes-adjustment-message" class="attributes-message" aria-live="polite"></p>
               <div id="attributes-list" class="attributes-list" tabindex="-1" aria-live="polite"></div>
             </section>
@@ -558,7 +558,7 @@
               <h3 id="attributes-summary-heading">Resumo</h3>
               <dl class="attributes-points">
                 <div>
-                  <dt>Pontos disponíveis</dt>
+                  <dt>Saldo disponível</dt>
                   <dd><span id="attributes-points-remaining">10</span> / <span id="attributes-points-total">10</span></dd>
                 </div>
                 <div>
@@ -1759,31 +1759,32 @@
   <div id="inventory-drag-layer" aria-hidden="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/motion@12.42.1/dist/motion.js"></script>
-  <script src="./js/motion/creation-motion.js"></script>
-  <script src="./js/motion/sheet-motion.js"></script>
-  <script src="./js/domain/inventory.js"></script>
-  <script src="./js/domain/abilities.js"></script>
-  <script src="./js/domain/import-export.js"></script>
-  <script src="./js/domain/character.js"></script>
-  <script src="./js/domain/links.js"></script>
-  <script src="./js/domain/journal.js"></script>
-  <script src="./js/state/ui-state.js"></script>
-  <script src="./js/ui/abilities-view.js"></script>
-  <script src="./js/ui/creation-view.js"></script>
-  <script src="./js/ui/inventory-card.js"></script>
-  <script src="./js/ui/inventory-view.js"></script>
-  <script src="./js/ui/sheet-navigation.js"></script>
-  <script src="./js/ui/history-view.js"></script>
-  <script src="./js/ui/journal-view.js"></script>
-  <script src="./js/motion/inventory-motion.js"></script>
-  <script src="./js/state/character-state.js"></script>
-  <script src="./js/ui/dom-bindings.js"></script>
-  <script src="./js/controllers/creation-controller.js"></script>
-  <script src="./js/controllers/abilities-controller.js"></script>
-  <script src="./js/ui/sheet-summary-view.js"></script>
-  <script src="./js/controllers/inventory-controller.js"></script>
-  <script src="./js/controllers/sheet-controller.js"></script>
-  <script src="./js/controllers/journal-controller.js"></script>
-  <script src="./js/app.js"></script>
+  <script src="./js/motion/creation-motion.js?v=20260819-1"></script>
+  <script src="./js/motion/sheet-motion.js?v=20260819-1"></script>
+  <script src="./js/domain/inventory.js?v=20260819-1"></script>
+  <script src="./js/domain/abilities.js?v=20260819-1"></script>
+  <script src="./js/domain/class-abilities.js?v=20260819-1"></script>
+  <script src="./js/domain/import-export.js?v=20260819-1"></script>
+  <script src="./js/domain/character.js?v=20260819-1"></script>
+  <script src="./js/domain/links.js?v=20260819-1"></script>
+  <script src="./js/domain/journal.js?v=20260819-1"></script>
+  <script src="./js/state/ui-state.js?v=20260819-1"></script>
+  <script src="./js/ui/abilities-view.js?v=20260819-1"></script>
+  <script src="./js/ui/creation-view.js?v=20260819-1"></script>
+  <script src="./js/ui/inventory-card.js?v=20260819-1"></script>
+  <script src="./js/ui/inventory-view.js?v=20260819-1"></script>
+  <script src="./js/ui/sheet-navigation.js?v=20260819-1"></script>
+  <script src="./js/ui/history-view.js?v=20260819-1"></script>
+  <script src="./js/ui/journal-view.js?v=20260819-1"></script>
+  <script src="./js/motion/inventory-motion.js?v=20260819-1"></script>
+  <script src="./js/state/character-state.js?v=20260819-1"></script>
+  <script src="./js/ui/dom-bindings.js?v=20260819-1"></script>
+  <script src="./js/controllers/creation-controller.js?v=20260819-1"></script>
+  <script src="./js/controllers/abilities-controller.js?v=20260819-1"></script>
+  <script src="./js/ui/sheet-summary-view.js?v=20260819-1"></script>
+  <script src="./js/controllers/inventory-controller.js?v=20260819-1"></script>
+  <script src="./js/controllers/sheet-controller.js?v=20260819-1"></script>
+  <script src="./js/controllers/journal-controller.js?v=20260819-1"></script>
+  <script src="./js/app.js?v=20260819-1"></script>
 </body>
 </html>

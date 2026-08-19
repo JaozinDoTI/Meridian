@@ -247,6 +247,8 @@ function abrirEtapaOrigem(direcao) {
     return;
   }
 
+  concederHabilidadesDaClasseSelecionada();
+
   navegarComTransicao(originStep, direcao || "forward", function () {
     creationNextButton.hidden = false;
     restaurarOrigem();

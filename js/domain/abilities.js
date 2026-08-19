@@ -77,7 +77,14 @@
       return (typeof icone === "string" ? icone : icone?.id) === iconeSolicitado;
     });
 
-    return {
+    const origemOriginal = ehObjetoDeDados(dados.origem) ? dados.origem : null;
+    const origem = origemOriginal ? {
+      tipo: String(origemOriginal.tipo ?? "").trim(),
+      fonteId: String(origemOriginal.fonteId ?? "").trim(),
+      concessao: String(origemOriginal.concessao ?? "").trim()
+    } : null;
+
+    const habilidadeNormalizada = {
       id: String(dados.id || criarId()),
       nome: String(dados.nome ?? dados.name ?? "Habilidade sem nome").trim() || "Habilidade sem nome",
       tipo: normalizarTipoHabilidade(dados.tipo ?? dados.type),
@@ -99,6 +106,27 @@
       limitacoes: normalizarListaHabilidade(dados.limitacoes ?? dados.limitations),
       observacoes: String(dados.observacoes ?? dados.notes ?? "").trim()
     };
+
+    const camposTextuaisOpcionais = {
+      subtipo: dados.subtipo,
+      gatilho: dados.gatilho ?? dados.trigger,
+      teste: dados.teste ?? dados.test,
+      custo: dados.custo ?? dados.cost,
+      alvo: dados.alvo ?? dados.target,
+      falha: dados.falha ?? dados.failure,
+      usosTexto: dados.usosTexto ?? dados.usesText,
+      recargaTexto: dados.recargaTexto ?? dados.rechargeText
+    };
+    Object.entries(camposTextuaisOpcionais).forEach(function ([campo, valor]) {
+      const texto = String(valor ?? "").trim();
+      if (texto) habilidadeNormalizada[campo] = texto;
+    });
+
+    const templateId = String(dados.templateId ?? "").trim();
+    if (templateId) habilidadeNormalizada.templateId = templateId;
+    if (origem && origem.tipo) habilidadeNormalizada.origem = origem;
+    if (dados.removivel === false) habilidadeNormalizada.removivel = false;
+    return habilidadeNormalizada;
   }
 
   function obterEstadoHabilidade(habilidade) {

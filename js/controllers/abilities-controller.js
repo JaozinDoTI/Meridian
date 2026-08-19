@@ -57,6 +57,11 @@ function obterDefinicaoIconeHabilidade(iconeId) {
   }) || CATALOGO_ICONES_HABILIDADE[0];
 }
 
+function obterRotuloTipoDaHabilidade(habilidade) {
+  if (habilidade.subtipo === "preparacao") return "Técnica de preparação";
+  return obterRotuloTipoHabilidade(habilidade.tipo);
+}
+
 function criarIconeHabilidade(iconeId) {
   const definicao = obterDefinicaoIconeHabilidade(iconeId);
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -86,7 +91,7 @@ function criarItemVisualHabilidade(habilidade, modoResumo) {
       ability: habilidade,
       state: estado,
       selected: habilidade.id === habilidadeSelecionadaId,
-      typeLabel: obterRotuloTipoHabilidade(habilidade.tipo),
+      typeLabel: obterRotuloTipoDaHabilidade(habilidade),
       stateLabel: obterRotuloEstadoHabilidade(estado),
       operation: obterResumoOperacionalHabilidade(habilidade),
       createIcon: criarIconeHabilidade
@@ -116,7 +121,7 @@ function criarItemVisualHabilidade(habilidade, modoResumo) {
   name.textContent = habilidade.nome;
   const meta = document.createElement("small");
   const atributo = habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : "";
-  meta.textContent = `${obterRotuloTipoHabilidade(habilidade.tipo)}${atributo}`;
+  meta.textContent = `${obterRotuloTipoDaHabilidade(habilidade)}${atributo}`;
   copy.append(name, meta);
 
   const operation = document.createElement("span");
@@ -280,15 +285,21 @@ function renderizarDetalhesDaHabilidade(habilidadesVisiveis = obterHabilidadesFi
   const header = window.GrimorioAbilitiesView.createDetailHeader({
     ability: habilidade,
     state: estado,
-    typeLabel: obterRotuloTipoHabilidade(habilidade.tipo),
+    typeLabel: obterRotuloTipoDaHabilidade(habilidade),
     stateLabel: obterRotuloEstadoHabilidade(estado),
     createIcon: criarIconeHabilidade
   });
 
   const mechanics = document.createElement("div");
   mechanics.className = "ability-mechanics";
-  mechanics.append(
-    window.GrimorioAbilitiesView.createMechanicCell({
+  const celulaDeCusto = habilidade.custo
+    ? window.GrimorioAbilitiesView.createMechanicCell({
+      label: "Custo",
+      value: habilidade.custo,
+      iconId: "mana",
+      createIcon: criarIconeHabilidade
+    })
+    : window.GrimorioAbilitiesView.createMechanicCell({
       label: "Custos",
       iconId: "mana",
       createIcon: criarIconeHabilidade,
@@ -296,12 +307,17 @@ function renderizarDetalhesDaHabilidade(habilidadesVisiveis = obterHabilidadesFi
         { label: "Mana", value: habilidade.custos.mana || "—" },
         { label: "PE", value: habilidade.custos.pe || "—" }
       ]
-    }),
+    });
+  mechanics.append(
+    celulaDeCusto,
     window.GrimorioAbilitiesView.createMechanicCell({
-      label: "Alcance",
-      value: habilidade.alcance || "—",
+      label: "Alcance e alvo",
       iconId: "alvo",
-      createIcon: criarIconeHabilidade
+      createIcon: criarIconeHabilidade,
+      lines: [
+        { label: "Alcance", value: habilidade.alcance || "—" },
+        { label: "Alvo", value: habilidade.alvo || "—" }
+      ]
     }),
     window.GrimorioAbilitiesView.createMechanicCell({
       label: "Dano",
@@ -333,9 +349,32 @@ function renderizarDetalhesDaHabilidade(habilidadesVisiveis = obterHabilidadesFi
       variant: "description"
     }),
     window.GrimorioAbilitiesView.createTextSection({
-      title: "Condições e efeitos",
+      title: "Gatilho",
+      content: habilidade.gatilho,
+      variant: "trigger"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Teste",
+      content: habilidade.teste,
+      variant: "test"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Efeito",
       content: habilidade.efeitos,
       variant: "effects"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Falha",
+      content: habilidade.falha,
+      variant: "failure"
+    }),
+    window.GrimorioAbilitiesView.createTextSection({
+      title: "Usos e recarga",
+      content: [
+        habilidade.usosTexto ? `Usos: ${habilidade.usosTexto}` : "",
+        habilidade.recargaTexto ? `Recarga: ${habilidade.recargaTexto}` : ""
+      ].filter(Boolean),
+      variant: "usage"
     }),
     window.GrimorioAbilitiesView.createTextSection({
       title: "Requisitos",
@@ -518,7 +557,7 @@ function abrirDialogDeIcone(habilidade, modo) {
   const name = document.createElement("strong");
   name.textContent = habilidade.nome;
   const meta = document.createElement("span");
-  meta.textContent = `${obterRotuloTipoHabilidade(habilidade.tipo)}${habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : ""}`;
+  meta.textContent = `${obterRotuloTipoDaHabilidade(habilidade)}${habilidade.atributo ? ` · ${habilidade.atributo.toUpperCase()}` : ""}`;
   const description = document.createElement("p");
   description.textContent = habilidade.descricao || "Sem descrição.";
   abilityImportPreview.append(name, meta, description);
@@ -581,6 +620,10 @@ function confirmarDialogDeHabilidade() {
 function solicitarRemocaoDaHabilidade() {
   const habilidade = encontrarHabilidade(habilidadeSelecionadaId);
   if (!habilidade) return;
+  if (habilidade.removivel === false) {
+    mostrarMensagemDaFicha("Habilidades concedidas pela classe não podem ser removidas.", true);
+    return;
+  }
   abilityRemoveDescription.textContent = `“${habilidade.nome}” será removida da ficha atual.`;
   abilityRemoveDialog.showModal();
   abilityRemoveConfirm.focus();
@@ -591,6 +634,11 @@ function removerHabilidadeSelecionada() {
     return habilidade.id === habilidadeSelecionadaId;
   });
   if (indice < 0) return;
+  if (personagem.habilidades[indice].removivel === false) {
+    abilityRemoveDialog.close();
+    mostrarMensagemDaFicha("Habilidades concedidas pela classe não podem ser removidas.", true);
+    return;
+  }
 
   personagem.habilidades.splice(indice, 1);
   habilidadeSelecionadaId = personagem.habilidades[indice]?.id
