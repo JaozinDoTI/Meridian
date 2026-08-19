@@ -7,9 +7,43 @@
     name="description"
     content="Grimório RPG: crie uma nova ficha de personagem ou prepare a importação de uma ficha existente."
   />
+  <meta name="meridian-build" content="20260819-4" />
   <title>Grimório RPG</title>
   <link rel="icon" type="image/svg+xml" href="./assets/grimorio-book.svg?v=20260819-2" />
   <link rel="stylesheet" href="./css/app.css?v=20260819-3" />
+  <script>
+    (function verificarVersaoDoMeridian() {
+      const versaoAtual = document.querySelector('meta[name="meridian-build"]')?.content;
+      const urlAtual = new URL(window.location.href);
+
+      fetch(`./version.json?agora=${Date.now()}`, { cache: "no-store" })
+        .then(function (resposta) {
+          if (!resposta.ok) throw new Error("Versão indisponível");
+          return resposta.json();
+        })
+        .then(function (manifesto) {
+          const versaoPublicada = String(manifesto.version || "").trim();
+          if (versaoPublicada && versaoAtual && versaoPublicada !== versaoAtual) {
+            urlAtual.searchParams.set("v", versaoPublicada);
+            window.location.replace(urlAtual.toString());
+            return;
+          }
+
+          if (urlAtual.searchParams.has("v")) {
+            urlAtual.searchParams.delete("v");
+            const enderecoLimpo = `${urlAtual.pathname}${urlAtual.search}${urlAtual.hash}`;
+            fetch(enderecoLimpo, { cache: "reload" })
+              .catch(function () {})
+              .finally(function () {
+                window.history.replaceState(null, "", enderecoLimpo);
+              });
+          }
+        })
+        .catch(function () {
+          // Falha de rede não impede o uso da versão já carregada.
+        });
+    })();
+  </script>
 </head>
 <body>
   <main class="grimoire-page" aria-labelledby="page-title">
